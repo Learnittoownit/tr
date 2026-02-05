@@ -11,45 +11,117 @@ struct AI_Questionnaire_View: View {
             Color(.background)
                 .ignoresSafeArea()
             
-            // Content
-            VStack(spacing: 40) {
-                // Progress Bar at top
-                ProgressBar(currentStep: viewModel.currentQuestion, totalSteps: 6)
-                    .padding(.horizontal, 30)
-                    .padding(.top, 20)
-                
-                // Question Content
-                ScrollView(showsIndicators: false) {
-                    VStack(spacing: 20) {
-                        switch viewModel.currentQuestion {
-                        case 1:
-                            Question1_CitySelection(viewModel: viewModel)
-                        case 2:
-                            Question2_ExperienceTypes(viewModel: viewModel)
-                        case 3:
-                            Question3_TravelCompanions(viewModel: viewModel)
-                        case 4:
-                            Question4_Budget(viewModel: viewModel)
-                        case 5:
-                            Question5_Days(viewModel: viewModel)
-                        case 6:
-                            Question6_TravelPace(viewModel: viewModel)
-                        default:
-                            EmptyView()
+            if viewModel.isGenerating {
+                // Loading Screen
+                LoadingScreen(viewModel: viewModel)
+                    .transition(.opacity)
+            } else {
+                // Questionnaire Content
+                VStack(spacing: 0) {
+                    // Progress Bar at top
+                    ProgressBar(currentStep: viewModel.currentQuestion, totalSteps: 6)
+                        .padding(.horizontal, 30)
+                        .padding(.top, 60)
+                    
+                    // Question Content
+                    ScrollView(showsIndicators: false) {
+                        VStack(spacing: 20) {
+                            switch viewModel.currentQuestion {
+                            case 1:
+                                Question1_CitySelection(viewModel: viewModel)
+                            case 2:
+                                Question2_ExperienceTypes(viewModel: viewModel)
+                            case 3:
+                                Question3_TravelCompanions(viewModel: viewModel)
+                            case 4:
+                                Question4_Budget(viewModel: viewModel)
+                            case 5:
+                                Question5_Days(viewModel: viewModel)
+                            case 6:
+                                Question6_TravelPace(viewModel: viewModel)
+                            default:
+                                EmptyView()
+                            }
                         }
+                        .padding(.horizontal, 30)
+                        .padding(.top, 40)
+                        .padding(.bottom, 20)
                     }
-                    .padding(.horizontal, 30)
-                    .padding(.top, 40)
-                    .padding(.bottom, 20)
+                    
+                    // Navigation Buttons at bottom
+                    NavigationButtons(viewModel: viewModel)
+                        .padding(.horizontal, 30)
+                        .padding(.bottom, 40)
                 }
-                
-                // Navigation Buttons at bottom
-                NavigationButtons(viewModel: viewModel)
-                    .padding(.horizontal, 30)
-                    .padding(.bottom, 40)
+                .transition(.opacity)
             }
         }
         .animation(.spring(response: 0.5, dampingFraction: 0.8), value: viewModel.currentQuestion)
+        .animation(.easeInOut(duration: 0.3), value: viewModel.isGenerating)
+    }
+}
+
+// MARK: - Loading Screen
+struct LoadingScreen: View {
+    @ObservedObject var viewModel: AI_Questionnaire_Model
+    
+    var body: some View {
+        VStack(spacing: 0) {
+            Spacer()
+            
+            VStack(spacing: 32) {
+                // Title and subtitle
+                VStack(spacing: 12) {
+                    Text("Creating your journey")
+                        .font(.system(size: 32, weight: .bold, design: .rounded))
+                        .foregroundColor(Color(red: 0.3, green: 0.25, blue: 0.23))
+                    
+                    Text("Our AI is crafting the perfect itinerary\nbased on your preferences")
+                        .font(.system(size: 16, weight: .regular, design: .rounded))
+                        .foregroundColor(Color(red: 0.5, green: 0.45, blue: 0.43))
+                        .multilineTextAlignment(.center)
+                        .lineSpacing(4)
+                }
+                .padding(.horizontal, 40)
+                
+                // Circular Progress
+                ZStack {
+                    // Background Circle
+                    Circle()
+                        .stroke(Color(red: 0.85, green: 0.82, blue: 0.8), lineWidth: 12)
+                        .frame(width: 280, height: 280)
+                    
+                    // Progress Circle
+                    Circle()
+                        .trim(from: 0, to: viewModel.generationProgress)
+                        .stroke(
+                            Color(red: 0.45, green: 0.6, blue: 0.5),
+                            style: StrokeStyle(lineWidth: 12, lineCap: .round)
+                        )
+                        .frame(width: 280, height: 280)
+                        .rotationEffect(.degrees(-90))
+                        .animation(.easeInOut(duration: 0.5), value: viewModel.generationProgress)
+                    
+                    // Center Content
+                    VStack(spacing: 16) {
+                        Text("\(Int(viewModel.generationProgress * 100))%")
+                            .font(.system(size: 64, weight: .bold, design: .rounded))
+                            .foregroundColor(Color(red: 0.45, green: 0.6, blue: 0.5))
+                        
+                        Text(viewModel.generationStep)
+                            .font(.system(size: 16, weight: .regular, design: .rounded))
+                            .foregroundColor(Color(red: 0.3, green: 0.25, blue: 0.23))
+                            .multilineTextAlignment(.center)
+                            .padding(.horizontal, 40)
+                    }
+                }
+                .padding(.top, 40)
+            }
+            
+            Spacer()
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background(Color(red: 0.96, green: 0.94, blue: 0.92))
     }
 }
 
@@ -101,10 +173,8 @@ struct NavigationButtons: View {
             // Next Button
             Button(action: {
                 if viewModel.currentQuestion == 6 {
-                    // Generate plan with GPT
-                    let prompt = viewModel.generateGPTPrompt()
-                    print("GPT Prompt: \(prompt)")
-                    // TODO: Call GPT API here
+                    // Start generation with loading screen
+                    viewModel.startGeneration()
                 } else {
                     viewModel.goToNextQuestion()
                 }
@@ -132,7 +202,7 @@ struct Question1_CitySelection: View {
     @ObservedObject var viewModel: AI_Questionnaire_Model
     
     var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
+        VStack(alignment: .leading, spacing: 24) {
             // Title
             VStack(alignment: .leading, spacing: 8) {
                 Text("Select the City")

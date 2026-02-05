@@ -38,6 +38,11 @@ class AI_Questionnaire_Model: ObservableObject {
     // Current question index (1-6)
     @Published var currentQuestion: Int = 1
     
+    // Loading state
+    @Published var isGenerating: Bool = false
+    @Published var generationProgress: Double = 0.0
+    @Published var generationStep: String = "Analyzing your destination"
+    
     // Q1: City Selection
     @Published var selectedCity: City?
     let cities = [
@@ -145,5 +150,35 @@ class AI_Questionnaire_Model: ObservableObject {
         }
         
         return prompt
+    }
+    
+    // Start generation with animated progress
+    func startGeneration() {
+        isGenerating = true
+        generationProgress = 0.0
+        
+        let steps = [
+            (progress: 0.2, step: "Analyzing your destination"),
+            (progress: 0.4, step: "Gathering experiences"),
+            (progress: 0.6, step: "Optimizing your itinerary"),
+            (progress: 0.8, step: "Personalizing recommendations"),
+            (progress: 1.0, step: "Finalizing your journey")
+        ]
+        
+        var currentStepIndex = 0
+        
+        Timer.scheduledTimer(withTimeInterval: 0.8, repeats: true) { timer in
+            if currentStepIndex < steps.count {
+                withAnimation(.easeInOut(duration: 0.5)) {
+                    self.generationProgress = steps[currentStepIndex].progress
+                    self.generationStep = steps[currentStepIndex].step
+                }
+                currentStepIndex += 1
+            } else {
+                timer.invalidate()
+                // TODO: Navigate to results page or call GPT API
+                // For now, keep showing 100%
+            }
+        }
     }
 }
