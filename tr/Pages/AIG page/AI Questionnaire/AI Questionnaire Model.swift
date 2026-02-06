@@ -81,6 +81,12 @@ class AI_Questionnaire_Model: ObservableObject {
     // Q5: Number of days
     @Published var numberOfDays: Double = 1
     let maxDays: Double = 7
+
+    // ✅ Add this (for the UI Text + slider binding)
+    var selectedDays: Int {
+        get { Int(numberOfDays.rounded()) }
+        set { numberOfDays = Double(newValue) }
+    }
     
     // Q6: Travel Pace
     @Published var selectedPace: TravelPace?
