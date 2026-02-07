@@ -2,7 +2,7 @@ import Foundation
 
 class OpenAIService {
 
-    private let apiKey = "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"
+    private let apiKey = "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" // حطي الـ API Key حقك
 
     func generatePlan(prompt: String) async throws -> String {
 
@@ -27,7 +27,6 @@ class OpenAIService {
         let (data, _) = try await URLSession.shared.data(for: request)
 
         let response = try JSONSerialization.jsonObject(with: data) as? [String: Any]
-
         let choices = response?["choices"] as? [[String: Any]]
         let message = choices?.first?["message"] as? [String: Any]
 

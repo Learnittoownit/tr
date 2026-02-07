@@ -2,8 +2,8 @@ import SwiftUI
 import Combine
 
 struct AI_Questionnaire_View: View {
-    @StateObject private var viewModel = AI_Questionnaire_Model()
-    @Environment(\.dismiss) var dismiss
+    @ObservedObject var viewModel: AI_Questionnaire_Model
+    @Binding var showPrePage: Bool
     
     var body: some View {
         ZStack {
@@ -11,7 +11,11 @@ struct AI_Questionnaire_View: View {
             Color("Background")
                 .ignoresSafeArea()
             
-            if viewModel.isGenerating {
+            // ✅ FIXED: Smooth transition like questionnaire pages
+            if viewModel.showGeneratedPlan {
+                AI_Plan_View(viewModel: viewModel, showPrePage: $showPrePage)
+                    .transition(.opacity) // Changed from .move to .opacity for smooth transition
+            } else if viewModel.isGenerating {
                 // Loading Screen
                 LoadingScreen(viewModel: viewModel)
                     .transition(.opacity)
@@ -58,6 +62,7 @@ struct AI_Questionnaire_View: View {
         }
         .animation(.spring(response: 0.5, dampingFraction: 0.8), value: viewModel.currentQuestion)
         .animation(.easeInOut(duration: 0.3), value: viewModel.isGenerating)
+        .animation(.spring(response: 0.5, dampingFraction: 0.8), value: viewModel.showGeneratedPlan) // ✅ FIXED: Smooth spring animation
     }
 }
 
@@ -233,7 +238,7 @@ struct Question1_CitySelection: View {
                     }
                 }
             }
-            .frame(maxWidth: 340)          // ✅ controls the “column” width like the design
+            .frame(maxWidth: 340)          // ✅ controls the "column" width like the design
             .frame(maxWidth: .infinity)    // ✅ centers that column in the screen
         }
     }
@@ -405,7 +410,7 @@ struct Question3_TravelCompanions: View {
 
                 Text("This helps us personalize your trip!")
                     .font(.system(size: 20, weight: .regular, design: .rounded))
-                    .foregroundColor(Color("Green"))
+                    .foregroundColor(Color("Light small text"))
                     .multilineTextAlignment(.center)
                     .frame(maxWidth: .infinity)
             }
@@ -696,7 +701,7 @@ struct Question6_TravelPace: View {
                 
                 Text("Choose your ideal pace")
                     .font(.system(size: 16, weight: .regular, design: .rounded))
-                    .foregroundColor(Color("Dark small text"))
+                    .foregroundColor(Color("Light small text"))
             }
             .padding(.top, 30)
             .padding(.horizontal, 40)
@@ -767,7 +772,7 @@ struct PaceButton: View {
             .frame(maxWidth: .infinity, alignment: .leading)
             .padding(24)
             .background(
-                isSelected ? Color("Next button") : Color("QButton").opacity(0.3)
+                isSelected ? Color("Next button") : Color("QButton")
             )
             .cornerRadius(28)
         }
@@ -775,11 +780,13 @@ struct PaceButton: View {
         .animation(.spring(response: 0.3), value: isSelected)
     }
 }
-        // MARK: - Preview
-        struct AI_Questionnaire_View_Previews: PreviewProvider {
-            static var previews: some View {
-                AI_Questionnaire_View()
-            }
-        }
-    
-    
+
+// MARK: - Preview
+struct AI_Questionnaire_View_Previews: PreviewProvider {
+    static var previews: some View {
+        AI_Questionnaire_View(
+            viewModel: AI_Questionnaire_Model(),
+            showPrePage: .constant(false)
+        )
+    }
+}

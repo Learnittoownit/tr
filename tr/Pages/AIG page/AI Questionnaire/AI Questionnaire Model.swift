@@ -2,7 +2,7 @@ import Foundation
 import SwiftUI
 import Combine
 
-// MARK: - Data Models
+// MARK: - Questionnaire Data Models
 struct TravelCompanion: Identifiable, Hashable {
     let id = UUID()
     let title: String
@@ -33,6 +33,34 @@ struct BudgetOption: Identifiable, Hashable {
     let range: String
 }
 
+// MARK: - Generated Plan Models
+struct ActivityLink {
+    let url: String
+    let displayText: String
+}
+
+struct GeneratedActivity: Identifiable {
+    let id = UUID()
+    let time: String
+    let name: String
+    let description: String
+    let links: [ActivityLink]
+}
+
+struct GeneratedDay: Identifiable {
+    let id = UUID()
+    let dayNumber: Int
+    var activities: [GeneratedActivity]
+    var isExpanded: Bool = false
+}
+
+struct GeneratedTrip {
+    let cityName: String
+    var days: [GeneratedDay]
+}
+
+
+
 // MARK: - View Model
 class AI_Questionnaire_Model: ObservableObject {
     // Current question index (1-6)
@@ -42,6 +70,14 @@ class AI_Questionnaire_Model: ObservableObject {
     @Published var isGenerating: Bool = false
     @Published var generationProgress: Double = 0.0
     @Published var generationStep: String = "Analyzing your destination"
+    
+    // Generated plan
+    @Published var generatedTrip: GeneratedTrip?
+    @Published var showGeneratedPlan: Bool = false
+    
+    // AI Generations tracking
+    @Published var remainingGenerations: Int = 5 // TODO: Load from UserDefaults or backend
+    private let maxGenerationsPerMonth = 5
     
     // Q1: City Selection
     @Published var selectedCity: City?
@@ -82,7 +118,6 @@ class AI_Questionnaire_Model: ObservableObject {
     @Published var numberOfDays: Double = 1
     let maxDays: Double = 7
 
-    // ✅ Add this (for the UI Text + slider binding)
     var selectedDays: Int {
         get { Int(numberOfDays.rounded()) }
         set { numberOfDays = Double(newValue) }
@@ -129,7 +164,7 @@ class AI_Questionnaire_Model: ObservableObject {
         }
     }
     
-    // Generate prompt for GPT
+    // Generate prompt for GPT (for future use)
     func generateGPTPrompt() -> String {
         var prompt = "Generate a personalized travel itinerary with the following preferences:\n\n"
         
@@ -158,33 +193,147 @@ class AI_Questionnaire_Model: ObservableObject {
         return prompt
     }
     
-    // Start generation with animated progress
     func startGeneration() {
+
+        guard remainingGenerations > 0 else { return }
+        remainingGenerations -= 1
+
         isGenerating = true
-        generationProgress = 0.0
-        
-        let steps = [
-            (progress: 0.2, step: "Analyzing your destination"),
-            (progress: 0.4, step: "Gathering experiences"),
-            (progress: 0.6, step: "Optimizing your itinerary"),
-            (progress: 0.8, step: "Personalizing recommendations"),
-            (progress: 1.0, step: "Finalizing your journey")
-        ]
-        
-        var currentStepIndex = 0
-        
-        Timer.scheduledTimer(withTimeInterval: 0.8, repeats: true) { timer in
-            if currentStepIndex < steps.count {
-                withAnimation(.easeInOut(duration: 0.5)) {
-                    self.generationProgress = steps[currentStepIndex].progress
-                    self.generationStep = steps[currentStepIndex].step
+        generationProgress = 0.2
+
+        Task {
+
+            do {
+
+                generationStep = "Creating your AI plan..."
+
+                let prompt = generateGPTPrompt()
+
+                let aiText = try await OpenAIService().generatePlan(prompt: prompt)
+                print("GPT Response: \(aiText)") // تأكدي إنه يطبع شي في الـ Console
+
+
+                // حذف أو تعليق createMockTrip() مؤقتاً
+                // self.createMockTrip()
+
+                await MainActor.run {
+                    self.isGenerating = false
+                    self.showGeneratedPlan = true
                 }
-                currentStepIndex += 1
-            } else {
-                timer.invalidate()
-                // TODO: Navigate to results page or call GPT API
-                // For now, keep showing 100%
+
+            } catch {
+                print(error)
+
+                await MainActor.run {
+                    self.isGenerating = false
+                }
             }
         }
+    }
+
+    
+    // Reset to prepage
+    func resetToPrePage() {
+        showGeneratedPlan = false
+        currentQuestion = 1
+        generationProgress = 0.0
+        isGenerating = false
+    }
+    
+    // Create mock trip (replace with GPT response parsing later)
+    private func createMockTrip() {
+        let cityName = selectedCity?.name ?? "Riyadh"
+        let numDays = Int(numberOfDays)
+        
+        var days: [GeneratedDay] = []
+        
+        for dayNum in 1...numDays {
+            let activities = createMockActivities(for: dayNum)
+            days.append(GeneratedDay(
+                dayNumber: dayNum,
+                activities: activities,
+                isExpanded: dayNum == 1 // First day expanded
+            ))
+        }
+        
+        generatedTrip = GeneratedTrip(cityName: cityName, days: days)
+    }
+    
+    // Create mock activities based on preferences
+    private func createMockActivities(for dayNumber: Int) -> [GeneratedActivity] {
+        var activities: [GeneratedActivity] = []
+        
+        // Cultural activity
+        if selectedExperiences.contains(where: { $0.title.contains("Cultural") }) {
+            activities.append(GeneratedActivity(
+                time: "9:00 AM",
+                name: dayNumber == 1 ? "National Museum" : "Historical District Tour",
+                description: "Explore rich cultural heritage and history",
+                links: [
+                    ActivityLink(url: "https://maps.google.com", displayText: "https://maps.app.goo.gl/museum")
+                ]
+            ))
+        }
+        
+        // Food activity
+        if selectedExperiences.contains(where: { $0.title.contains("Food") }) {
+            activities.append(GeneratedActivity(
+                time: "1:00 PM",
+                name: dayNumber == 1 ? "Billy Brunch" : "Traditional Saudi Restaurant",
+                description: "Don't forget to check on the reservation",
+                links: [
+                    ActivityLink(url: "https://maps.google.com", displayText: "https://maps.app.goo.gl/rMtD3jZL6w2yjK9Q5B"),
+                    ActivityLink(url: "https://booking.com", displayText: "Link if it was added")
+                ]
+            ))
+        }
+        
+        // Adventure activity
+        if selectedExperiences.contains(where: { $0.title.contains("Adventure") }) {
+            activities.append(GeneratedActivity(
+                time: "4:00 PM",
+                name: dayNumber == 1 ? "Edge of the World" : "Desert Safari",
+                description: "Breathtaking natural landscapes and adventure",
+                links: [
+                    ActivityLink(url: "https://maps.google.com", displayText: "https://maps.app.goo.gl/edge")
+                ]
+            ))
+        }
+        
+        // Shopping activity
+        if selectedExperiences.contains(where: { $0.title.contains("Shopping") }) {
+            activities.append(GeneratedActivity(
+                time: "6:00 PM",
+                name: "Modern Shopping District",
+                description: "Contemporary malls and boutiques",
+                links: [
+                    ActivityLink(url: "https://maps.google.com", displayText: "https://maps.app.goo.gl/mall")
+                ]
+            ))
+        }
+        
+        // Default activities if none selected
+        if activities.isEmpty {
+            activities = [
+                GeneratedActivity(
+                    time: "10:00 AM",
+                    name: "City Exploration",
+                    description: "Discover the best of the city",
+                    links: [
+                        ActivityLink(url: "https://maps.google.com", displayText: "https://maps.app.goo.gl/city")
+                    ]
+                ),
+                GeneratedActivity(
+                    time: "2:00 PM",
+                    name: "Local Restaurant",
+                    description: "Try authentic local cuisine",
+                    links: [
+                        ActivityLink(url: "https://maps.google.com", displayText: "https://maps.app.goo.gl/restaurant")
+                    ]
+                )
+            ]
+        }
+        
+        return activities
     }
 }
