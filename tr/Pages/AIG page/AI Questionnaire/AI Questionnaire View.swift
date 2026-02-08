@@ -1,3 +1,32 @@
+struct AppColors {
+    static func selected(
+        isSelected: Bool,
+        colorScheme: ColorScheme,
+        light: Color,
+        normal: Color
+    ) -> Color {
+        if isSelected && colorScheme == .dark {
+            return Color(hex: "DAD2C8")
+        } else if isSelected {
+            return light
+        } else {
+            return normal
+        }
+    }
+}
+extension Color {
+    init(hex: String) {
+        let hex = hex.trimmingCharacters(in: CharacterSet.alphanumerics.inverted)
+        var int: UInt64 = 0
+        Scanner(string: hex).scanHexInt64(&int)
+
+        let r = Double((int >> 16) & 0xFF) / 255
+        let g = Double((int >> 8) & 0xFF) / 255
+        let b = Double(int & 0xFF) / 255
+
+        self.init(red: r, green: g, blue: b)
+    }
+}
 import SwiftUI
 import Combine
 
@@ -158,28 +187,32 @@ struct ProgressBar: View {
 // MARK: - Navigation Buttons
 struct NavigationButtons: View {
     @ObservedObject var viewModel: AI_Questionnaire_Model
+    @Environment(\.colorScheme) var colorScheme
     
     var body: some View {
         HStack(spacing: 12) {
+
             // Back Button
             Button(action: {
                 viewModel.goToPreviousQuestion()
             }) {
                 Text("Back")
                     .font(.system(size: 16, weight: .semibold, design: .rounded))
-                    .foregroundColor(Color(red: 0.3, green: 0.25, blue: 0.23))
+                    .foregroundColor(Color("Title"))
                     .frame(maxWidth: .infinity)
                     .frame(height: 50)
-                    .background(Color(red: 0.85, green: 0.82, blue: 0.8))
+                    .background(
+                        colorScheme == .dark
+                        ? Color("Card")
+                        : Color(red: 0.85, green: 0.82, blue: 0.8)
+                    )
                     .cornerRadius(25)
             }
             .disabled(viewModel.currentQuestion == 1)
-            .opacity(viewModel.currentQuestion == 1 ? 0.5 : 1)
-            
+            .opacity(viewModel.currentQuestion == 1 ? 0.8 : 1) // ✅ بدل 0.5
             // Next Button
             Button(action: {
                 if viewModel.currentQuestion == 6 {
-                    // Start generation with loading screen
                     viewModel.startGeneration()
                 } else {
                     viewModel.goToNextQuestion()
@@ -191,9 +224,14 @@ struct NavigationButtons: View {
                     .frame(maxWidth: .infinity)
                     .frame(height: 50)
                     .background(
-                        viewModel.isCurrentQuestionValid() ?
-                        Color(red: 0.3, green: 0.25, blue: 0.23) :
-                        Color(red: 0.85, green: 0.82, blue: 0.8)
+                        viewModel.isCurrentQuestionValid()
+                        ? AppColors.selected(
+                            isSelected: true,
+                            colorScheme: colorScheme,
+                            light: Color(red: 0.3, green: 0.25, blue: 0.23),
+                            normal: Color.clear
+                        )
+                        : Color(red: 0.85, green: 0.82, blue: 0.8)
                     )
                     .cornerRadius(25)
             }
@@ -220,7 +258,7 @@ struct Question1_CitySelection: View {
 
                 Text("Choose your destination in Saudi Arabia")
                     .font(.system(size: 20, weight: .regular, design: .rounded))
-                    .foregroundColor(Color("Light small text"))
+                    .foregroundColor(Color("Light small text").opacity(0.55))
                     .multilineTextAlignment(.center)
             }
             .frame(maxWidth: .infinity)
@@ -243,20 +281,20 @@ struct Question1_CitySelection: View {
         }
     }
 }
-
 struct CityButton: View {
     let title: String
     let isSelected: Bool
     let action: () -> Void
+    
+    @Environment(\.colorScheme) var colorScheme
 
     var body: some View {
         Button(action: action) {
-            HStack  {
+            HStack {
                 Text(title)
                     .font(.system(size: 20, weight: .semibold, design: .rounded))
                     .foregroundColor(isSelected ? .white : Color("Title"))
                     .padding(.top, 2)
-                   
 
                 Spacer()
             }
@@ -264,18 +302,15 @@ struct CityButton: View {
             .frame(maxWidth: .infinity)
             .frame(height: 96)
             .background(
-                isSelected ? Color("Button click") : Color("Card")
+                AppColors.selected(
+                    isSelected: isSelected,
+                    colorScheme: colorScheme,
+                    light: Color("Button click"),
+                    normal: Color("Card")
+                )
             )
-            .clipShape(
-                RoundedRectangle(cornerRadius: 28, style: .continuous)
-            )
-            
-            .shadow(
-                color: Color.black.opacity(0.06),
-                radius: 12,
-                x: 0,
-                y: 6
-            )
+            .clipShape(RoundedRectangle(cornerRadius: 28, style: .continuous))
+            .shadow(color: Color.black.opacity(0.06), radius: 12, x: 0, y: 6)
         }
         .buttonStyle(.plain)
         .animation(.easeInOut(duration: 0.2), value: isSelected)
@@ -285,11 +320,12 @@ struct CityButton: View {
 // MARK: - Question 2: Experience Types
 struct Question2_ExperienceTypes: View {
     @ObservedObject var viewModel: AI_Questionnaire_Model
-    
+
     private let columns = [
         GridItem(.flexible(), spacing: 18),
         GridItem(.flexible(), spacing: 18)
     ]
+
     private func toggleExperience(_ experience: ExperienceType) {
         if viewModel.selectedExperiences.contains(experience) {
             viewModel.selectedExperiences.remove(experience)
@@ -297,28 +333,27 @@ struct Question2_ExperienceTypes: View {
             viewModel.selectedExperiences.insert(experience)
         }
     }
+
     var body: some View {
-        
         VStack(spacing: 22) {
-            
-            // Title (CENTERED like the design)
+
+            // Title
             VStack(spacing: 10) {
                 Text("What type of experiences\ninterest you?")
                     .font(.system(size: 28, weight: .bold, design: .rounded))
                     .foregroundColor(Color("Title"))
                     .multilineTextAlignment(.center)
-                
+
                 Text("Select all that apply")
                     .font(.system(size: 18, weight: .regular, design: .rounded))
                     .foregroundColor(Color("Light small text").opacity(0.55))
-                    .multilineTextAlignment(.center)
             }
             .frame(maxWidth: .infinity)
             .padding(.top, 10)
-            
+
             VStack(spacing: 18) {
-                
-                // first 4 items (2x2)
+
+                // First 4 (grid)
                 LazyVGrid(columns: columns, spacing: 18) {
                     ForEach(Array(viewModel.experiences.prefix(4))) { experience in
                         ExperienceCard(
@@ -330,8 +365,8 @@ struct Question2_ExperienceTypes: View {
                         }
                     }
                 }
-                
-                // last item centered
+
+                // Last centered
                 if let last = viewModel.experiences.last {
                     HStack {
                         Spacer()
@@ -342,58 +377,69 @@ struct Question2_ExperienceTypes: View {
                         ) {
                             toggleExperience(last)
                         }
-                        .frame(maxWidth: 210) // tweak if you want wider/narrower
+                        .frame(maxWidth: 210)
                         Spacer()
                     }
                 }
             }
         }
     }
-    struct ExperienceCard: View {
-        let title: String
-        let description: String
-        let isSelected: Bool
-        let action: () -> Void
-        
-        var body: some View {
-            Button(action: action) {
-                VStack(spacing: 10) {
-                    Text(title)
-                        .font(.system(size: 16, weight: .bold, design: .rounded))
-                        .foregroundColor(isSelected ? .white : Color("Title"))
-                        .multilineTextAlignment(.center)
-                        .lineLimit(2)
-                        .minimumScaleFactor(0.9)
-                    
-                    Text(description)
-                        .font(.system(size: 12, weight: .regular, design: .rounded))
-                        .foregroundColor(
-                            isSelected
-                            ? .white.opacity(0.85)
-                            : Color("Light small text").opacity(0.6)
-                        )
-                        .multilineTextAlignment(.center)
-                        .lineLimit(3)
-                }
-                .frame(maxWidth: .infinity)
-                .padding(.horizontal, 16)
-                .padding(.vertical, 18)
-                .frame(height: 135)
-                .background(isSelected ? Color("Button click") : Color("Card"))
-                .clipShape(RoundedRectangle(cornerRadius: 28, style: .continuous))
-                .overlay(
-                    RoundedRectangle(cornerRadius: 28, style: .continuous)
-                        .stroke(Color.black.opacity(0.04), lineWidth: 1)
-                )
-                .shadow(color: Color.black.opacity(0.05), radius: 10, x: 0, y: 6)
+}
+
+// MARK: - Experience Card
+struct ExperienceCard: View {
+    let title: String
+    let description: String
+    let isSelected: Bool
+    let action: () -> Void
+
+    @Environment(\.colorScheme) var colorScheme
+
+    var body: some View {
+        Button(action: action) {
+            VStack(spacing: 10) {
+
+                Text(title)
+                    .font(.system(size: 16, weight: .bold, design: .rounded))
+                    .foregroundColor(isSelected ? .white : Color("Title"))
+                    .multilineTextAlignment(.center)
+                    .lineLimit(2)
+
+                Text(description)
+                    .font(.system(size: 12, weight: .regular, design: .rounded))
+                    .foregroundColor(
+                        isSelected
+                        ? .white.opacity(0.85)
+                        : Color("Light small text").opacity(0.6)
+                    )
+                    .multilineTextAlignment(.center)
+                    .lineLimit(3)
             }
-            .buttonStyle(.plain)
-            .animation(.easeInOut(duration: 0.18), value: isSelected)
+            .frame(maxWidth: .infinity)
+            .padding(.horizontal, 16)
+            .padding(.vertical, 18)
+            .frame(height: 135)
+            .background(
+                AppColors.selected(
+                    isSelected: isSelected,
+                    colorScheme: colorScheme,
+                    light: Color("Button click"),
+                    normal: Color("Card")
+                )
+            )
+            .clipShape(RoundedRectangle(cornerRadius: 28, style: .continuous))
+            .overlay(
+                RoundedRectangle(cornerRadius: 28)
+                    .stroke(Color.black.opacity(0.04), lineWidth: 1)
+            )
+            .shadow(color: Color.black.opacity(0.05), radius: 10, x: 0, y: 6)
         }
+        .buttonStyle(.plain)
+        .animation(.easeInOut(duration: 0.18), value: isSelected)
     }
 }
-// MARK: - Question 3: Travel Companions (MATCHING SKETCH – SMALLER)
 
+// MARK: - Question 3: Travel Companions
 struct Question3_TravelCompanions: View {
     @ObservedObject var viewModel: AI_Questionnaire_Model
 
@@ -410,7 +456,7 @@ struct Question3_TravelCompanions: View {
 
                 Text("This helps us personalize your trip!")
                     .font(.system(size: 20, weight: .regular, design: .rounded))
-                    .foregroundColor(Color("Light small text"))
+                    .foregroundColor(Color("Light small text").opacity(0.55))
                     .multilineTextAlignment(.center)
                     .frame(maxWidth: .infinity)
             }
@@ -432,14 +478,18 @@ struct Question3_TravelCompanions: View {
     }
 }
 
+// MARK: - Companion Card
 struct CompanionCard: View {
     let companion: TravelCompanion
     let isSelected: Bool
     let action: () -> Void
 
+    @Environment(\.colorScheme) var colorScheme
+
     var body: some View {
         Button(action: action) {
             VStack(alignment: .leading, spacing: 4) {
+
                 Text(companion.title)
                     .font(.system(size: 20, weight: .bold, design: .rounded))
                     .foregroundColor(isSelected ? .white : Color("Title"))
@@ -457,10 +507,17 @@ struct CompanionCard: View {
             .padding(.vertical, 16)
             .frame(maxWidth: .infinity, alignment: .leading)
             .frame(height: 100)
-            .background(isSelected ? Color("Button click") : Color("Card"))
+            .background(
+                AppColors.selected(
+                    isSelected: isSelected,
+                    colorScheme: colorScheme,
+                    light: Color("Button click"),
+                    normal: Color("Card")
+                )
+            )
             .clipShape(RoundedRectangle(cornerRadius: 22, style: .continuous))
             .overlay(
-                RoundedRectangle(cornerRadius: 22, style: .continuous)
+                RoundedRectangle(cornerRadius: 22)
                     .stroke(Color.black.opacity(0.04), lineWidth: 1)
             )
             .shadow(color: Color.black.opacity(0.04), radius: 8, x: 0, y: 5)
@@ -470,15 +527,15 @@ struct CompanionCard: View {
     }
 }
 
-// MARK: - Question 4: Budget (FIXED - Centered Alignment)
+// MARK: - Question 4: Budget
 struct Question4_Budget: View {
     @ObservedObject var viewModel: AI_Questionnaire_Model
 
     var body: some View {
         VStack(spacing: 0) {
-            
-            Spacer() // ✅ Add spacer at top to push content down
-            
+
+            Spacer()
+
             // Title
             VStack(spacing: 8) {
                 Text("What's your daily budget per person?")
@@ -487,7 +544,6 @@ struct Question4_Budget: View {
                     .multilineTextAlignment(.center)
             }
 
-            // ✅ Increased space between title and cards (was 28)
             Spacer()
                 .frame(height: 50)
 
@@ -505,20 +561,24 @@ struct Question4_Budget: View {
             .frame(maxWidth: 360)
             .frame(maxWidth: .infinity)
 
-            Spacer() // ✅ Add spacer at bottom for vertical centering
-            Spacer() // ✅ Extra spacer to balance (adjust if needed)
+            Spacer()
+            Spacer()
         }
     }
 }
 
+// MARK: - Budget Button
 struct BudgetButton: View {
     let budget: BudgetOption
     let isSelected: Bool
     let action: () -> Void
 
+    @Environment(\.colorScheme) var colorScheme
+
     var body: some View {
         Button(action: action) {
             HStack {
+
                 VStack(alignment: .leading, spacing: 6) {
                     Text(budget.title)
                         .font(.system(size: 20, weight: .semibold, design: .rounded))
@@ -534,17 +594,17 @@ struct BudgetButton: View {
                 }
 
                 Spacer()
-                    
             }
             .padding(.horizontal, 24)
-            .padding (.top, 2)
+            .padding(.top, 2)
             .frame(height: 112)
             .background(
-                isSelected
-                ? Color("Button click")
-                : Color("Card")
-
-                
+                AppColors.selected(
+                    isSelected: isSelected,
+                    colorScheme: colorScheme,
+                    light: Color("Button click"),
+                    normal: Color("Card")
+                )
             )
             .clipShape(RoundedRectangle(cornerRadius: 26, style: .continuous))
             .shadow(color: Color.black.opacity(0.06), radius: 12, x: 0, y: 8)
@@ -553,47 +613,59 @@ struct BudgetButton: View {
         .animation(.easeInOut(duration: 0.2), value: isSelected)
     }
 }
+
 // MARK: - Question 5: Days
 struct Question5_Days: View {
     @ObservedObject var viewModel: AI_Questionnaire_Model
+    @Environment(\.colorScheme) var colorScheme
 
-    // Colors to match the design palette
-    private let titleColor = Color(red: 0.30, green: 0.25, blue: 0.23)   // Brown
-    private let lightText = Color(red: 0.30, green: 0.25, blue: 0.23).opacity(0.55)
-    private let greenAccent = Color(red: 0.42, green: 0.56, blue: 0.44) // Muted Green
+    // ألوان العناوين
+    private let titleColor = Color(red: 0.30, green: 0.25, blue: 0.23)
 
     var body: some View {
         VStack(spacing: 0) {
-            // Header Section
+
+            // العنوان
             VStack(spacing: 8) {
                 Text("How many days will you be traveling?")
                     .font(.system(size: 28, weight: .bold, design: .rounded))
-                    .foregroundColor(titleColor)
+                    .foregroundColor(
+                        colorScheme == .dark
+                        ? Color(hex: "DAD2C8")        // 🌙 نفس لون الكروت
+                        : titleColor
+                    )
                     .multilineTextAlignment(.center)
 
                 Text("Maximum 7 days")
                     .font(.system(size: 15, weight: .regular, design: .rounded))
-                    .foregroundColor(lightText)
+                    .foregroundColor(
+                        colorScheme == .dark
+                        ? Color(hex: "CBB7A3")        // 🌙 نفس لون WEEKEND / SHORT
+                        : Color.gray.opacity(0.6)
+                    )
             }
             .padding(.top, 10)
 
             Spacer()
 
-            // Hero Number Section
+            // الرقم الكبير
             VStack(spacing: 0) {
                 Text("\(Int(viewModel.numberOfDays))")
-                    .font(.system(size: 90, weight: .bold, design: .rounded))
-                    .foregroundColor(greenAccent)
+                    .font(.custom("Impact", size: 90))
+                    .foregroundColor(Color("Green"))
 
                 Text("Day")
                     .font(.system(size: 22, weight: .medium, design: .rounded))
-                    .foregroundColor(lightText)
+                    .foregroundColor(
+                        colorScheme == .dark
+                        ? Color(hex: "CBB7A3")
+                        : Color.gray.opacity(0.7)
+                    )
             }
 
-            Spacer()
-                .frame(height: 30)
+            Spacer().frame(height: 30)
 
-            // Slider Section
+            // السلايدر
             VStack(spacing: 12) {
                 Slider(value: $viewModel.numberOfDays, in: 1...7, step: 1)
                     .tint(titleColor)
@@ -604,36 +676,65 @@ struct Question5_Days: View {
                     Text("7 Day")
                 }
                 .font(.system(size: 13, weight: .medium, design: .rounded))
-                .foregroundColor(lightText)
+                .foregroundColor(
+                    colorScheme == .dark
+                    ? Color(hex: "CBB7A3")
+                    : Color.gray.opacity(0.6)
+                )
             }
             .padding(.horizontal, 20)
 
-            Spacer()
-                .frame(height: 30)
+            Spacer().frame(height: 30)
 
-            // Quick Selection Cards
+            // كروت الاختيار السريع
             HStack(spacing: 16) {
-                QuickDayCard(number: 2, label: "WEEKEND", isSelected: Int(viewModel.numberOfDays) == 2) {
+                QuickDayCard(number: 2, label: "WEEKEND",
+                             isSelected: Int(viewModel.numberOfDays) == 2) {
                     viewModel.numberOfDays = 2
                 }
-                QuickDayCard(number: 3, label: "SHORT", isSelected: Int(viewModel.numberOfDays) == 3) {
+
+                QuickDayCard(number: 3, label: "SHORT",
+                             isSelected: Int(viewModel.numberOfDays) == 3) {
                     viewModel.numberOfDays = 3
                 }
-                QuickDayCard(number: 5, label: "WEEK", isSelected: Int(viewModel.numberOfDays) == 5) {
+
+                QuickDayCard(number: 5, label: "WEEK",
+                             isSelected: Int(viewModel.numberOfDays) == 5) {
                     viewModel.numberOfDays = 5
                 }
             }
 
-            Spacer()
-                .frame(height: 25)
+            Spacer().frame(height: 25)
 
-            // The missing Info Card
-            QuickDayInfoCard(bg: greenAccent)
+            // PERFECT FOR (ديناميكي)
+            QuickDayInfoCard(
+                bg: Color("Green"),
+                text: perfectForText
+            )
 
             Spacer()
         }
         .frame(maxWidth: .infinity)
     }
+
+    // MARK: - PERFECT FOR text
+    private var perfectForText: String {
+        let days = Int(viewModel.numberOfDays)
+
+        switch days {
+        case 1:
+            return "Quick stopover to see the main attraction."
+        case 2:
+            return "Weekend getaway with essential experiences."
+        case 3, 4:
+            return "Quick city exploration with major highlights."
+        case 5, 6, 7:
+            return "Full week to explore at a comfortable pace."
+        default:
+            return ""
+        }
+    }
+
 }
 
 // MARK: - Helpers
@@ -643,29 +744,78 @@ struct QuickDayCard: View {
     let isSelected: Bool
     let action: () -> Void
 
+    @Environment(\.colorScheme) var colorScheme
+
     var body: some View {
         Button(action: action) {
-            VStack(spacing: 4) {
+            VStack(spacing: 6) {
+
+                // NUMBER
                 Text("\(number)")
-                    .font(.system(size: 28, weight: .bold, design: .rounded))
-                    .foregroundColor(isSelected ? .white : Color(red: 0.3, green: 0.25, blue: 0.23))
+                    .font(.custom("Impact", size: 50))
+                    .foregroundColor(numberColor)
+
+                // LABEL
                 Text(label)
-                    .font(.system(size: 10, weight: .bold))
-                    .foregroundColor(isSelected ? .white.opacity(0.8) : .gray.opacity(0.6))
+                    .font(.system(size: 11, weight: .semibold, design: .rounded))
+                    .foregroundColor(labelColor)
             }
-            .frame(width: 90, height: 95)
-            .background(isSelected ? Color("Button click") : Color("Card"))
-            .cornerRadius(20)
-            .shadow(color: Color.black.opacity(0.05), radius: 10, x: 0, y: 5)
+            .frame(width: 96, height: 96)
+            .background(backgroundColor)
+            .clipShape(RoundedRectangle(cornerRadius: 22, style: .continuous))
+            .shadow(
+                color: Color.black.opacity(colorScheme == .light ? 0.06 : 0.1),
+                radius: 8,
+                x: 0,
+                y: 4
+            )
+        }
+        .buttonStyle(.plain)
+        .animation(.easeInOut(duration: 0.2), value: isSelected)
+    }
+
+    // MARK: - Colors
+
+    private var backgroundColor: Color {
+        if isSelected {
+            return colorScheme == .dark
+                ? Color(hex: "DAD2C8")      // 🌙 Dark selected
+                : Color("Button click")     // ☀️ Light selected
+        } else {
+            return colorScheme == .dark
+                ? Color("Card")             // 🌙 Dark unselected
+                : Color.white              // ☀️ Light unselected
+        }
+    }
+
+    private var numberColor: Color {
+        if colorScheme == .dark {
+            return .white                  // 🌙 الأرقام دايم أبيض
+        } else {
+            return isSelected
+                ? .white
+                : Color(red: 0.27, green: 0.22, blue: 0.19)
+        }
+    }
+
+    private var labelColor: Color {
+        if colorScheme == .dark {
+            return Color(red: 0.78, green: 0.72, blue: 0.66) // ⭐ نفس لون Maximum 7 days
+        } else {
+            return isSelected
+                ? .white.opacity(0.85)
+                : Color.gray.opacity(0.7)
         }
     }
 }
 
 struct QuickDayInfoCard: View {
     let bg: Color
-    
+    let text: String
+
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
+
             Text("PERFECT FOR")
                 .font(.system(size: 12, weight: .bold))
                 .foregroundColor(.white)
@@ -673,8 +823,8 @@ struct QuickDayInfoCard: View {
                 .padding(.vertical, 6)
                 .background(Color.white.opacity(0.2))
                 .clipShape(Capsule())
-            
-            Text("Quick stopover to see the main attraction")
+
+            Text(text)
                 .font(.system(size: 16, weight: .medium))
                 .foregroundColor(.white)
                 .fixedSize(horizontal: false, vertical: true)
@@ -686,6 +836,7 @@ struct QuickDayInfoCard: View {
         .padding(.horizontal, 10)
     }
 }
+
 // MARK: - Question 6: Travel Pace
 struct Question6_TravelPace: View {
     @ObservedObject var viewModel: AI_Questionnaire_Model
@@ -701,7 +852,7 @@ struct Question6_TravelPace: View {
                 
                 Text("Choose your ideal pace")
                     .font(.system(size: 16, weight: .regular, design: .rounded))
-                    .foregroundColor(Color("Light small text"))
+                    .foregroundColor(Color("Light small text").opacity(0.55))
             }
             .padding(.top, 30)
             .padding(.horizontal, 40)
@@ -781,6 +932,7 @@ struct PaceButton: View {
     }
 }
 
+
 // MARK: - Preview
 struct AI_Questionnaire_View_Previews: PreviewProvider {
     static var previews: some View {
@@ -790,4 +942,3 @@ struct AI_Questionnaire_View_Previews: PreviewProvider {
         )
     }
 }
-
