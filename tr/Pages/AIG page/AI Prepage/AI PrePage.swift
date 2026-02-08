@@ -59,8 +59,8 @@ struct AI_PrePage: View {
                                 .foregroundColor(Color("Title"))
                                 .multilineTextAlignment(.center)
                             
-                            Text("Let our AI create the perfect\nitinerary just for you")
-                                .font(.system(size: 18, weight: .regular, design: .rounded))
+                            Text("Let our AI create the perfect itinerary just for you")
+                                .font(.system(size: 16, weight: .regular, design: .rounded))
                                 .foregroundColor(Color("Light small text"))
                                 .multilineTextAlignment(.center)
                                 .lineSpacing(4)

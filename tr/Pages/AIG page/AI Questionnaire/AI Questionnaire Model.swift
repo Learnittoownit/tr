@@ -207,14 +207,14 @@ class AI_Questionnaire_Model: ObservableObject {
 
                 generationStep = "Creating your AI plan..."
 
-                let prompt = generateGPTPrompt()
+                let prompt = generateGPTPrompt() // هذا يولد النص اللي نرسله للـ GPT
 
                 let aiText = try await OpenAIService().generatePlan(prompt: prompt)
-                print("GPT Response: \(aiText)") // تأكدي إنه يطبع شي في الـ Console
 
+                print(aiText) // هنا نقدر نشوف الرد في الـ console
 
-                // حذف أو تعليق createMockTrip() مؤقتاً
-                // self.createMockTrip()
+                // مؤقتاً خلّيها Mock
+                self.createMockTrip()
 
                 await MainActor.run {
                     self.isGenerating = false
@@ -230,6 +230,7 @@ class AI_Questionnaire_Model: ObservableObject {
             }
         }
     }
+
 
     
     // Reset to prepage
@@ -337,3 +338,6 @@ class AI_Questionnaire_Model: ObservableObject {
         return activities
     }
 }
+
+
+
