@@ -36,27 +36,21 @@ struct AI_Questionnaire_View: View {
     
     var body: some View {
         ZStack {
-            // Background
             Color("Background")
                 .ignoresSafeArea()
             
-            // ✅ FIXED: Smooth transition like questionnaire pages
             if viewModel.showGeneratedPlan {
                 AI_Plan_View(viewModel: viewModel, showPrePage: $showPrePage)
-                    .transition(.opacity) // Changed from .move to .opacity for smooth transition
+                    .transition(.opacity)
             } else if viewModel.isGenerating {
-                // Loading Screen
                 LoadingScreen(viewModel: viewModel)
                     .transition(.opacity)
             } else {
-                // Questionnaire Content
                 VStack(spacing: 0) {
-                    // Progress Bar at top
                     ProgressBar(currentStep: viewModel.currentQuestion, totalSteps: 6)
                         .padding(.horizontal, 30)
                         .padding(.top, 16)
                     
-                    // Question Content
                     ScrollView(showsIndicators: false) {
                         VStack(spacing: 20) {
                             switch viewModel.currentQuestion {
@@ -81,7 +75,6 @@ struct AI_Questionnaire_View: View {
                         .padding(.bottom, 20)
                     }
                     
-                    // Navigation Buttons at bottom
                     NavigationButtons(viewModel: viewModel)
                         .padding(.horizontal, 30)
                         .padding(.bottom, 40)
@@ -91,7 +84,7 @@ struct AI_Questionnaire_View: View {
         }
         .animation(.spring(response: 0.5, dampingFraction: 0.8), value: viewModel.currentQuestion)
         .animation(.easeInOut(duration: 0.3), value: viewModel.isGenerating)
-        .animation(.spring(response: 0.5, dampingFraction: 0.8), value: viewModel.showGeneratedPlan) // ✅ FIXED: Smooth spring animation
+        .animation(.spring(response: 0.5, dampingFraction: 0.8), value: viewModel.showGeneratedPlan)
     }
 }
 
@@ -104,7 +97,6 @@ struct LoadingScreen: View {
             Spacer()
             
             VStack(spacing: 32) {
-                // Title and subtitle
                 VStack(spacing: 12) {
                     Text("Creating your journey")
                         .font(.system(size: 32, weight: .bold, design: .rounded))
@@ -118,14 +110,11 @@ struct LoadingScreen: View {
                 }
                 .padding(.horizontal, 40)
                 
-                // Circular Progress
                 ZStack {
-                    // Background Circle
                     Circle()
                         .stroke(Color(red: 0.85, green: 0.82, blue: 0.8), lineWidth: 12)
                         .frame(width: 280, height: 280)
                     
-                    // Progress Circle
                     Circle()
                         .trim(from: 0, to: viewModel.generationProgress)
                         .stroke(
@@ -136,7 +125,6 @@ struct LoadingScreen: View {
                         .rotationEffect(.degrees(-90))
                         .animation(.easeInOut(duration: 0.5), value: viewModel.generationProgress)
                     
-                    // Center Content
                     VStack(spacing: 16) {
                         Text("\(Int(viewModel.generationProgress * 100))%")
                             .font(.system(size: 64, weight: .bold, design: .rounded))
@@ -156,7 +144,6 @@ struct LoadingScreen: View {
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(Color("Background"))
-
     }
 }
 
@@ -168,12 +155,10 @@ struct ProgressBar: View {
     var body: some View {
         GeometryReader { geometry in
             ZStack(alignment: .leading) {
-                // Background
                 RoundedRectangle(cornerRadius: 4)
                     .fill(Color("Light small text").opacity(0.35))
                     .frame(height: 4)
                 
-                // Progress
                 RoundedRectangle(cornerRadius: 4)
                     .fill(Color("Green"))
                     .frame(width: geometry.size.width * CGFloat(currentStep) / CGFloat(totalSteps), height: 4)
@@ -184,21 +169,34 @@ struct ProgressBar: View {
     }
 }
 
+struct PressableNextButtonStyle: ButtonStyle {
+    let pressedColor: Color
+    let normalColor: Color
+
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .background(configuration.isPressed ? pressedColor : normalColor)
+            .cornerRadius(25)
+            .scaleEffect(configuration.isPressed ? 0.97 : 1)
+            .animation(.easeInOut(duration: 0.15), value: configuration.isPressed)
+    }
+}
+
 // MARK: - Navigation Buttons
 struct NavigationButtons: View {
     @ObservedObject var viewModel: AI_Questionnaire_Model
     @Environment(\.colorScheme) var colorScheme
-    
+
     var body: some View {
         HStack(spacing: 12) {
 
-            // Back Button
+            // MARK: - Back Button
             Button(action: {
                 viewModel.goToPreviousQuestion()
             }) {
                 Text("Back")
                     .font(.system(size: 16, weight: .semibold, design: .rounded))
-                    .foregroundColor(Color("Title"))
+                    .foregroundColor(.white)
                     .frame(maxWidth: .infinity)
                     .frame(height: 50)
                     .background(
@@ -209,8 +207,9 @@ struct NavigationButtons: View {
                     .cornerRadius(25)
             }
             .disabled(viewModel.currentQuestion == 1)
-            .opacity(viewModel.currentQuestion == 1 ? 0.8 : 1) // ✅ بدل 0.5
-            // Next Button
+            .opacity(viewModel.currentQuestion == 1 ? 0.6 : 1)
+
+            // MARK: - Next Button (يتغير تلقائي عند الاختيار)
             Button(action: {
                 if viewModel.currentQuestion == 6 {
                     viewModel.startGeneration()
@@ -220,36 +219,36 @@ struct NavigationButtons: View {
             }) {
                 Text(viewModel.currentQuestion == 6 ? "Generate Plan" : "Next")
                     .font(.system(size: 16, weight: .semibold, design: .rounded))
-                    .foregroundColor(.white)
+                    .foregroundColor(
+                        viewModel.isCurrentQuestionValid()
+                        ? Color("Background")
+                        : (colorScheme == .dark ? .white : Color("Title"))
+                    )
                     .frame(maxWidth: .infinity)
                     .frame(height: 50)
-                    .background(
-                        viewModel.isCurrentQuestionValid()
-                        ? AppColors.selected(
-                            isSelected: true,
-                            colorScheme: colorScheme,
-                            light: Color(red: 0.3, green: 0.25, blue: 0.23),
-                            normal: Color.clear
-                        )
-                        : Color(red: 0.85, green: 0.82, blue: 0.8)
-                    )
-                    .cornerRadius(25)
             }
+            .buttonStyle(
+                PressableNextButtonStyle(
+                    pressedColor: Color("Next button"),
+                    normalColor: viewModel.isCurrentQuestionValid()
+                        ? Color("Next button")                 // ✅ بعد الاختيار
+                        : (colorScheme == .dark
+                            ? Color("Card")                    // قبل الاختيار (دارك)
+                            : Color("Background"))              // قبل الاختيار (لايت)
+                )
+            )
             .disabled(!viewModel.isCurrentQuestionValid())
-            .animation(.easeInOut(duration: 0.2), value: viewModel.isCurrentQuestionValid())
         }
+        .animation(.easeInOut(duration: 0.25), value: viewModel.isCurrentQuestionValid())
     }
 }
 
 // MARK: - Question 1: City Selection
-
 struct Question1_CitySelection: View {
     @ObservedObject var viewModel: AI_Questionnaire_Model
     
     var body: some View {
         VStack(spacing: 20) {
-            
-            // Title (MATCHES Question 2)
             VStack(spacing: 10) {
                 Text("Select the City")
                     .font(.system(size: 30, weight: .bold, design: .rounded))
@@ -258,14 +257,11 @@ struct Question1_CitySelection: View {
 
                 Text("Choose your destination in Saudi Arabia")
                     .font(.system(size: 20, weight: .regular, design: .rounded))
-                    .foregroundColor(Color("Light small text").opacity(0.55))
+                    .foregroundColor(Color("Dark small text"))
                     .multilineTextAlignment(.center)
             }
             .frame(maxWidth: .infinity)
 
-            
-            // City buttons
-            // City buttons (CENTERED column)
             VStack(spacing: 18) {
                 ForEach(viewModel.cities) { city in
                     CityButton(
@@ -276,11 +272,12 @@ struct Question1_CitySelection: View {
                     }
                 }
             }
-            .frame(maxWidth: 340)          // ✅ controls the "column" width like the design
-            .frame(maxWidth: .infinity)    // ✅ centers that column in the screen
+            .frame(maxWidth: 340)
+            .frame(maxWidth: .infinity)
         }
     }
 }
+
 struct CityButton: View {
     let title: String
     let isSelected: Bool
@@ -293,9 +290,13 @@ struct CityButton: View {
             HStack {
                 Text(title)
                     .font(.system(size: 20, weight: .semibold, design: .rounded))
-                    .foregroundColor(isSelected ? .white : Color("Title"))
-                    .padding(.top, 2)
+                    .foregroundColor(
+                        colorScheme == .dark
+                        ? (isSelected ? Color("Background") : .white)
+                        : (isSelected ? Color("Background") : Color("Title"))
+                    )
 
+                    .padding(.top, 2)
                 Spacer()
             }
             .padding(.horizontal, 28)
@@ -336,8 +337,6 @@ struct Question2_ExperienceTypes: View {
 
     var body: some View {
         VStack(spacing: 22) {
-
-            // Title
             VStack(spacing: 10) {
                 Text("What type of experiences\ninterest you?")
                     .font(.system(size: 28, weight: .bold, design: .rounded))
@@ -346,14 +345,12 @@ struct Question2_ExperienceTypes: View {
 
                 Text("Select all that apply")
                     .font(.system(size: 18, weight: .regular, design: .rounded))
-                    .foregroundColor(Color("Light small text").opacity(0.55))
+                    .foregroundColor(Color("Dark small text"))
             }
             .frame(maxWidth: .infinity)
             .padding(.top, 10)
 
             VStack(spacing: 18) {
-
-                // First 4 (grid)
                 LazyVGrid(columns: columns, spacing: 18) {
                     ForEach(Array(viewModel.experiences.prefix(4))) { experience in
                         ExperienceCard(
@@ -366,7 +363,6 @@ struct Question2_ExperienceTypes: View {
                     }
                 }
 
-                // Last centered
                 if let last = viewModel.experiences.last {
                     HStack {
                         Spacer()
@@ -385,8 +381,6 @@ struct Question2_ExperienceTypes: View {
         }
     }
 }
-
-// MARK: - Experience Card
 struct ExperienceCard: View {
     let title: String
     let description: String
@@ -399,26 +393,31 @@ struct ExperienceCard: View {
         Button(action: action) {
             VStack(spacing: 10) {
 
+                // 🔹 TITLE (يتغير للأبيض فقط إذا غير مختار بالدارك)
                 Text(title)
                     .font(.system(size: 16, weight: .bold, design: .rounded))
-                    .foregroundColor(isSelected ? .white : Color("Title"))
+                    .foregroundColor(
+                        colorScheme == .dark
+                        ? (isSelected ? Color("Background") : .white)
+                        : (isSelected ? Color("Background") : Color("Title"))
+                    )
                     .multilineTextAlignment(.center)
-                    .lineLimit(2)
 
+                // 🔹 SMALL TEXT (يرجع Dark small text)
                 Text(description)
                     .font(.system(size: 12, weight: .regular, design: .rounded))
                     .foregroundColor(
-                        isSelected
-                        ? .white.opacity(0.85)
-                        : Color("Light small text").opacity(0.6)
+                        colorScheme == .dark
+                        ? (isSelected
+                            ? Color("Background").opacity(0.9)
+                            : Color("Dark small text"))
+                        : (isSelected
+                            ? Color("Background").opacity(0.9)
+                            : Color("Light small text").opacity(0.6))
                     )
                     .multilineTextAlignment(.center)
-                    .lineLimit(3)
             }
-            .frame(maxWidth: .infinity)
-            .padding(.horizontal, 16)
-            .padding(.vertical, 18)
-            .frame(height: 135)
+            .padding()
             .background(
                 AppColors.selected(
                     isSelected: isSelected,
@@ -427,17 +426,13 @@ struct ExperienceCard: View {
                     normal: Color("Card")
                 )
             )
-            .clipShape(RoundedRectangle(cornerRadius: 28, style: .continuous))
-            .overlay(
-                RoundedRectangle(cornerRadius: 28)
-                    .stroke(Color.black.opacity(0.04), lineWidth: 1)
-            )
-            .shadow(color: Color.black.opacity(0.05), radius: 10, x: 0, y: 6)
+            .cornerRadius(28)
         }
         .buttonStyle(.plain)
-        .animation(.easeInOut(duration: 0.18), value: isSelected)
+        .animation(.easeInOut(duration: 0.2), value: isSelected)
     }
 }
+
 
 // MARK: - Question 3: Travel Companions
 struct Question3_TravelCompanions: View {
@@ -445,8 +440,6 @@ struct Question3_TravelCompanions: View {
 
     var body: some View {
         VStack(spacing: 18) {
-
-            // Title
             VStack(spacing: 8) {
                 Text("Who are you traveling\nwith?")
                     .font(.system(size: 30, weight: .bold, design: .rounded))
@@ -456,12 +449,11 @@ struct Question3_TravelCompanions: View {
 
                 Text("This helps us personalize your trip!")
                     .font(.system(size: 20, weight: .regular, design: .rounded))
-                    .foregroundColor(Color("Light small text").opacity(0.55))
+                    .foregroundColor(Color("Dark small text"))
                     .multilineTextAlignment(.center)
                     .frame(maxWidth: .infinity)
             }
 
-            // Cards
             VStack(spacing: 14) {
                 ForEach(viewModel.companions) { companion in
                     CompanionCard(
@@ -478,7 +470,6 @@ struct Question3_TravelCompanions: View {
     }
 }
 
-// MARK: - Companion Card
 struct CompanionCard: View {
     let companion: TravelCompanion
     let isSelected: Bool
@@ -488,18 +479,28 @@ struct CompanionCard: View {
 
     var body: some View {
         Button(action: action) {
-            VStack(alignment: .leading, spacing: 4) {
+            VStack(alignment: .leading, spacing: 6) {
 
+                // 🔹 TITLE
                 Text(companion.title)
                     .font(.system(size: 20, weight: .bold, design: .rounded))
-                    .foregroundColor(isSelected ? .white : Color("Title"))
+                    .foregroundColor(
+                        colorScheme == .dark
+                        ? (isSelected ? Color("Background") : .white)
+                        : (isSelected ? Color("Background") : Color("Title"))
+                    )
 
+                // 🔹 SMALL TEXT (رجع Dark small text)
                 Text(companion.description)
                     .font(.system(size: 14, weight: .regular, design: .rounded))
                     .foregroundColor(
-                        isSelected
-                        ? .white.opacity(0.85)
-                        : Color("Light small text")
+                        colorScheme == .dark
+                        ? (isSelected
+                            ? Color("Background").opacity(0.9)
+                            : Color("Dark small text"))
+                        : (isSelected
+                            ? Color("Background").opacity(0.9)
+                            : Color("Light small text"))
                     )
                     .lineLimit(2)
             }
@@ -527,16 +528,15 @@ struct CompanionCard: View {
     }
 }
 
+
 // MARK: - Question 4: Budget
 struct Question4_Budget: View {
     @ObservedObject var viewModel: AI_Questionnaire_Model
 
     var body: some View {
         VStack(spacing: 0) {
-
             Spacer()
 
-            // Title
             VStack(spacing: 8) {
                 Text("What's your daily budget per person?")
                     .font(.system(size: 30, weight: .bold, design: .rounded))
@@ -544,10 +544,8 @@ struct Question4_Budget: View {
                     .multilineTextAlignment(.center)
             }
 
-            Spacer()
-                .frame(height: 50)
+            Spacer().frame(height: 50)
 
-            // Budget cards
             VStack(spacing: 16) {
                 ForEach(viewModel.budgets) { budget in
                     BudgetButton(
@@ -567,7 +565,6 @@ struct Question4_Budget: View {
     }
 }
 
-// MARK: - Budget Button
 struct BudgetButton: View {
     let budget: BudgetOption
     let isSelected: Bool
@@ -578,21 +575,30 @@ struct BudgetButton: View {
     var body: some View {
         Button(action: action) {
             HStack {
-
                 VStack(alignment: .leading, spacing: 6) {
+
+                    // 🔹 TITLE
                     Text(budget.title)
                         .font(.system(size: 20, weight: .semibold, design: .rounded))
-                        .foregroundColor(isSelected ? .white : Color("Title"))
+                        .foregroundColor(
+                            colorScheme == .dark
+                            ? (isSelected ? Color("Background") : .white)
+                            : (isSelected ? Color("Background") : Color("Title"))
+                        )
 
+                    // 🔹 SMALL TEXT (السعر)
                     Text(budget.range)
                         .font(.system(size: 15, weight: .regular, design: .rounded))
                         .foregroundColor(
-                            isSelected
-                            ? .white.opacity(0.85)
-                            : Color.gray.opacity(0.7)
+                            colorScheme == .dark
+                            ? (isSelected
+                                ? Color("Background").opacity(0.9)
+                                : Color("Dark small text"))
+                            : (isSelected
+                                ? Color("Background").opacity(0.9)
+                                : Color.gray.opacity(0.7))
                         )
                 }
-
                 Spacer()
             }
             .padding(.horizontal, 24)
@@ -614,58 +620,54 @@ struct BudgetButton: View {
     }
 }
 
+
 // MARK: - Question 5: Days
 struct Question5_Days: View {
     @ObservedObject var viewModel: AI_Questionnaire_Model
     @Environment(\.colorScheme) var colorScheme
 
-    // ألوان العناوين
     private let titleColor = Color(red: 0.30, green: 0.25, blue: 0.23)
 
     var body: some View {
         VStack(spacing: 0) {
-
-            // العنوان
             VStack(spacing: 8) {
                 Text("How many days will you be traveling?")
                     .font(.system(size: 28, weight: .bold, design: .rounded))
                     .foregroundColor(
                         colorScheme == .dark
-                        ? Color(hex: "DAD2C8")        // 🌙 نفس لون الكروت
+                        ? Color(hex: "DAD2C8")
                         : titleColor
                     )
                     .multilineTextAlignment(.center)
 
                 Text("Maximum 7 days")
-                    .font(.system(size: 15, weight: .regular, design: .rounded))
+                    .font(.system(size: 20, weight: .regular, design: .rounded))
                     .foregroundColor(
                         colorScheme == .dark
-                        ? Color(hex: "CBB7A3")        // 🌙 نفس لون WEEKEND / SHORT
-                        : Color.gray.opacity(0.6)
+                        ? Color("Dark small text")
+                        : Color("Light small text")
                     )
             }
             .padding(.top, 10)
 
             Spacer()
 
-            // الرقم الكبير
             VStack(spacing: 0) {
                 Text("\(Int(viewModel.numberOfDays))")
-                    .font(.custom("Impact", size: 90))
+                    .font(.custom("Impact", size: 85))
                     .foregroundColor(Color("Green"))
 
                 Text("Day")
-                    .font(.system(size: 22, weight: .medium, design: .rounded))
+                    .font(.system(size: 24, weight: .medium, design: .rounded))
                     .foregroundColor(
                         colorScheme == .dark
-                        ? Color(hex: "CBB7A3")
-                        : Color.gray.opacity(0.7)
+                        ? Color("Dark small text")
+                        : Color("Light small text").opacity(0.55)
                     )
             }
 
             Spacer().frame(height: 30)
 
-            // السلايدر
             VStack(spacing: 12) {
                 Slider(value: $viewModel.numberOfDays, in: 1...7, step: 1)
                     .tint(titleColor)
@@ -678,15 +680,14 @@ struct Question5_Days: View {
                 .font(.system(size: 13, weight: .medium, design: .rounded))
                 .foregroundColor(
                     colorScheme == .dark
-                    ? Color(hex: "CBB7A3")
-                    : Color.gray.opacity(0.6)
+                    ? Color("Dark small text")
+                    : Color("Light small text").opacity(0.55)
                 )
             }
             .padding(.horizontal, 20)
 
             Spacer().frame(height: 30)
 
-            // كروت الاختيار السريع
             HStack(spacing: 16) {
                 QuickDayCard(number: 2, label: "WEEKEND",
                              isSelected: Int(viewModel.numberOfDays) == 2) {
@@ -706,7 +707,6 @@ struct Question5_Days: View {
 
             Spacer().frame(height: 25)
 
-            // PERFECT FOR (ديناميكي)
             QuickDayInfoCard(
                 bg: Color("Green"),
                 text: perfectForText
@@ -717,10 +717,8 @@ struct Question5_Days: View {
         .frame(maxWidth: .infinity)
     }
 
-    // MARK: - PERFECT FOR text
     private var perfectForText: String {
         let days = Int(viewModel.numberOfDays)
-
         switch days {
         case 1:
             return "Quick stopover to see the main attraction."
@@ -734,10 +732,8 @@ struct Question5_Days: View {
             return ""
         }
     }
-
 }
 
-// MARK: - Helpers
 struct QuickDayCard: View {
     let number: Int
     let label: String
@@ -749,16 +745,13 @@ struct QuickDayCard: View {
     var body: some View {
         Button(action: action) {
             VStack(spacing: 6) {
-
-                // NUMBER
                 Text("\(number)")
                     .font(.custom("Impact", size: 50))
-                    .foregroundColor(numberColor)
+                    .foregroundColor(isSelected ? Color("Background") : numberColor)
 
-                // LABEL
                 Text(label)
                     .font(.system(size: 11, weight: .semibold, design: .rounded))
-                    .foregroundColor(labelColor)
+                    .foregroundColor(isSelected ? Color("Background") : labelColor)
             }
             .frame(width: 96, height: 96)
             .background(backgroundColor)
@@ -774,23 +767,21 @@ struct QuickDayCard: View {
         .animation(.easeInOut(duration: 0.2), value: isSelected)
     }
 
-    // MARK: - Colors
-
     private var backgroundColor: Color {
         if isSelected {
             return colorScheme == .dark
-                ? Color(hex: "DAD2C8")      // 🌙 Dark selected
-                : Color("Button click")     // ☀️ Light selected
+                ? Color(hex: "DAD2C8")
+                : Color("Button click")
         } else {
             return colorScheme == .dark
-                ? Color("Card")             // 🌙 Dark unselected
-                : Color.white              // ☀️ Light unselected
+                ? Color("Card")
+                : Color.white
         }
     }
 
     private var numberColor: Color {
         if colorScheme == .dark {
-            return .white                  // 🌙 الأرقام دايم أبيض
+            return .white
         } else {
             return isSelected
                 ? .white
@@ -800,7 +791,7 @@ struct QuickDayCard: View {
 
     private var labelColor: Color {
         if colorScheme == .dark {
-            return Color(red: 0.78, green: 0.72, blue: 0.66) // ⭐ نفس لون Maximum 7 days
+            return Color("Dark small text")
         } else {
             return isSelected
                 ? .white.opacity(0.85)
@@ -815,7 +806,6 @@ struct QuickDayInfoCard: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
-
             Text("PERFECT FOR")
                 .font(.system(size: 12, weight: .bold))
                 .foregroundColor(.white)
@@ -840,10 +830,10 @@ struct QuickDayInfoCard: View {
 // MARK: - Question 6: Travel Pace
 struct Question6_TravelPace: View {
     @ObservedObject var viewModel: AI_Questionnaire_Model
+    @Environment(\.colorScheme) var colorScheme
 
     var body: some View {
         VStack(spacing: 0) {
-            // Header Section
             VStack(spacing: 12) {
                 Text("How do you prefer to travel?")
                     .font(.system(size: 28, weight: .bold, design: .rounded))
@@ -858,7 +848,7 @@ struct Question6_TravelPace: View {
             .padding(.horizontal, 40)
             
             ScrollView(showsIndicators: false) {
-                VStack(spacing: 24) { // Increased spacing between cards
+                VStack(spacing: 24) {
                     ForEach(viewModel.paces) { pace in
                         PaceButton(
                             pace: pace,
@@ -881,8 +871,8 @@ struct PaceButton: View {
     let pace: TravelPace
     let isSelected: Bool
     let action: () -> Void
+    @Environment(\.colorScheme) var colorScheme
     
-    // Grid setup to spread the tags out naturally across the card
     let columns = [
         GridItem(.flexible(), spacing: 10),
         GridItem(.flexible(), spacing: 10)
@@ -890,33 +880,37 @@ struct PaceButton: View {
     
     var body: some View {
         Button(action: action) {
-            VStack(alignment: .leading, spacing: 20) { // Increased internal spacing
-                // Pace Title
+            VStack(alignment: .leading, spacing: 20) {
                 Text(pace.title)
                     .font(.system(size: 24, weight: .bold, design: .rounded))
-                    .foregroundColor(isSelected ? .white : Color("Title"))
-                
-                // Pace Description
+                    .foregroundColor(isSelected ? Color("Background") : Color("Title"))
+
                 Text(pace.description)
                     .font(.system(size: 15, weight: .regular, design: .rounded))
-                    .foregroundColor(isSelected ? .white.opacity(0.9) : Color("Title").opacity(0.6))
+                    .foregroundColor(
+                        isSelected
+                        ? Color("Background").opacity(0.9)
+                        : (colorScheme == .dark ? Color("Dark small text") : Color("Title").opacity(0.6))
+                    )
                     .lineSpacing(4)
                     .fixedSize(horizontal: false, vertical: true)
                 
-                // Tags - Spread out and using "Background" color when selected
                 LazyVGrid(columns: columns, alignment: .leading, spacing: 12) {
                     ForEach(pace.tags, id: \.self) { tag in
                         Text(tag)
                             .font(.system(size: 12, weight: .bold, design: .rounded))
-                            .foregroundColor(Color("Title"))
+                            .foregroundColor(
+                                isSelected
+                                ? Color("Background")
+                                : (colorScheme == .dark ? Color("Dark small text") : Color("Title"))
+                            )
                             .padding(.horizontal, 12)
                             .padding(.vertical, 10)
-                            .frame(maxWidth: .infinity) // Spreads the pill to fill the space
+                            .frame(maxWidth: .infinity)
                             .background(
-                                // Use "Background" asset when selected, "Back button" when not
                                 isSelected ? Color("Background") : Color("Back button").opacity(0.4)
                             )
-                            .clipShape(Capsule()) // Perfectly rounded pill shape
+                            .clipShape(Capsule())
                     }
                 }
             }
@@ -932,7 +926,6 @@ struct PaceButton: View {
     }
 }
 
-
 // MARK: - Preview
 struct AI_Questionnaire_View_Previews: PreviewProvider {
     static var previews: some View {
@@ -942,3 +935,4 @@ struct AI_Questionnaire_View_Previews: PreviewProvider {
         )
     }
 }
+

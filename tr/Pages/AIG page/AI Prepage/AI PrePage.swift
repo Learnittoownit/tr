@@ -6,6 +6,7 @@ struct AI_PrePage: View {
     @StateObject private var viewModel = AI_Questionnaire_Model()
     @State private var showQuestionnaire = false
     @Environment(\.dismiss) var dismiss
+    @Environment(\.colorScheme) var colorScheme
     
     var body: some View {
         ZStack {
@@ -61,7 +62,11 @@ struct AI_PrePage: View {
                             
                             Text("Let our AI create the perfect itinerary just for you")
                                 .font(.system(size: 16, weight: .regular, design: .rounded))
-                                .foregroundColor(Color("Light small text"))
+                                .foregroundColor(
+                                    colorScheme == .dark
+                                    ? Color(hex: "CBB7A3") // Dark small text fallback (hex)
+                                    : Color("Light small text")
+                                )
                                 .multilineTextAlignment(.center)
                                 .lineSpacing(4)
                         }
@@ -78,17 +83,29 @@ struct AI_PrePage: View {
                                 // Separator
                                 Text("/")
                                     .font(.system(size: 32, weight: .medium, design: .rounded))
-                                    .foregroundColor(Color("Light small text").opacity(0.5))
+                                    .foregroundColor(
+                                        colorScheme == .dark
+                                        ? Color(hex: "CBB7A3")
+                                        : Color("Light small text").opacity(0.5)
+                                    )
                                 
                                 // Total number
                                 Text("5")
                                     .font(.system(size: 32, weight: .semibold, design: .rounded))
-                                    .foregroundColor(Color("Light small text").opacity(0.7))
+                                    .foregroundColor(
+                                        colorScheme == .dark
+                                        ? Color(hex: "CBB7A3")
+                                        : Color("Light small text").opacity(0.7)
+                                    )
                             }
                             
                             Text("Generations remaining this month")
                                 .font(.system(size: 15, weight: .medium, design: .rounded))
-                                .foregroundColor(Color("Light small text"))
+                                .foregroundColor(
+                                    colorScheme == .dark
+                                    ? Color(hex: "CBB7A3")
+                                    : Color("Light small text")
+                                )
                         }
                         .padding(.vertical, 24)
                         .padding(.horizontal, 32)
@@ -114,6 +131,7 @@ struct AI_PrePage: View {
                     // Bottom Buttons
                     VStack(spacing: 16) {
                         // Start Button
+                        // Start Button (نفس منطق Next)
                         Button(action: {
                             if viewModel.remainingGenerations > 0 {
                                 withAnimation(.spring(response: 0.5, dampingFraction: 0.8)) {
@@ -123,17 +141,26 @@ struct AI_PrePage: View {
                         }) {
                             Text("Start AI Generator")
                                 .font(.system(size: 18, weight: .semibold, design: .rounded))
-                                .foregroundColor(.white)
+                                .foregroundColor(
+                                    viewModel.remainingGenerations > 0
+                                    ? Color("Background")
+                                    : (colorScheme == .dark ? .white : Color("Title"))
+                                )
                                 .frame(maxWidth: .infinity)
                                 .frame(height: 56)
-                                .background(
-                                    viewModel.remainingGenerations > 0 ?
-                                    Color("Button click") :
-                                    Color("Button click").opacity(0.5)
-                                )
-                                .cornerRadius(28)
                         }
+                        .buttonStyle(
+                            PressableNextButtonStyle(
+                                pressedColor: Color("Next button"),
+                                normalColor: viewModel.remainingGenerations > 0
+                                    ? Color("Next button")                 // ✅ نفس Next
+                                    : (colorScheme == .dark
+                                        ? Color("Card")                    // Disabled dark
+                                        : Color("Background"))             // Disabled light
+                            )
+                        )
                         .disabled(viewModel.remainingGenerations == 0)
+
                         
                         // Back Button
                         Button(action: {
@@ -161,6 +188,7 @@ struct AI_PrePage: View {
 struct InfoRow: View {
     let icon: String
     let text: String
+    @Environment(\.colorScheme) var colorScheme
     
     var body: some View {
         HStack(spacing: 12) {
@@ -171,7 +199,11 @@ struct InfoRow: View {
             
             Text(text)
                 .font(.system(size: 15, weight: .medium, design: .rounded))
-                .foregroundColor(Color("Title"))
+                .foregroundColor(
+                    colorScheme == .dark
+                    ? Color(hex: "CBB7A3")
+                    : Color("Light small text")
+                )
         }
     }
 }
@@ -180,5 +212,6 @@ struct InfoRow: View {
 struct AI_PrePage_Previews: PreviewProvider {
     static var previews: some View {
         AI_PrePage()
+            .preferredColorScheme(.dark)
     }
 }
