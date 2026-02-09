@@ -63,9 +63,8 @@ struct AI_PrePage: View {
                             Text("Let our AI create the perfect itinerary just for you")
                                 .font(.system(size: 16, weight: .regular, design: .rounded))
                                 .foregroundColor(
-                                    colorScheme == .dark
-                                    ? Color(hex: "CBB7A3") // Dark small text fallback (hex)
-                                    : Color("Light small text")
+                                   
+                                    Color("Light small text")
                                 )
                                 .multilineTextAlignment(.center)
                                 .lineSpacing(4)
@@ -84,27 +83,22 @@ struct AI_PrePage: View {
                                 Text("/")
                                     .font(.system(size: 32, weight: .medium, design: .rounded))
                                     .foregroundColor(
-                                        colorScheme == .dark
-                                        ? Color(hex: "CBB7A3")
-                                        : Color("Light small text").opacity(0.5)
+                                       Color("Light small text").opacity(0.5)
                                     )
                                 
                                 // Total number
                                 Text("5")
                                     .font(.system(size: 32, weight: .semibold, design: .rounded))
                                     .foregroundColor(
-                                        colorScheme == .dark
-                                        ? Color(hex: "CBB7A3")
-                                        : Color("Light small text").opacity(0.7)
+                                      
+                                         Color("Light small text").opacity(0.7)
                                     )
                             }
                             
                             Text("Generations remaining this month")
                                 .font(.system(size: 15, weight: .medium, design: .rounded))
                                 .foregroundColor(
-                                    colorScheme == .dark
-                                    ? Color(hex: "CBB7A3")
-                                    : Color("Light small text")
+                                    Color("Light small text")
                                 )
                         }
                         .padding(.vertical, 24)
@@ -200,9 +194,7 @@ struct InfoRow: View {
             Text(text)
                 .font(.system(size: 15, weight: .medium, design: .rounded))
                 .foregroundColor(
-                    colorScheme == .dark
-                    ? Color(hex: "CBB7A3")
-                    : Color("Light small text")
+                  Color("Light small text")
                 )
         }
     }
@@ -212,6 +204,6 @@ struct InfoRow: View {
 struct AI_PrePage_Previews: PreviewProvider {
     static var previews: some View {
         AI_PrePage()
-            .preferredColorScheme(.dark)
+         
     }
 }

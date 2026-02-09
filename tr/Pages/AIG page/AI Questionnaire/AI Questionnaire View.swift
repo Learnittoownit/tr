@@ -1,32 +1,4 @@
-struct AppColors {
-    static func selected(
-        isSelected: Bool,
-        colorScheme: ColorScheme,
-        light: Color,
-        normal: Color
-    ) -> Color {
-        if isSelected && colorScheme == .dark {
-            return Color(hex: "DAD2C8")
-        } else if isSelected {
-            return light
-        } else {
-            return normal
-        }
-    }
-}
-extension Color {
-    init(hex: String) {
-        let hex = hex.trimmingCharacters(in: CharacterSet.alphanumerics.inverted)
-        var int: UInt64 = 0
-        Scanner(string: hex).scanHexInt64(&int)
 
-        let r = Double((int >> 16) & 0xFF) / 255
-        let g = Double((int >> 8) & 0xFF) / 255
-        let b = Double(int & 0xFF) / 255
-
-        self.init(red: r, green: g, blue: b)
-    }
-}
 import SwiftUI
 import Combine
 
@@ -185,58 +157,47 @@ struct PressableNextButtonStyle: ButtonStyle {
 // MARK: - Navigation Buttons
 struct NavigationButtons: View {
     @ObservedObject var viewModel: AI_Questionnaire_Model
-    @Environment(\.colorScheme) var colorScheme
 
     var body: some View {
         HStack(spacing: 12) {
 
-            // MARK: - Back Button
-            Button(action: {
+            // Back
+            Button {
                 viewModel.goToPreviousQuestion()
-            }) {
+            } label: {
                 Text("Back")
-                    .font(.system(size: 16, weight: .semibold, design: .rounded))
-                    .foregroundColor(.white)
-                    .frame(maxWidth: .infinity)
-                    .frame(height: 50)
-                    .background(
-                        colorScheme == .dark
-                        ? Color("Card")
-                        : Color(red: 0.85, green: 0.82, blue: 0.8)
-                    )
+                    .font(.system(size: 16, weight: .semibold))
+                    .foregroundColor(Color("Title"))
+                    .frame(maxWidth: .infinity, minHeight: 50, maxHeight: 50)
+
+                    .background(Color("Back button"))
                     .cornerRadius(25)
             }
             .disabled(viewModel.currentQuestion == 1)
-            .opacity(viewModel.currentQuestion == 1 ? 0.6 : 1)
+            .opacity(viewModel.currentQuestion == 1 ? 0.5 : 1)
 
-            // MARK: - Next Button (يتغير تلقائي عند الاختيار)
-            Button(action: {
-                if viewModel.currentQuestion == 6 {
-                    viewModel.startGeneration()
-                } else {
-                    viewModel.goToNextQuestion()
-                }
-            }) {
+            // Next
+            Button {
+                viewModel.currentQuestion == 6
+                ? viewModel.startGeneration()
+                : viewModel.goToNextQuestion()
+            } label: {
                 Text(viewModel.currentQuestion == 6 ? "Generate Plan" : "Next")
-                    .font(.system(size: 16, weight: .semibold, design: .rounded))
+                    .font(.system(size: 16, weight: .semibold))
                     .foregroundColor(
                         viewModel.isCurrentQuestionValid()
                         ? Color("Background")
-                        : (colorScheme == .dark ? .white : Color("Title"))
+                        : Color("Title")
                     )
-                    .frame(maxWidth: .infinity)
-                    .frame(height: 50)
+                    .frame(maxWidth: .infinity, minHeight: 50, maxHeight: 50)
+
+                    .background(
+                        viewModel.isCurrentQuestionValid()
+                        ? Color("Next button")   // ✅ dark brown
+                        : Color("Back button")   // ✅ light beige
+                    )
+                    .cornerRadius(25)
             }
-            .buttonStyle(
-                PressableNextButtonStyle(
-                    pressedColor: Color("Next button"),
-                    normalColor: viewModel.isCurrentQuestionValid()
-                        ? Color("Next button")                 // ✅ بعد الاختيار
-                        : (colorScheme == .dark
-                            ? Color("Card")                    // قبل الاختيار (دارك)
-                            : Color("Background"))              // قبل الاختيار (لايت)
-                )
-            )
             .disabled(!viewModel.isCurrentQuestionValid())
         }
         .animation(.easeInOut(duration: 0.25), value: viewModel.isCurrentQuestionValid())
@@ -282,8 +243,6 @@ struct CityButton: View {
     let title: String
     let isSelected: Bool
     let action: () -> Void
-    
-    @Environment(\.colorScheme) var colorScheme
 
     var body: some View {
         Button(action: action) {
@@ -291,34 +250,21 @@ struct CityButton: View {
                 Text(title)
                     .font(.system(size: 20, weight: .semibold, design: .rounded))
                     .foregroundColor(
-                        colorScheme == .dark
-                        ? (isSelected ? Color("Background") : .white)
-                        : (isSelected ? Color("Background") : Color("Title"))
+                        isSelected ? Color("Background") : Color("Title")
                     )
-
-                    .padding(.top, 2)
                 Spacer()
             }
             .padding(.horizontal, 28)
-            .frame(maxWidth: .infinity)
             .frame(height: 96)
-            .background(
-                AppColors.selected(
-                    isSelected: isSelected,
-                    colorScheme: colorScheme,
-                    light: Color("Button click"),
-                    normal: Color("Card")
-                )
-            )
-            .clipShape(RoundedRectangle(cornerRadius: 28, style: .continuous))
-            .shadow(color: Color.black.opacity(0.06), radius: 12, x: 0, y: 6)
+            .background(isSelected ? Color("Button click") : Color("Card"))
+            .clipShape(RoundedRectangle(cornerRadius: 28))
+            .shadow(color: .black.opacity(0.06), radius: 12, y: 6)
         }
         .buttonStyle(.plain)
         .animation(.easeInOut(duration: 0.2), value: isSelected)
     }
 }
 
-// MARK: - Question 2: Experience Types
 struct Question2_ExperienceTypes: View {
     @ObservedObject var viewModel: AI_Questionnaire_Model
 
@@ -327,7 +273,7 @@ struct Question2_ExperienceTypes: View {
         GridItem(.flexible(), spacing: 18)
     ]
 
-    private func toggleExperience(_ experience: ExperienceType) {
+    private func toggle(_ experience: ExperienceType) {
         if viewModel.selectedExperiences.contains(experience) {
             viewModel.selectedExperiences.remove(experience)
         } else {
@@ -336,97 +282,90 @@ struct Question2_ExperienceTypes: View {
     }
 
     var body: some View {
-        VStack(spacing: 22) {
-            VStack(spacing: 10) {
+        VStack(spacing: 20) {
+
+            // MARK: - Title
+            VStack(spacing: 8) {
                 Text("What type of experiences\ninterest you?")
                     .font(.system(size: 28, weight: .bold, design: .rounded))
                     .foregroundColor(Color("Title"))
                     .multilineTextAlignment(.center)
 
                 Text("Select all that apply")
-                    .font(.system(size: 18, weight: .regular, design: .rounded))
+                    .font(.system(size: 18))
                     .foregroundColor(Color("Dark small text"))
             }
-            .frame(maxWidth: .infinity)
-            .padding(.top, 10)
 
-            VStack(spacing: 18) {
-                LazyVGrid(columns: columns, spacing: 18) {
+            // MARK: - Cards
+            VStack(spacing: 16) {
+
+                // 🔹 أول 4 (2 × 2)
+                LazyVGrid(columns: columns, spacing: 16) {
                     ForEach(Array(viewModel.experiences.prefix(4))) { experience in
                         ExperienceCard(
-                            title: experience.title.replacingOccurrences(of: "\n", with: " "),
+                            title: experience.title,
                             description: experience.description,
                             isSelected: viewModel.selectedExperiences.contains(experience)
                         ) {
-                            toggleExperience(experience)
+                            toggle(experience)
                         }
                     }
                 }
 
+                // 🔹 الكرت الأخير (وسط – نفس العرض)
                 if let last = viewModel.experiences.last {
-                    HStack {
-                        Spacer()
-                        ExperienceCard(
-                            title: last.title.replacingOccurrences(of: "\n", with: " "),
-                            description: last.description,
-                            isSelected: viewModel.selectedExperiences.contains(last)
-                        ) {
-                            toggleExperience(last)
-                        }
-                        .frame(maxWidth: 210)
-                        Spacer()
+                    ExperienceCard(
+                        title: last.title,
+                        description: last.description,
+                        isSelected: viewModel.selectedExperiences.contains(last)
+                    ) {
+                        toggle(last)
                     }
+                    .frame(maxWidth: 200)   // 👈 نفس عرض كرت واحد
                 }
             }
         }
     }
 }
+
+
 struct ExperienceCard: View {
     let title: String
     let description: String
     let isSelected: Bool
     let action: () -> Void
 
-    @Environment(\.colorScheme) var colorScheme
-
     var body: some View {
         Button(action: action) {
-            VStack(spacing: 10) {
+            VStack(spacing: 12) {
 
-                // 🔹 TITLE (يتغير للأبيض فقط إذا غير مختار بالدارك)
+                // Title
                 Text(title)
-                    .font(.system(size: 16, weight: .bold, design: .rounded))
+                    .font(.system(size: 18, weight: .bold, design: .rounded)) // ⬆️ أكبر
                     .foregroundColor(
-                        colorScheme == .dark
-                        ? (isSelected ? Color("Background") : .white)
-                        : (isSelected ? Color("Background") : Color("Title"))
+                        isSelected ? Color("Background") : Color("Title")
                     )
                     .multilineTextAlignment(.center)
 
-                // 🔹 SMALL TEXT (يرجع Dark small text)
+                // Description
                 Text(description)
-                    .font(.system(size: 12, weight: .regular, design: .rounded))
+                    .font(.system(size: 13)) // ⬆️ أكبر شوي
                     .foregroundColor(
-                        colorScheme == .dark
-                        ? (isSelected
-                            ? Color("Background").opacity(0.9)
-                            : Color("Dark small text"))
-                        : (isSelected
-                            ? Color("Background").opacity(0.9)
-                            : Color("Light small text").opacity(0.6))
+                        isSelected
+                        ? Color("Background").opacity(0.9)
+                        : Color("Dark small text")
                     )
                     .multilineTextAlignment(.center)
+                    .lineSpacing(2)
             }
-            .padding()
+            .padding(.horizontal, 18)     // ⬆️ مساحة جانبية أكثر
+            .padding(.vertical, 22)       // ⬆️ طول الكرت
+            .frame(maxWidth: .infinity)   // ✅ يخليه متوازن داخل الشبكة
             .background(
-                AppColors.selected(
-                    isSelected: isSelected,
-                    colorScheme: colorScheme,
-                    light: Color("Button click"),
-                    normal: Color("Card")
-                )
+                isSelected ? Color("Button click") : Color("Card")
             )
-            .cornerRadius(28)
+            .cornerRadius(30)             // ⬆️ أنعم
+            .shadow(color: .black.opacity(0.04), radius: 6, y: 4)
         }
         .buttonStyle(.plain)
         .animation(.easeInOut(duration: 0.2), value: isSelected)
@@ -475,32 +414,24 @@ struct CompanionCard: View {
     let isSelected: Bool
     let action: () -> Void
 
-    @Environment(\.colorScheme) var colorScheme
-
     var body: some View {
         Button(action: action) {
             VStack(alignment: .leading, spacing: 6) {
 
-                // 🔹 TITLE
+                // Title
                 Text(companion.title)
                     .font(.system(size: 20, weight: .bold, design: .rounded))
                     .foregroundColor(
-                        colorScheme == .dark
-                        ? (isSelected ? Color("Background") : .white)
-                        : (isSelected ? Color("Background") : Color("Title"))
+                        isSelected ? Color("Background") : Color("Title")
                     )
 
-                // 🔹 SMALL TEXT (رجع Dark small text)
+                // Description
                 Text(companion.description)
                     .font(.system(size: 14, weight: .regular, design: .rounded))
                     .foregroundColor(
-                        colorScheme == .dark
-                        ? (isSelected
-                            ? Color("Background").opacity(0.9)
-                            : Color("Dark small text"))
-                        : (isSelected
-                            ? Color("Background").opacity(0.9)
-                            : Color("Light small text"))
+                        isSelected
+                        ? Color("Background").opacity(0.9)
+                        : Color("Dark small text")
                     )
                     .lineLimit(2)
             }
@@ -509,22 +440,17 @@ struct CompanionCard: View {
             .frame(maxWidth: .infinity, alignment: .leading)
             .frame(height: 100)
             .background(
-                AppColors.selected(
-                    isSelected: isSelected,
-                    colorScheme: colorScheme,
-                    light: Color("Button click"),
-                    normal: Color("Card")
-                )
+                isSelected ? Color("Button click") : Color("Card")
             )
-            .clipShape(RoundedRectangle(cornerRadius: 22, style: .continuous))
+            .clipShape(RoundedRectangle(cornerRadius: 22))
             .overlay(
                 RoundedRectangle(cornerRadius: 22)
                     .stroke(Color.black.opacity(0.04), lineWidth: 1)
             )
-            .shadow(color: Color.black.opacity(0.04), radius: 8, x: 0, y: 5)
+            .shadow(color: .black.opacity(0.04), radius: 8, y: 5)
         }
         .buttonStyle(.plain)
-        .animation(.easeInOut(duration: 0.18), value: isSelected)
+        .animation(.easeInOut(duration: 0.2), value: isSelected)
     }
 }
 
@@ -570,56 +496,42 @@ struct BudgetButton: View {
     let isSelected: Bool
     let action: () -> Void
 
-    @Environment(\.colorScheme) var colorScheme
-
     var body: some View {
         Button(action: action) {
             HStack {
                 VStack(alignment: .leading, spacing: 6) {
 
-                    // 🔹 TITLE
+                    // Title
                     Text(budget.title)
                         .font(.system(size: 20, weight: .semibold, design: .rounded))
                         .foregroundColor(
-                            colorScheme == .dark
-                            ? (isSelected ? Color("Background") : .white)
-                            : (isSelected ? Color("Background") : Color("Title"))
+                            isSelected ? Color("Background") : Color("Title")
                         )
 
-                    // 🔹 SMALL TEXT (السعر)
+                    // Range
                     Text(budget.range)
                         .font(.system(size: 15, weight: .regular, design: .rounded))
                         .foregroundColor(
-                            colorScheme == .dark
-                            ? (isSelected
-                                ? Color("Background").opacity(0.9)
-                                : Color("Dark small text"))
-                            : (isSelected
-                                ? Color("Background").opacity(0.9)
-                                : Color.gray.opacity(0.7))
+                            isSelected
+                            ? Color("Background").opacity(0.9)
+                            : Color("Dark small text")
                         )
                 }
+
                 Spacer()
             }
             .padding(.horizontal, 24)
-            .padding(.top, 2)
             .frame(height: 112)
             .background(
-                AppColors.selected(
-                    isSelected: isSelected,
-                    colorScheme: colorScheme,
-                    light: Color("Button click"),
-                    normal: Color("Card")
-                )
+                isSelected ? Color("Button click") : Color("Card")
             )
-            .clipShape(RoundedRectangle(cornerRadius: 26, style: .continuous))
-            .shadow(color: Color.black.opacity(0.06), radius: 12, x: 0, y: 8)
+            .clipShape(RoundedRectangle(cornerRadius: 26))
+            .shadow(color: .black.opacity(0.06), radius: 12, y: 8)
         }
         .buttonStyle(.plain)
         .animation(.easeInOut(duration: 0.2), value: isSelected)
     }
 }
-
 
 // MARK: - Question 5: Days
 struct Question5_Days: View {
@@ -635,7 +547,8 @@ struct Question5_Days: View {
                     .font(.system(size: 28, weight: .bold, design: .rounded))
                     .foregroundColor(
                         colorScheme == .dark
-                        ? Color(hex: "DAD2C8")
+                        ? Color("Button click")
+
                         : titleColor
                     )
                     .multilineTextAlignment(.center)
@@ -770,7 +683,8 @@ struct QuickDayCard: View {
     private var backgroundColor: Color {
         if isSelected {
             return colorScheme == .dark
-                ? Color(hex: "DAD2C8")
+                ? Color("Button click")
+
                 : Color("Button click")
         } else {
             return colorScheme == .dark
@@ -871,58 +785,62 @@ struct PaceButton: View {
     let pace: TravelPace
     let isSelected: Bool
     let action: () -> Void
-    @Environment(\.colorScheme) var colorScheme
-    
-    let columns = [
+
+    private let columns = [
         GridItem(.flexible(), spacing: 10),
         GridItem(.flexible(), spacing: 10)
     ]
-    
+
     var body: some View {
         Button(action: action) {
             VStack(alignment: .leading, spacing: 20) {
+
+                // Title
                 Text(pace.title)
                     .font(.system(size: 24, weight: .bold, design: .rounded))
-                    .foregroundColor(isSelected ? Color("Background") : Color("Title"))
+                    .foregroundColor(
+                        isSelected ? Color("Background") : Color("Title")
+                    )
 
+                // Description
                 Text(pace.description)
                     .font(.system(size: 15, weight: .regular, design: .rounded))
                     .foregroundColor(
                         isSelected
                         ? Color("Background").opacity(0.9)
-                        : (colorScheme == .dark ? Color("Dark small text") : Color("Title").opacity(0.6))
+                        : Color("Dark small text")
                     )
                     .lineSpacing(4)
-                    .fixedSize(horizontal: false, vertical: true)
-                
-                LazyVGrid(columns: columns, alignment: .leading, spacing: 12) {
+
+                // Tags
+                LazyVGrid(columns: columns, spacing: 12) {
                     ForEach(pace.tags, id: \.self) { tag in
                         Text(tag)
                             .font(.system(size: 12, weight: .bold, design: .rounded))
                             .foregroundColor(
-                                isSelected
-                                ? Color("Background")
-                                : (colorScheme == .dark ? Color("Dark small text") : Color("Title"))
+                                isSelected ? Color("Title") : Color("Title")
                             )
                             .padding(.horizontal, 12)
                             .padding(.vertical, 10)
                             .frame(maxWidth: .infinity)
                             .background(
-                                isSelected ? Color("Background") : Color("Back button").opacity(0.4)
+                                isSelected
+                                ? Color("Background")
+                                : Color("Back button").opacity(0.5)
                             )
                             .clipShape(Capsule())
                     }
                 }
             }
-            .frame(maxWidth: .infinity, alignment: .leading)
             .padding(24)
+            .frame(maxWidth: .infinity, alignment: .leading)
             .background(
                 isSelected ? Color("Next button") : Color("QButton")
             )
             .cornerRadius(28)
         }
-        .buttonStyle(PlainButtonStyle())
-        .animation(.spring(response: 0.3), value: isSelected)
+        .buttonStyle(.plain)
+        .animation(.spring(response: 0.35, dampingFraction: 0.8), value: isSelected)
     }
 }
 
@@ -932,6 +850,7 @@ struct AI_Questionnaire_View_Previews: PreviewProvider {
         AI_Questionnaire_View(
             viewModel: AI_Questionnaire_Model(),
             showPrePage: .constant(false)
+
         )
     }
 }
