@@ -9,6 +9,7 @@ struct JournalView: View {
     
     // MARK: - Environment
     @Environment(\.modelContext) private var modelContext
+    @Environment(\.dismiss) private var dismiss   // ✅ لزر Back النصّي
     
     // MARK: - State
     @State private var viewModel: JournalViewModel?
@@ -48,10 +49,12 @@ struct JournalView: View {
             }
             .navigationTitle("Journal")
             .navigationBarTitleDisplayMode(.large)
+            .navigationBarBackButtonHidden(true)   // ✅ إخفاء السهم الافتراضي
             .toolbar {
+                // ✅ زر Back النصّي الوحيد
                 ToolbarItem(placement: .navigationBarLeading) {
                     Button {
-                        // Navigate back to home
+                        dismiss()
                     } label: {
                         Text("Back")
                             .font(.system(size: 17, design: .rounded))

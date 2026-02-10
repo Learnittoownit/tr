@@ -200,7 +200,7 @@ struct AI_PrePage: View {
 struct AI_PrePage_Previews: PreviewProvider {
     static var previews: some View {
         AI_PrePage()
-            .preferredColorScheme(.dark)
+         
 
     }
 }

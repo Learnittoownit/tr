@@ -31,6 +31,7 @@ struct MainPage: View {
 
     // ✅ NAV STATE
     @State private var goToAIPrePage = false
+    @State private var goToJournal = false
 
     // exact positions you requested
     private let generatePos = CGPoint(x: 130, y: 350)
@@ -58,8 +59,7 @@ struct MainPage: View {
                             withAnimation(.spring(response: 0.45, dampingFraction: 0.75)) {
                                 vm.generatePlanTapped()
                             }
-
-                            // ✅ NAVIGATE
+                            // ✅ NAVIGATE to AI PrePage
                             goToAIPrePage = true
                         }
                     )
@@ -72,6 +72,8 @@ struct MainPage: View {
                             withAnimation(.spring(response: 0.45, dampingFraction: 0.75)) {
                                 vm.planTripTapped()
                             }
+                            // ✅ NAVIGATE to Journal
+                            goToJournal = true
                         }
                     )
                     .frame(width: 260, height: 240)
@@ -80,9 +82,12 @@ struct MainPage: View {
             }
             .ignoresSafeArea()
 
-            // ✅ DESTINATION
+            // ✅ DESTINATIONS
             .navigationDestination(isPresented: $goToAIPrePage) {
-                AI_PrePage() // <-- change to your real view name
+                AI_PrePage()
+            }
+            .navigationDestination(isPresented: $goToJournal) {
+                JournalView()
             }
         }
     }
@@ -159,7 +164,7 @@ private extension MainPage {
                 .fill(Color("Dark small text"))
                 .frame(width: 10, height: 34)
 
-            Text("Hi \(vm.name)")
+            Text("Welcome")
                 .font(.system(size: 25, weight: .bold, design: .rounded))
                 .foregroundStyle(Color("Title"))
         }
