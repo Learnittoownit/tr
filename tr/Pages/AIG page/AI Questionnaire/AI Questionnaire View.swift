@@ -218,7 +218,7 @@ struct Question1_CitySelection: View {
 
                 Text("Choose your destination in Saudi Arabia")
                     .font(.system(size: 20, weight: .regular, design: .rounded))
-                    .foregroundColor(Color("Dark small text"))
+                    .foregroundColor(Color("Light small text"))
                     .multilineTextAlignment(.center)
             }
             .frame(maxWidth: .infinity)
@@ -293,7 +293,7 @@ struct Question2_ExperienceTypes: View {
 
                 Text("Select all that apply")
                     .font(.system(size: 18))
-                    .foregroundColor(Color("Dark small text"))
+                    .foregroundColor(Color("Light small text"))
             }
 
             // MARK: - Cards
@@ -353,7 +353,7 @@ struct ExperienceCard: View {
                     .foregroundColor(
                         isSelected
                         ? Color("Background").opacity(0.9)
-                        : Color("Dark small text")
+                        : Color("Light small text")
                     )
                     .multilineTextAlignment(.center)
                     .lineSpacing(2)
@@ -388,7 +388,7 @@ struct Question3_TravelCompanions: View {
 
                 Text("This helps us personalize your trip!")
                     .font(.system(size: 20, weight: .regular, design: .rounded))
-                    .foregroundColor(Color("Dark small text"))
+                    .foregroundColor(Color("Light small text"))
                     .multilineTextAlignment(.center)
                     .frame(maxWidth: .infinity)
             }
@@ -431,7 +431,7 @@ struct CompanionCard: View {
                     .foregroundColor(
                         isSelected
                         ? Color("Background").opacity(0.9)
-                        : Color("Dark small text")
+                        : Color("Light small text")
                     )
                     .lineLimit(2)
             }
@@ -514,7 +514,7 @@ struct BudgetButton: View {
                         .foregroundColor(
                             isSelected
                             ? Color("Background").opacity(0.9)
-                            : Color("Dark small text")
+                            : Color("Light small text")
                         )
                 }
 
@@ -557,7 +557,7 @@ struct Question5_Days: View {
                     .font(.system(size: 20, weight: .regular, design: .rounded))
                     .foregroundColor(
                         colorScheme == .dark
-                        ? Color("Dark small text")
+                        ? Color("Light small text")
                         : Color("Light small text")
                     )
             }
@@ -574,7 +574,7 @@ struct Question5_Days: View {
                     .font(.system(size: 24, weight: .medium, design: .rounded))
                     .foregroundColor(
                         colorScheme == .dark
-                        ? Color("Dark small text")
+                        ? Color("Light small text")
                         : Color("Light small text").opacity(0.55)
                     )
             }
@@ -593,7 +593,7 @@ struct Question5_Days: View {
                 .font(.system(size: 13, weight: .medium, design: .rounded))
                 .foregroundColor(
                     colorScheme == .dark
-                    ? Color("Dark small text")
+                    ? Color("Light small text")
                     : Color("Light small text").opacity(0.55)
                 )
             }
@@ -705,7 +705,7 @@ struct QuickDayCard: View {
 
     private var labelColor: Color {
         if colorScheme == .dark {
-            return Color("Dark small text")
+            return Color("Light small text")
         } else {
             return isSelected
                 ? .white.opacity(0.85)
@@ -755,8 +755,8 @@ struct Question6_TravelPace: View {
                     .multilineTextAlignment(.center)
                 
                 Text("Choose your ideal pace")
-                    .font(.system(size: 16, weight: .regular, design: .rounded))
-                    .foregroundColor(Color("Light small text").opacity(0.55))
+                    .font(.system(size: 20, weight: .regular, design: .rounded))
+                    .foregroundColor(Color("Light small text"))
             }
             .padding(.top, 30)
             .padding(.horizontal, 40)
@@ -808,7 +808,7 @@ struct PaceButton: View {
                     .foregroundColor(
                         isSelected
                         ? Color("Background").opacity(0.9)
-                        : Color("Dark small text")
+                        : Color("Light small text")
                     )
                     .lineSpacing(4)
 

@@ -11,7 +11,7 @@ import SwiftUI
 struct trApp: App {
     var body: some Scene {
         WindowGroup {
-            AI_PrePage()
+            MainPage()
         }
     }
 }
