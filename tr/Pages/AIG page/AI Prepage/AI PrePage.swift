@@ -8,12 +8,33 @@ struct AI_PrePage: View {
     @Environment(\.dismiss) var dismiss
     @Environment(\.colorScheme) var colorScheme
     
+    // MARK: - Info Row Component
+    struct InfoRow: View {
+        let icon: String
+        let text: String
+        @Environment(\.colorScheme) var colorScheme
+        
+        var body: some View {
+            HStack(spacing: 12) {
+                Image(systemName: icon)
+                    .font(.system(size: 16, weight: .semibold))
+                    .foregroundColor(Color("Green"))
+                    .frame(width: 24)
+                
+                Text(text)
+                    .font(.system(size: 15, weight: .medium, design: .rounded))
+                    .foregroundColor(
+                        Color("Light small text")
+                    )
+            }
+        }
+    }
     var body: some View {
         ZStack {
             // Background
             Color("Background")
                 .ignoresSafeArea()
-            
+                
             if showQuestionnaire {
                 // Show Questionnaire Flow
                 AI_Questionnaire_View(viewModel: viewModel, showPrePage: $showQuestionnaire)
@@ -63,7 +84,7 @@ struct AI_PrePage: View {
                             Text("Let our AI create the perfect itinerary just for you")
                                 .font(.system(size: 16, weight: .regular, design: .rounded))
                                 .foregroundColor(
-                                   
+                                    
                                     Color("Light small text")
                                 )
                                 .multilineTextAlignment(.center)
@@ -83,15 +104,15 @@ struct AI_PrePage: View {
                                 Text("/")
                                     .font(.system(size: 32, weight: .medium, design: .rounded))
                                     .foregroundColor(
-                                       Color("Light small text").opacity(0.5)
+                                        Color("Light small text").opacity(0.5)
                                     )
                                 
                                 // Total number
                                 Text("5")
                                     .font(.system(size: 32, weight: .semibold, design: .rounded))
                                     .foregroundColor(
-                                      
-                                         Color("Light small text").opacity(0.7)
+                                        
+                                        Color("Light small text").opacity(0.7)
                                     )
                             }
                             
@@ -122,10 +143,9 @@ struct AI_PrePage: View {
                     
                     Spacer()
                     
+                    
                     // Bottom Buttons
                     VStack(spacing: 16) {
-                        // Start Button
-                        // Start Button (نفس منطق Next)
                         Button(action: {
                             if viewModel.remainingGenerations > 0 {
                                 withAnimation(.spring(response: 0.5, dampingFraction: 0.8)) {
@@ -147,15 +167,11 @@ struct AI_PrePage: View {
                             PressableNextButtonStyle(
                                 pressedColor: Color("Next button"),
                                 normalColor: viewModel.remainingGenerations > 0
-                                    ? Color("Next button")                 // ✅ نفس Next
-                                    : (colorScheme == .dark
-                                        ? Color("Card")                    // Disabled dark
-                                        : Color("Background"))             // Disabled light
+                                ? Color("Next button")
+                                : (colorScheme == .dark ? Color("Card") : Color("Background"))
                             )
                         )
                         .disabled(viewModel.remainingGenerations == 0)
-
-                        
                         // Back Button
                         Button(action: {
                             dismiss()
@@ -168,42 +184,23 @@ struct AI_PrePage: View {
                                 .background(Color("Card"))
                                 .cornerRadius(25)
                         }
+                        .navigationBarBackButtonHidden(true)   // ✅ HERE
                     }
                     .padding(.horizontal, 30)
                     .padding(.bottom, 40)
                 }
+                   
+                    }
+                }
             }
         }
-        .animation(.spring(response: 0.5, dampingFraction: 0.8), value: showQuestionnaire)
-    }
-}
 
-// MARK: - Info Row Component
-struct InfoRow: View {
-    let icon: String
-    let text: String
-    @Environment(\.colorScheme) var colorScheme
-    
-    var body: some View {
-        HStack(spacing: 12) {
-            Image(systemName: icon)
-                .font(.system(size: 16, weight: .semibold))
-                .foregroundColor(Color("Green"))
-                .frame(width: 24)
-            
-            Text(text)
-                .font(.system(size: 15, weight: .medium, design: .rounded))
-                .foregroundColor(
-                  Color("Light small text")
-                )
-        }
-    }
-}
 
 // MARK: - Preview
 struct AI_PrePage_Previews: PreviewProvider {
     static var previews: some View {
         AI_PrePage()
-         
+            .preferredColorScheme(.dark)
+
     }
 }

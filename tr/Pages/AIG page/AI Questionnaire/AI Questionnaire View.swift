@@ -10,7 +10,7 @@ struct AI_Questionnaire_View: View {
         ZStack {
             Color("Background")
                 .ignoresSafeArea()
-            
+               
             if viewModel.showGeneratedPlan {
                 AI_Plan_View(viewModel: viewModel, showPrePage: $showPrePage)
                     .transition(.opacity)
@@ -52,13 +52,16 @@ struct AI_Questionnaire_View: View {
                         .padding(.bottom, 40)
                 }
                 .transition(.opacity)
+                
             }
         }
+        .navigationBarBackButtonHidden(true)   // ✅ HERE
         .animation(.spring(response: 0.5, dampingFraction: 0.8), value: viewModel.currentQuestion)
         .animation(.easeInOut(duration: 0.3), value: viewModel.isGenerating)
         .animation(.spring(response: 0.5, dampingFraction: 0.8), value: viewModel.showGeneratedPlan)
     }
 }
+
 
 // MARK: - Loading Screen
 struct LoadingScreen: View {
@@ -154,7 +157,6 @@ struct PressableNextButtonStyle: ButtonStyle {
     }
 }
 
-// MARK: - Navigation Buttons
 struct NavigationButtons: View {
     @ObservedObject var viewModel: AI_Questionnaire_Model
 
@@ -168,15 +170,14 @@ struct NavigationButtons: View {
                 Text("Back")
                     .font(.system(size: 16, weight: .semibold))
                     .foregroundColor(Color("Title"))
-                    .frame(maxWidth: .infinity, minHeight: 50, maxHeight: 50)
-
+                    .frame(maxWidth: .infinity, minHeight: 50)
                     .background(Color("Back button"))
                     .cornerRadius(25)
             }
             .disabled(viewModel.currentQuestion == 1)
             .opacity(viewModel.currentQuestion == 1 ? 0.5 : 1)
 
-            // Next
+            // Next / Generate
             Button {
                 viewModel.currentQuestion == 6
                 ? viewModel.startGeneration()
@@ -189,18 +190,17 @@ struct NavigationButtons: View {
                         ? Color("Background")
                         : Color("Title")
                     )
-                    .frame(maxWidth: .infinity, minHeight: 50, maxHeight: 50)
-
+                    .frame(maxWidth: .infinity, minHeight: 50)
                     .background(
                         viewModel.isCurrentQuestionValid()
-                        ? Color("Next button")   // ✅ dark brown
-                        : Color("Back button")   // ✅ light beige
+                        ? Color("Next button")
+                        : Color("Back button")
                     )
                     .cornerRadius(25)
             }
             .disabled(!viewModel.isCurrentQuestionValid())
         }
-        .animation(.easeInOut(duration: 0.25), value: viewModel.isCurrentQuestionValid())
+        .animation(.easeInOut(duration: 0.25), value: viewModel.currentQuestion)
     }
 }
 
@@ -250,7 +250,7 @@ struct CityButton: View {
                 Text(title)
                     .font(.system(size: 20, weight: .semibold, design: .rounded))
                     .foregroundColor(
-                        isSelected ? Color("Background") : Color("Title")
+                        isSelected ? Color("Background") : Color("Options")
                     )
                 Spacer()
             }
@@ -267,12 +267,11 @@ struct CityButton: View {
 
 struct Question2_ExperienceTypes: View {
     @ObservedObject var viewModel: AI_Questionnaire_Model
-
-    private let columns = [
-        GridItem(.flexible(), spacing: 18),
-        GridItem(.flexible(), spacing: 18)
-    ]
-
+    
+    private let gridSpacing: CGFloat = 20
+    private let sidePadding: CGFloat = 1   // smaller padding = wider cards
+    private let cardHeight: CGFloat = 165   // bigger height so text fits
+    
     private func toggle(_ experience: ExperienceType) {
         if viewModel.selectedExperiences.contains(experience) {
             viewModel.selectedExperiences.remove(experience)
@@ -280,55 +279,77 @@ struct Question2_ExperienceTypes: View {
             viewModel.selectedExperiences.insert(experience)
         }
     }
-
+    
     var body: some View {
-        VStack(spacing: 20) {
+        GeometryReader { geo in
+            let gridWidth = geo.size.width - (sidePadding * 2)
+            let cardWidth = (gridWidth - gridSpacing) / 2
+            
+            VStack(spacing: 20) {
+                
+                // Title (replace your title block with this)
+                VStack(spacing: 8) {
+                    Text("What type of experiences\ninterest you?")
+                        .font(.system(size: 28, weight: .bold, design: .rounded))
+                        .foregroundColor(Color("Title"))
+                        .multilineTextAlignment(.center)
+                        .lineLimit(nil)                       // ✅ don't truncate
+                        .fixedSize(horizontal: false, vertical: true) // ✅ always expands vertically
 
-            // MARK: - Title
-            VStack(spacing: 8) {
-                Text("What type of experiences\ninterest you?")
-                    .font(.system(size: 28, weight: .bold, design: .rounded))
-                    .foregroundColor(Color("Title"))
-                    .multilineTextAlignment(.center)
+                    Text("Select all that apply")
+                        .font(.system(size: 18))
+                        .foregroundColor(Color("Light small text"))
+                }
+                .frame(maxWidth: .infinity)                  // ✅ gives full width so it won’t cut
 
-                Text("Select all that apply")
-                    .font(.system(size: 18))
-                    .foregroundColor(Color("Light small text"))
-            }
-
-            // MARK: - Cards
-            VStack(spacing: 16) {
-
-                // 🔹 أول 4 (2 × 2)
-                LazyVGrid(columns: columns, spacing: 16) {
-                    ForEach(Array(viewModel.experiences.prefix(4))) { experience in
-                        ExperienceCard(
-                            title: experience.title,
-                            description: experience.description,
-                            isSelected: viewModel.selectedExperiences.contains(experience)
-                        ) {
-                            toggle(experience)
+                // Cards
+                VStack(spacing: 16) {
+                    
+                    LazyVGrid(
+                        columns: [
+                            GridItem(.fixed(cardWidth), spacing: gridSpacing),
+                            GridItem(.fixed(cardWidth), spacing: gridSpacing)
+                        ],
+                        spacing: 16
+                    ) {
+                        ForEach(Array(viewModel.experiences.prefix(4))) { experience in
+                            ExperienceCard(
+                                title: experience.title,
+                                description: experience.description,
+                                isSelected: viewModel.selectedExperiences.contains(experience)
+                            ) {
+                                toggle(experience)
+                            }
+                            .frame(width: cardWidth, height: cardHeight)
                         }
                     }
-                }
-
-                // 🔹 الكرت الأخير (وسط – نفس العرض)
-                if let last = viewModel.experiences.last {
-                    ExperienceCard(
-                        title: last.title,
-                        description: last.description,
-                        isSelected: viewModel.selectedExperiences.contains(last)
-                    ) {
-                        toggle(last)
+                    .frame(width: gridWidth)
+                    
+                    // last card centered and SAME size
+                    if let last = viewModel.experiences.last {
+                        HStack {
+                            Spacer()
+                            ExperienceCard(
+                                title: last.title,
+                                description: last.description,
+                                isSelected: viewModel.selectedExperiences.contains(last)
+                            ) {
+                                toggle(last)
+                            }
+                            .frame(width: cardWidth, height: cardHeight)
+                            Spacer()
+                        }
+                        .frame(width: gridWidth)
                     }
-                    .frame(maxWidth: 200)   // 👈 نفس عرض كرت واحد
                 }
+                
+                Spacer(minLength: 0)
             }
+            .padding(.horizontal, sidePadding)
+            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
         }
     }
 }
-
-
 struct ExperienceCard: View {
     let title: String
     let description: String
@@ -337,40 +358,33 @@ struct ExperienceCard: View {
 
     var body: some View {
         Button(action: action) {
-            VStack(spacing: 12) {
+            VStack(spacing: 10) {
 
-                // Title
                 Text(title)
-                    .font(.system(size: 18, weight: .bold, design: .rounded)) // ⬆️ أكبر
-                    .foregroundColor(
-                        isSelected ? Color("Background") : Color("Title")
-                    )
+                    .font(.system(size: 18, weight: .bold, design: .rounded))
+                    .foregroundColor(isSelected ? Color("Background") : Color("Options"))
                     .multilineTextAlignment(.center)
+                    .fixedSize(horizontal: false, vertical: true) // ✅ no weird cuts
 
-                // Description
                 Text(description)
-                    .font(.system(size: 13)) // ⬆️ أكبر شوي
-                    .foregroundColor(
-                        isSelected
-                        ? Color("Background").opacity(0.9)
-                        : Color("Light small text")
-                    )
+                    .font(.system(size: 13))
+                    .foregroundColor(isSelected ? Color("Background").opacity(0.9) : Color("Light small text"))
                     .multilineTextAlignment(.center)
                     .lineSpacing(2)
+                    .fixedSize(horizontal: false, vertical: true) // ✅ wraps fully
             }
-            .padding(.horizontal, 18)     // ⬆️ مساحة جانبية أكثر
-            .padding(.vertical, 22)       // ⬆️ طول الكرت
-            .frame(maxWidth: .infinity)   // ✅ يخليه متوازن داخل الشبكة
-            .background(
-                isSelected ? Color("Button click") : Color("Card")
-            )
-            .cornerRadius(30)             // ⬆️ أنعم
+            .padding(.horizontal, 16)
+            .padding(.vertical, 18)
+            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
+            .background(isSelected ? Color("Button click") : Color("Card"))
+            .cornerRadius(30)
             .shadow(color: .black.opacity(0.04), radius: 6, y: 4)
         }
         .buttonStyle(.plain)
         .animation(.easeInOut(duration: 0.2), value: isSelected)
     }
 }
+
 
 
 // MARK: - Question 3: Travel Companions
@@ -422,7 +436,7 @@ struct CompanionCard: View {
                 Text(companion.title)
                     .font(.system(size: 20, weight: .bold, design: .rounded))
                     .foregroundColor(
-                        isSelected ? Color("Background") : Color("Title")
+                        isSelected ? Color("Background") : Color("Options")
                     )
 
                 // Description
@@ -505,7 +519,7 @@ struct BudgetButton: View {
                     Text(budget.title)
                         .font(.system(size: 20, weight: .semibold, design: .rounded))
                         .foregroundColor(
-                            isSelected ? Color("Background") : Color("Title")
+                            isSelected ? Color("Background") : Color("Options")
                         )
 
                     // Range
@@ -787,62 +801,55 @@ struct PaceButton: View {
     let action: () -> Void
 
     private let columns = [
-        GridItem(.flexible(), spacing: 10),
-        GridItem(.flexible(), spacing: 10)
+        GridItem(.flexible(), spacing: 12),
+        GridItem(.flexible(), spacing: 12)
     ]
 
     var body: some View {
         Button(action: action) {
-            VStack(alignment: .leading, spacing: 20) {
+            VStack(alignment: .leading, spacing: 22) {
 
-                // Title
+                // MARK: - Big Title (WHITE in sketch)
                 Text(pace.title)
-                    .font(.system(size: 24, weight: .bold, design: .rounded))
-                    .foregroundColor(
-                        isSelected ? Color("Background") : Color("Title")
+                    .font(.system(size: 26, weight: .bold, design: .rounded))
+                    .background(
+                        isSelected ? Color("Button click") : Color("Card")
                     )
 
-                // Description
+                // MARK: - Description
                 Text(pace.description)
-                    .font(.system(size: 15, weight: .regular, design: .rounded))
-                    .foregroundColor(
-                        isSelected
-                        ? Color("Background").opacity(0.9)
-                        : Color("Light small text")
-                    )
-                    .lineSpacing(4)
+                    .font(.system(size: 16, weight: .regular, design: .rounded))
+                    .foregroundColor(Color("Light small text"))
+                    .lineSpacing(5)
 
-                // Tags
-                LazyVGrid(columns: columns, spacing: 12) {
+                // MARK: - Tags
+                LazyVGrid(columns: columns, spacing: 14) {
                     ForEach(pace.tags, id: \.self) { tag in
                         Text(tag)
-                            .font(.system(size: 12, weight: .bold, design: .rounded))
-                            .foregroundColor(
-                                isSelected ? Color("Title") : Color("Title")
-                            )
-                            .padding(.horizontal, 12)
+                            .font(.system(size: 13, weight: .bold, design: .rounded))
+                            .foregroundColor(Color("Options"))
+                            .padding(.horizontal, 14)
                             .padding(.vertical, 10)
                             .frame(maxWidth: .infinity)
-                            .background(
-                                isSelected
-                                ? Color("Background")
-                                : Color("Back button").opacity(0.5)
-                            )
+                            .background(Color("tags")) // ✅ FIXED
                             .clipShape(Capsule())
                     }
                 }
             }
-            .padding(24)
-            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding(28) // ✅ BIGGER CARD
+            .frame(maxWidth: .infinity, minHeight: 210, alignment: .leading) // ✅ SIZE FIX
             .background(
-                isSelected ? Color("Next button") : Color("QButton")
+                isSelected
+                ? Color("Next button")
+                : Color("QButton")
             )
-            .cornerRadius(28)
+            .cornerRadius(32) // closer to sketch
         }
         .buttonStyle(.plain)
         .animation(.spring(response: 0.35, dampingFraction: 0.8), value: isSelected)
     }
 }
+
 
 // MARK: - Preview
 struct AI_Questionnaire_View_Previews: PreviewProvider {
@@ -850,6 +857,8 @@ struct AI_Questionnaire_View_Previews: PreviewProvider {
         AI_Questionnaire_View(
             viewModel: AI_Questionnaire_Model(),
             showPrePage: .constant(false)
+  
+
 
         )
     }
