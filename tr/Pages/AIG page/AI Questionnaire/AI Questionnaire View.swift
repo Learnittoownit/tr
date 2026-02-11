@@ -581,7 +581,7 @@ struct Question5_Days: View {
 
             VStack(spacing: 0) {
                 Text("\(Int(viewModel.numberOfDays))")
-                    .font(.custom("Impact", size: 50))
+                    .font(.custom("Impact", size: 60))
                     .foregroundColor(Color("Green"))
 
                 Text("Day")
@@ -761,9 +761,9 @@ struct Question6_TravelPace: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            VStack(spacing: 1) {
+            VStack(spacing: 8) {
                 Text("How do you prefer to travel?")
-                    .font(.system(size:30, weight: .bold, design: .rounded))
+                    .font(.system(size: 30, weight: .bold, design: .rounded))
                     .foregroundColor(Color("Title"))
                     .multilineTextAlignment(.center)
                 
@@ -787,7 +787,7 @@ struct Question6_TravelPace: View {
                 }
                 .padding(.top, 30)
                 .padding(.horizontal, 20)
-                .padding(.bottom, 120)
+                .padding(.bottom, 10)
             }
         }
         .background(Color("Background").ignoresSafeArea())
@@ -798,6 +798,7 @@ struct PaceButton: View {
     let pace: TravelPace
     let isSelected: Bool
     let action: () -> Void
+    @Environment(\.colorScheme) var colorScheme
 
     private let columns = [
         GridItem(.flexible(), spacing: 12),
@@ -806,50 +807,94 @@ struct PaceButton: View {
 
     var body: some View {
         Button(action: action) {
-            VStack(alignment: .leading, spacing: 22) {
+            VStack(alignment: .leading, spacing: 16) {
 
-                // MARK: - Big Title (WHITE in sketch)
+                // MARK: - Title
                 Text(pace.title)
-                    .font(.system(size: 30, weight: .bold, design: .rounded))
-                    .background(
-                        isSelected ? Color("Button click") : Color("Card")
-                    )
+                    .font(.system(size: 26, weight: .bold, design: .rounded))
+                    .foregroundColor(titleColor)
 
                 // MARK: - Description
                 Text(pace.description)
                     .font(.system(size: 16, weight: .regular, design: .rounded))
-                    .foregroundColor(Color("Light small text"))
-             
+                    .foregroundColor(descriptionColor)
+                    .lineSpacing(4)
 
                 // MARK: - Tags
-                LazyVGrid(columns: columns, spacing: 10) {
+                LazyVGrid(columns: columns, spacing: 12) {
                     ForEach(pace.tags, id: \.self) { tag in
                         Text(tag)
-                            .font(.system(size: 13, weight: .bold, design: .rounded))
-                            .foregroundColor(Color("Options"))
-                            .padding(.horizontal, 6)
-                            .padding(.vertical, 6)
+                            .font(.system(size: 13, weight: .semibold, design: .rounded))
+                            .foregroundColor(tagTextColor)
+                            .padding(.horizontal, 10)
+                            .padding(.vertical, 10)
                             .frame(maxWidth: .infinity)
-                            .background(Color("Light small text")) // ✅ FIXED
+                            .background(tagBackgroundColor)
                             .clipShape(Capsule())
                     }
                 }
             }
-            .padding(28) // ✅ BIGGER CARD
-            .frame(maxWidth: .infinity, minHeight: 210, alignment: .leading) // ✅ SIZE FIX
-            .background(
-                isSelected
-                ? Color("Next button")
-                : Color("QButton")
-            )
-            .cornerRadius(32) // closer to sketch
+            .padding(28)
+            .frame(maxWidth: .infinity, minHeight: 240, alignment: .leading)
+            .background(cardBackgroundColor)
+            .cornerRadius(32)
         }
         .buttonStyle(.plain)
         .animation(.spring(response: 0.35, dampingFraction: 0.8), value: isSelected)
     }
+    
+    // MARK: - Color Logic
+    
+    private var cardBackgroundColor: Color {
+        if isSelected {
+            // Selected card - Dark mode: white, Light mode: dark brown
+            return colorScheme == .dark ? Color("Button click") : Color("Button click")
+        } else {
+            // Unselected card - Dark mode: dark brown, Light mode: white/card
+            return colorScheme == .dark ? Color("Card") : Color("Card")
+        }
+    }
+    
+    private var titleColor: Color {
+        if isSelected {
+            // Selected title - Dark mode: dark text, Light mode: white/light text
+            return colorScheme == .dark ? Color("Card") : Color("Background")
+        } else {
+            // Unselected title - Dark mode: light text, Light mode: dark text
+            return colorScheme == .dark ? Color("a") : Color("Title")
+        }
+    }
+    
+    private var descriptionColor: Color {
+        if isSelected {
+            // Selected description - Dark mode: medium dark, Light mode: light
+            return colorScheme == .dark ? Color("Light small text") : Color("Background").opacity(0.8)
+        } else {
+            // Unselected description
+            return colorScheme == .dark ? Color("Light small text") : Color("Light small text")
+        }
+    }
+    
+    private var tagBackgroundColor: Color {
+        if isSelected {
+            // Selected tags - Dark mode: light gray, Light mode: white/cream
+            return colorScheme == .dark ? Color("Tags 1") : Color("Background").opacity(0.3)
+        } else {
+            // Unselected tags
+            return colorScheme == .dark ? Color("Tags 1") : Color("Light small text").opacity(0.2)
+        }
+    }
+    
+    private var tagTextColor: Color {
+        if isSelected {
+            // Selected tag text
+            return colorScheme == .dark ? Color("Tags words") : Color("Background")
+        } else {
+            // Unselected tag text
+            return colorScheme == .dark ? Color("Tags words").opacity(0.9) : Color("Options")
+        }
+    }
 }
-
-
 // MARK: - Preview
 struct AI_Questionnaire_View_Previews: PreviewProvider {
     static var previews: some View {
