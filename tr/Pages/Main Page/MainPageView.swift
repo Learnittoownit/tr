@@ -4,13 +4,13 @@
 //
 //  Created by Rama AlQahtani on 17/08/1447 AH.
 //
+
 import SwiftUI
 import Combine
 
 // MARK: - ViewModel
 
 final class MainPageViewModel: ObservableObject {
-    @Published var name: String = "Name"
     @Published var swapped: Bool = false
 
     func generatePlanTapped() {
@@ -28,59 +28,91 @@ final class MainPageViewModel: ObservableObject {
 
 struct MainPage: View {
     @StateObject private var vm = MainPageViewModel()
+    @Environment(\.colorScheme) var colorScheme
 
     // ✅ NAV STATE
     @State private var goToAIPrePage = false
     @State private var goToJournal = false
-
-    // exact positions you requested
-    private let generatePos = CGPoint(x: 130, y: 350)
-    private let planPos = CGPoint(x: 255, y: 600)
+    @State private var appeared = false
 
     var body: some View {
         NavigationStack {
             ZStack {
                 background
 
-                // Header (normal layout)
-                VStack(alignment: .leading, spacing: 0) {
-                    header
-                        .padding(.top, 60)
-                        .padding(.leading, -170)
+                VStack {
+                    // Header
+                    HStack {
+                        header
+                            .padding(.top, 90)
+                            .padding(.leading, 80)
+                            .opacity(appeared ? 1 : 0)
+                            .offset(y: appeared ? 0 : -20)
+
+                        Spacer()
+                    }
 
                     Spacer()
+
+                    // Bottom subtitle
+                    subtitle
+                        .padding(.bottom, 60)
+                        .opacity(appeared ? 1 : 0)
+                        .offset(y: appeared ? 0 : 20)
                 }
 
-                // Buttons (absolute layout)
-                ZStack {
-                    CircleActionButton(
-                        title: "Generate\nYour Plan",
-                        action: {
-                            withAnimation(.spring(response: 0.45, dampingFraction: 0.75)) {
-                                vm.generatePlanTapped()
-                            }
-                            // ✅ NAVIGATE to AI PrePage
-                            goToAIPrePage = true
-                        }
-                    )
-                    .frame(width: 260, height: 240)
-                    .position(vm.swapped ? planPos : generatePos)
+                // Buttons
+                GeometryReader { geometry in
+                    let leftX = geometry.size.width * 0.35
+                    let rightX = geometry.size.width * 0.65
+                    let generateY: CGFloat = 320
+                    let planY: CGFloat = 570
 
-                    CircleActionButton(
-                        title: "Plan\nYour Trip",
-                        action: {
-                            withAnimation(.spring(response: 0.45, dampingFraction: 0.75)) {
-                                vm.planTripTapped()
+                    ZStack {
+                        CircleActionButton(
+                            title: "Generate Your Plan",
+                            icon: "sparkles",
+                            action: {
+                                withAnimation(.spring(response: 0.45, dampingFraction: 0.75)) {
+                                    vm.generatePlanTapped()
+                                }
+                                goToAIPrePage = true
                             }
-                            // ✅ NAVIGATE to Journal
-                            goToJournal = true
-                        }
-                    )
-                    .frame(width: 260, height: 240)
-                    .position(vm.swapped ? generatePos : planPos)
+                        )
+                        .frame(width: 250, height: 250)
+                        .position(
+                            x: vm.swapped ? rightX : leftX,
+                            y: vm.swapped ? planY : generateY
+                        )
+                        .opacity(appeared ? 1 : 0)
+                        .scaleEffect(appeared ? 1 : 0.8)
+
+                        CircleActionButton(
+                            title: "Plan Your Trip",
+                            icon: "map.fill",
+                            action: {
+                                withAnimation(.spring(response: 0.45, dampingFraction: 0.75)) {
+                                    vm.planTripTapped()
+                                }
+                                goToJournal = true
+                            }
+                        )
+                        .frame(width: 250, height: 250)
+                        .position(
+                            x: vm.swapped ? leftX : rightX,
+                            y: vm.swapped ? generateY : planY
+                        )
+                        .opacity(appeared ? 1 : 0)
+                        .scaleEffect(appeared ? 1 : 0.8)
+                    }
                 }
             }
             .ignoresSafeArea()
+            .onAppear {
+                withAnimation(.spring(response: 0.6, dampingFraction: 0.8).delay(0.1)) {
+                    appeared = true
+                }
+            }
 
             // ✅ DESTINATIONS
             .navigationDestination(isPresented: $goToAIPrePage) {
@@ -97,17 +129,77 @@ struct MainPage: View {
 
 struct CircleActionButton: View {
     let title: String
+    let icon: String
     let action: () -> Void
+    @Environment(\.colorScheme) var colorScheme
+    @State private var isHovering = false
 
     var body: some View {
         Button(action: action) {
             ZStack {
+                // Glow effect
                 Circle()
-                    .fill(Color("Green"))
-                    .shadow(color: .black.opacity(0.18), radius: 10, x: 0, y: 6)
+                    .fill(
+                        colorScheme == .dark
+                        ? Color("Green").opacity(0.4)
+                        : Color("Green").opacity(0.2)
+                    )
+                    .blur(radius: 20)
+                    .scaleEffect(isHovering ? 1.1 : 1.0)
 
-                LiquidGlassText(title: title)
-                    .padding(.horizontal, 16)
+                // Main circle
+                Circle()
+                    .fill(
+                        colorScheme == .dark
+                        ? Color("Green").opacity(0.95)
+                        : Color("Green")
+                    )
+                    .shadow(color: .black.opacity(0.25), radius: 15, x: 0, y: 8)
+
+                // Shimmer overlay
+                Circle()
+                    .fill(
+                        LinearGradient(
+                            colors: [
+                                .white.opacity(0.5),
+                                .clear,
+                                .white.opacity(0.1)
+                            ],
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        )
+                    )
+                    .blendMode(.overlay)
+
+                // ✅ ONLY CHANGE IS HERE
+                VStack(spacing: 4) {
+                    // Icon
+                    ZStack {
+                        Circle()
+                            .fill(.white.opacity(0.25))
+                            .frame(width: 60, height: 63)
+
+                        Circle()
+                            .fill(
+                                LinearGradient(
+                                    colors: [
+                                        .white.opacity(0.3),
+                                        .white.opacity(0.1)
+                                    ],
+                                    startPoint: .topLeading,
+                                    endPoint: .bottomTrailing
+                                )
+                            )
+                            .frame(width: 60, height: 60)
+
+                        Image(systemName: icon)
+                            .font(.system(size: 26, weight: .semibold))
+                            .foregroundStyle(.white)
+                    }
+
+                    LiquidGlassText(title: title)
+                        .padding(.horizontal, 16)
+                }
             }
         }
         .buttonStyle(CirclePressStyle())
@@ -123,9 +215,10 @@ struct CirclePressStyle: ButtonStyle {
             .overlay(
                 Circle()
                     .fill(Color("Button click"))
-                    .opacity(configuration.isPressed ? 0.18 : 0.0)
+                    .opacity(configuration.isPressed ? 0.25 : 0.0)
             )
-            .scaleEffect(configuration.isPressed ? 0.98 : 1.0)
+            .scaleEffect(configuration.isPressed ? 0.96 : 1.0)
+            .animation(.spring(response: 0.3, dampingFraction: 0.7), value: configuration.isPressed)
     }
 }
 
@@ -133,10 +226,11 @@ struct CirclePressStyle: ButtonStyle {
 
 struct LiquidGlassText: View {
     let title: String
+    @Environment(\.colorScheme) var colorScheme
 
     var body: some View {
         let text = Text(title)
-            .font(.system(size: 35, weight: .heavy, design: .rounded))
+            .font(.system(size: 34, weight: .heavy, design: .rounded))
             .multilineTextAlignment(.center)
 
         if #available(iOS 26.0, *) {
@@ -150,7 +244,11 @@ struct LiquidGlassText: View {
                         .blendMode(.overlay)
                 )
         } else {
-            text.foregroundStyle(Color("Light small text"))
+            text.foregroundStyle(
+                colorScheme == .dark
+                ? Color.white.opacity(0.95)
+                : Color("Dark small text")
+            )
         }
     }
 }
@@ -159,14 +257,18 @@ struct LiquidGlassText: View {
 
 private extension MainPage {
     var header: some View {
-        HStack(spacing: 12) {
-            RoundedRectangle(cornerRadius: 8)
-                .fill(Color("Dark small text"))
-                .frame(width: 10, height: 34)
+        HStack(spacing: 12) { }
+    }
 
-            Text("Welcome")
-                .font(.system(size: 25, weight: .bold, design: .rounded))
-                .foregroundStyle(Color("Title"))
+    var subtitle: some View {
+        VStack(spacing: 6) {
+            Text("Choose your journey")
+                .font(.system(size: 18, weight: .semibold, design: .rounded))
+                .foregroundStyle(Color("Title").opacity(0.7))
+
+            Text("Tap a circle to get started")
+                .font(.system(size: 14, weight: .medium, design: .rounded))
+                .foregroundStyle(Color("Title").opacity(0.5))
         }
     }
 
@@ -176,22 +278,32 @@ private extension MainPage {
 
             RadialGradient(
                 colors: [
-                    Color("Title").opacity(0.20),
+                    Color("Title").opacity(0.25),
                     .clear
                 ],
                 center: .center,
-                startRadius: 40,
-                endRadius: 200
+                startRadius: 50,
+                endRadius: 250
             )
 
             RadialGradient(
                 colors: [
-                    Color("Background").opacity(0.18),
+                    Color("Green").opacity(0.15),
                     .clear
                 ],
-                center: UnitPoint(x: 0.6, y: 0.7),
+                center: UnitPoint(x: 0.3, y: 0.4),
+                startRadius: 30,
+                endRadius: 300
+            )
+
+            RadialGradient(
+                colors: [
+                    Color("Background").opacity(0.2),
+                    .clear
+                ],
+                center: UnitPoint(x: 0.7, y: 0.7),
                 startRadius: 20,
-                endRadius: 360
+                endRadius: 380
             )
         }
     }
@@ -199,6 +311,12 @@ private extension MainPage {
 
 // MARK: - Preview
 
-#Preview {
+#Preview("Light Mode") {
     MainPage()
+        .preferredColorScheme(.light)
+}
+
+#Preview("Dark Mode") {
+    MainPage()
+        .preferredColorScheme(.dark)
 }

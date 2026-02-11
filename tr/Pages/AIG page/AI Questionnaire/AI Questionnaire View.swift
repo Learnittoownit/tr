@@ -43,13 +43,13 @@ struct AI_Questionnaire_View: View {
                             }
                         }
                         .padding(.horizontal, 30)
-                        .padding(.top, 20)
+                        .padding(.top, 40)
                         .padding(.bottom, 20)
                     }
                     
                     NavigationButtons(viewModel: viewModel)
                         .padding(.horizontal, 30)
-                        .padding(.bottom, 40)
+                        .padding(.bottom, 10)
                 }
                 .transition(.opacity)
                 
@@ -96,7 +96,7 @@ struct LoadingScreen: View {
                             Color(red: 0.45, green: 0.6, blue: 0.5),
                             style: StrokeStyle(lineWidth: 12, lineCap: .round)
                         )
-                        .frame(width: 280, height: 280)
+                        .frame(width: 210, height: 280)
                         .rotationEffect(.degrees(-90))
                         .animation(.easeInOut(duration: 0.5), value: viewModel.generationProgress)
                     
@@ -131,12 +131,12 @@ struct ProgressBar: View {
         GeometryReader { geometry in
             ZStack(alignment: .leading) {
                 RoundedRectangle(cornerRadius: 4)
-                    .fill(Color("Light small text").opacity(0.35))
-                    .frame(height: 4)
+                    .fill(Color("PB"))
+                    .frame(height: 6)
                 
-                RoundedRectangle(cornerRadius: 4)
+                RoundedRectangle(cornerRadius: 5)
                     .fill(Color("Green"))
-                    .frame(width: geometry.size.width * CGFloat(currentStep) / CGFloat(totalSteps), height: 4)
+                    .frame(width: geometry.size.width * CGFloat(currentStep) / CGFloat(totalSteps), height: 6)
                     .animation(.spring(response: 0.5), value: currentStep)
             }
         }
@@ -169,7 +169,7 @@ struct NavigationButtons: View {
             } label: {
                 Text("Back")
                     .font(.system(size: 16, weight: .semibold))
-                    .foregroundColor(Color("Title"))
+                    .foregroundColor(Color("W"))
                     .frame(maxWidth: .infinity, minHeight: 50)
                     .background(Color("Back button"))
                     .cornerRadius(25)
@@ -216,14 +216,14 @@ struct Question1_CitySelection: View {
                     .foregroundColor(Color("Title"))
                     .multilineTextAlignment(.center)
 
-                Text("Choose your destination in Saudi Arabia")
-                    .font(.system(size: 20, weight: .regular, design: .rounded))
+                Text("Choose your destination in Saudi Arabia\n\n").bold()
+                    .font(.system(size: 18, weight: .regular, design: .rounded))
                     .foregroundColor(Color("Light small text"))
                     .multilineTextAlignment(.center)
             }
             .frame(maxWidth: .infinity)
 
-            VStack(spacing: 18) {
+            VStack(spacing: 21) {
                 ForEach(viewModel.cities) { city in
                     CityButton(
                         title: city.name,
@@ -285,19 +285,19 @@ struct Question2_ExperienceTypes: View {
             let gridWidth = geo.size.width - (sidePadding * 2)
             let cardWidth = (gridWidth - gridSpacing) / 2
             
-            VStack(spacing: 20) {
+            VStack(spacing: 24) {
                 
                 // Title (replace your title block with this)
                 VStack(spacing: 8) {
                     Text("What type of experiences\ninterest you?")
-                        .font(.system(size: 28, weight: .bold, design: .rounded))
+                        .font(.system(size: 27, weight: .bold, design: .rounded))
                         .foregroundColor(Color("Title"))
                         .multilineTextAlignment(.center)
                         .lineLimit(nil)                       // ✅ don't truncate
                         .fixedSize(horizontal: false, vertical: true) // ✅ always expands vertically
 
-                    Text("Select all that apply")
-                        .font(.system(size: 18))
+                    Text("Select all that apply").bold()
+                        .font(.system(size: 20))
                         .foregroundColor(Color("Light small text"))
                 }
                 .frame(maxWidth: .infinity)                  // ✅ gives full width so it won’t cut
@@ -400,7 +400,7 @@ struct Question3_TravelCompanions: View {
                     .multilineTextAlignment(.center)
                     .frame(maxWidth: .infinity)
 
-                Text("This helps us personalize your trip!")
+                Text("This helps us personalize your trip!\n").bold()
                     .font(.system(size: 20, weight: .regular, design: .rounded))
                     .foregroundColor(Color("Light small text"))
                     .multilineTextAlignment(.center)
@@ -479,7 +479,7 @@ struct Question4_Budget: View {
 
             VStack(spacing: 8) {
                 Text("What's your daily budget per person?")
-                    .font(.system(size: 30, weight: .bold, design: .rounded))
+                    .font(.system(size: 28, weight: .bold, design: .rounded))
                     .foregroundColor(Color("Title"))
                     .multilineTextAlignment(.center)
             }
@@ -561,13 +561,13 @@ struct Question5_Days: View {
                     .font(.system(size: 28, weight: .bold, design: .rounded))
                     .foregroundColor(
                         colorScheme == .dark
-                        ? Color("Button click")
+                        ? Color("Title")
 
                         : titleColor
                     )
                     .multilineTextAlignment(.center)
 
-                Text("Maximum 7 days")
+                Text("Maximum 7 days\n\n").bold()
                     .font(.system(size: 20, weight: .regular, design: .rounded))
                     .foregroundColor(
                         colorScheme == .dark
@@ -581,7 +581,7 @@ struct Question5_Days: View {
 
             VStack(spacing: 0) {
                 Text("\(Int(viewModel.numberOfDays))")
-                    .font(.custom("Impact", size: 85))
+                    .font(.custom("Impact", size: 50))
                     .foregroundColor(Color("Green"))
 
                 Text("Day")
@@ -589,7 +589,7 @@ struct Question5_Days: View {
                     .foregroundColor(
                         colorScheme == .dark
                         ? Color("Light small text")
-                        : Color("Light small text").opacity(0.55)
+                        : Color("Light small text")
                     )
             }
 
@@ -632,7 +632,7 @@ struct Question5_Days: View {
                 }
             }
 
-            Spacer().frame(height: 25)
+            Spacer().frame(height: 20)
 
             QuickDayInfoCard(
                 bg: Color("Green"),
@@ -673,7 +673,7 @@ struct QuickDayCard: View {
         Button(action: action) {
             VStack(spacing: 6) {
                 Text("\(number)")
-                    .font(.custom("Impact", size: 50))
+                    .font(.custom("Impact", size: 60))
                     .foregroundColor(isSelected ? Color("Background") : numberColor)
 
                 Text(label)
@@ -733,19 +733,18 @@ struct QuickDayInfoCard: View {
     let text: String
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            Text("PERFECT FOR")
-                .font(.system(size: 12, weight: .bold))
+        VStack(alignment: .leading, spacing: 2) {
+           
+         
+         
+            Text("PERFECT FOR").font(.system(size: 18, weight: .bold))
                 .foregroundColor(.white)
-                .padding(.horizontal, 12)
-                .padding(.vertical, 6)
-                .background(Color.white.opacity(0.2))
-                .clipShape(Capsule())
-
             Text(text)
-                .font(.system(size: 16, weight: .medium))
+                .font(.system(size: 15, weight: .medium))
                 .foregroundColor(.white)
-                .fixedSize(horizontal: false, vertical: true)
+                .fixedSize(horizontal: false, vertical: true).padding(.horizontal, 10)
+                .padding(.vertical, 5)
+            
         }
         .padding(20)
         .frame(maxWidth: .infinity, alignment: .leading)
@@ -762,17 +761,17 @@ struct Question6_TravelPace: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            VStack(spacing: 12) {
+            VStack(spacing: 1) {
                 Text("How do you prefer to travel?")
-                    .font(.system(size: 28, weight: .bold, design: .rounded))
+                    .font(.system(size:30, weight: .bold, design: .rounded))
                     .foregroundColor(Color("Title"))
                     .multilineTextAlignment(.center)
                 
-                Text("Choose your ideal pace")
+                Text("Choose your ideal pace").bold()
                     .font(.system(size: 20, weight: .regular, design: .rounded))
                     .foregroundColor(Color("Light small text"))
             }
-            .padding(.top, 30)
+            .padding(.top, 20)
             .padding(.horizontal, 40)
             
             ScrollView(showsIndicators: false) {
@@ -811,7 +810,7 @@ struct PaceButton: View {
 
                 // MARK: - Big Title (WHITE in sketch)
                 Text(pace.title)
-                    .font(.system(size: 26, weight: .bold, design: .rounded))
+                    .font(.system(size: 30, weight: .bold, design: .rounded))
                     .background(
                         isSelected ? Color("Button click") : Color("Card")
                     )
@@ -820,18 +819,18 @@ struct PaceButton: View {
                 Text(pace.description)
                     .font(.system(size: 16, weight: .regular, design: .rounded))
                     .foregroundColor(Color("Light small text"))
-                    .lineSpacing(5)
+             
 
                 // MARK: - Tags
-                LazyVGrid(columns: columns, spacing: 14) {
+                LazyVGrid(columns: columns, spacing: 10) {
                     ForEach(pace.tags, id: \.self) { tag in
                         Text(tag)
                             .font(.system(size: 13, weight: .bold, design: .rounded))
                             .foregroundColor(Color("Options"))
-                            .padding(.horizontal, 14)
-                            .padding(.vertical, 10)
+                            .padding(.horizontal, 6)
+                            .padding(.vertical, 6)
                             .frame(maxWidth: .infinity)
-                            .background(Color("tags")) // ✅ FIXED
+                            .background(Color("Light small text")) // ✅ FIXED
                             .clipShape(Capsule())
                     }
                 }

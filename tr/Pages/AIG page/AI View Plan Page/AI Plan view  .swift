@@ -110,7 +110,7 @@ struct AI_Plan_View: View {
             // Save to journal action
             print("Saving to journal...")
         }) {
-            Text("Safe to journal")
+            Text("Save to journal")
                 .font(.system(size: 18, weight: .semibold, design: .rounded))
                 .foregroundColor(.white)
                 .frame(maxWidth: .infinity)
