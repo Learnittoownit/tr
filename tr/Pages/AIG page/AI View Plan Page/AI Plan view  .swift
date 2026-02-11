@@ -95,7 +95,7 @@ struct AI_Plan_View: View {
                 .multilineTextAlignment(.center)
             
             Text("Save it to journal to have the privilege\nto edit it!")
-                .font(.system(size: 16, weight: .regular, design: .rounded))
+                 .font(.system(size: 16, weight: .regular, design: .rounded))
                 .foregroundColor(Color("Light small text"))
                 .multilineTextAlignment(.center)
         }

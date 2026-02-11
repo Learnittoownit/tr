@@ -1,4 +1,3 @@
-
 import SwiftUI
 import Combine
 
@@ -55,7 +54,7 @@ struct AI_Questionnaire_View: View {
                 
             }
         }
-        .navigationBarBackButtonHidden(true)   // ✅ HERE
+        .navigationBarBackButtonHidden(true)
         .animation(.spring(response: 0.5, dampingFraction: 0.8), value: viewModel.currentQuestion)
         .animation(.easeInOut(duration: 0.3), value: viewModel.isGenerating)
         .animation(.spring(response: 0.5, dampingFraction: 0.8), value: viewModel.showGeneratedPlan)
@@ -159,23 +158,24 @@ struct PressableNextButtonStyle: ButtonStyle {
 
 struct NavigationButtons: View {
     @ObservedObject var viewModel: AI_Questionnaire_Model
+    @Environment(\.colorScheme) var colorScheme
 
     var body: some View {
         HStack(spacing: 12) {
-
-            // Back
-            Button {
-                viewModel.goToPreviousQuestion()
-            } label: {
-                Text("Back")
-                    .font(.system(size: 16, weight: .semibold))
-                    .foregroundColor(Color("W"))
-                    .frame(maxWidth: .infinity, minHeight: 50)
-                    .background(Color("Back button"))
-                    .cornerRadius(25)
+            
+            // ✅ Only show Back button if NOT question 1
+            if viewModel.currentQuestion != 1 {
+                Button {
+                    viewModel.goToPreviousQuestion()
+                } label: {
+                    Text("Back")
+                        .font(.system(size: 16, weight: .semibold))
+                        .foregroundColor(Color("W"))
+                        .frame(maxWidth: .infinity, minHeight: 50)
+                        .background(Color("Back button"))
+                        .cornerRadius(25)
+                }
             }
-            .disabled(viewModel.currentQuestion == 1)
-            .opacity(viewModel.currentQuestion == 1 ? 0.5 : 1)
 
             // Next / Generate
             Button {
@@ -185,22 +185,46 @@ struct NavigationButtons: View {
             } label: {
                 Text(viewModel.currentQuestion == 6 ? "Generate Plan" : "Next")
                     .font(.system(size: 16, weight: .semibold))
-                    .foregroundColor(
-                        viewModel.isCurrentQuestionValid()
-                        ? Color("Background")
-                        : Color("Title")
-                    )
+                    .foregroundColor(nextButtonTextColor)
                     .frame(maxWidth: .infinity, minHeight: 50)
-                    .background(
-                        viewModel.isCurrentQuestionValid()
-                        ? Color("Next button")
-                        : Color("Back button")
-                    )
+                    .background(nextButtonBackgroundColor)
                     .cornerRadius(25)
             }
             .disabled(!viewModel.isCurrentQuestionValid())
+            .opacity(nextButtonOpacity)
         }
         .animation(.easeInOut(duration: 0.25), value: viewModel.currentQuestion)
+    }
+    
+    // ✅ NEXT BUTTON COLOR LOGIC
+    private var nextButtonTextColor: Color {
+        let isValid = viewModel.isCurrentQuestionValid()
+        
+        if colorScheme == .light {
+            return isValid ? Color("Background") : Color("Title").opacity(0.4)
+        } else {
+            return isValid ? Color("Background") : Color("Title")
+        }
+    }
+    
+    private var nextButtonBackgroundColor: Color {
+        let isValid = viewModel.isCurrentQuestionValid()
+        
+        if colorScheme == .light {
+            return isValid ? Color("Next button") : Color("Back button")
+        } else {
+            return isValid ? Color("Next button") : Color("Back button")
+        }
+    }
+    
+    private var nextButtonOpacity: Double {
+        let isValid = viewModel.isCurrentQuestionValid()
+        
+        if colorScheme == .light {
+            return isValid ? 1.0 : 0.5
+        } else {
+            return 1.0
+        }
     }
 }
 
@@ -269,8 +293,8 @@ struct Question2_ExperienceTypes: View {
     @ObservedObject var viewModel: AI_Questionnaire_Model
     
     private let gridSpacing: CGFloat = 20
-    private let sidePadding: CGFloat = 1   // smaller padding = wider cards
-    private let cardHeight: CGFloat = 165   // bigger height so text fits
+    private let sidePadding: CGFloat = 1
+    private let cardHeight: CGFloat = 165
     
     private func toggle(_ experience: ExperienceType) {
         if viewModel.selectedExperiences.contains(experience) {
@@ -287,22 +311,20 @@ struct Question2_ExperienceTypes: View {
             
             VStack(spacing: 24) {
                 
-                // Title (replace your title block with this)
                 VStack(spacing: 8) {
                     Text("What type of experiences\ninterest you?")
                         .font(.system(size: 27, weight: .bold, design: .rounded))
                         .foregroundColor(Color("Title"))
                         .multilineTextAlignment(.center)
-                        .lineLimit(nil)                       // ✅ don't truncate
-                        .fixedSize(horizontal: false, vertical: true) // ✅ always expands vertically
+                        .lineLimit(nil)
+                        .fixedSize(horizontal: false, vertical: true)
 
                     Text("Select all that apply").bold()
                         .font(.system(size: 20))
                         .foregroundColor(Color("Light small text"))
                 }
-                .frame(maxWidth: .infinity)                  // ✅ gives full width so it won’t cut
+                .frame(maxWidth: .infinity)
 
-                // Cards
                 VStack(spacing: 16) {
                     
                     LazyVGrid(
@@ -325,7 +347,6 @@ struct Question2_ExperienceTypes: View {
                     }
                     .frame(width: gridWidth)
                     
-                    // last card centered and SAME size
                     if let last = viewModel.experiences.last {
                         HStack {
                             Spacer()
@@ -350,6 +371,7 @@ struct Question2_ExperienceTypes: View {
         }
     }
 }
+
 struct ExperienceCard: View {
     let title: String
     let description: String
@@ -364,14 +386,14 @@ struct ExperienceCard: View {
                     .font(.system(size: 18, weight: .bold, design: .rounded))
                     .foregroundColor(isSelected ? Color("Background") : Color("Options"))
                     .multilineTextAlignment(.center)
-                    .fixedSize(horizontal: false, vertical: true) // ✅ no weird cuts
+                    .fixedSize(horizontal: false, vertical: true)
 
                 Text(description)
                     .font(.system(size: 13))
                     .foregroundColor(isSelected ? Color("Background").opacity(0.9) : Color("Light small text"))
                     .multilineTextAlignment(.center)
                     .lineSpacing(2)
-                    .fixedSize(horizontal: false, vertical: true) // ✅ wraps fully
+                    .fixedSize(horizontal: false, vertical: true)
             }
             .padding(.horizontal, 16)
             .padding(.vertical, 18)
@@ -384,8 +406,6 @@ struct ExperienceCard: View {
         .animation(.easeInOut(duration: 0.2), value: isSelected)
     }
 }
-
-
 
 // MARK: - Question 3: Travel Companions
 struct Question3_TravelCompanions: View {
@@ -432,14 +452,12 @@ struct CompanionCard: View {
         Button(action: action) {
             VStack(alignment: .leading, spacing: 6) {
 
-                // Title
                 Text(companion.title)
                     .font(.system(size: 20, weight: .bold, design: .rounded))
                     .foregroundColor(
                         isSelected ? Color("Background") : Color("Options")
                     )
 
-                // Description
                 Text(companion.description)
                     .font(.system(size: 14, weight: .regular, design: .rounded))
                     .foregroundColor(
@@ -467,7 +485,6 @@ struct CompanionCard: View {
         .animation(.easeInOut(duration: 0.2), value: isSelected)
     }
 }
-
 
 // MARK: - Question 4: Budget
 struct Question4_Budget: View {
@@ -515,14 +532,12 @@ struct BudgetButton: View {
             HStack {
                 VStack(alignment: .leading, spacing: 6) {
 
-                    // Title
                     Text(budget.title)
                         .font(.system(size: 20, weight: .semibold, design: .rounded))
                         .foregroundColor(
                             isSelected ? Color("Background") : Color("Options")
                         )
 
-                    // Range
                     Text(budget.range)
                         .font(.system(size: 15, weight: .regular, design: .rounded))
                         .foregroundColor(
@@ -562,7 +577,6 @@ struct Question5_Days: View {
                     .foregroundColor(
                         colorScheme == .dark
                         ? Color("Title")
-
                         : titleColor
                     )
                     .multilineTextAlignment(.center)
@@ -604,7 +618,7 @@ struct Question5_Days: View {
                     Spacer()
                     Text("7 Day")
                 }
-                .font(.system(size: 13, weight: .medium, design: .rounded))
+                .font(.system(size: 16, weight: .medium, design: .rounded))
                 .foregroundColor(
                     colorScheme == .dark
                     ? Color("Light small text")
@@ -674,7 +688,7 @@ struct QuickDayCard: View {
             VStack(spacing: 6) {
                 Text("\(number)")
                     .font(.custom("Impact", size: 60))
-                    .foregroundColor(isSelected ? Color("Background") : numberColor)
+                    .foregroundColor(isSelected ? Color("Green") : numberColor)
 
                 Text(label)
                     .font(.system(size: 11, weight: .semibold, design: .rounded))
@@ -698,7 +712,6 @@ struct QuickDayCard: View {
         if isSelected {
             return colorScheme == .dark
                 ? Color("Button click")
-
                 : Color("Button click")
         } else {
             return colorScheme == .dark
@@ -734,9 +747,7 @@ struct QuickDayInfoCard: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 2) {
-           
-         
-         
+            
             Text("PERFECT FOR").font(.system(size: 18, weight: .bold))
                 .foregroundColor(.white)
             Text(text)
@@ -809,18 +820,15 @@ struct PaceButton: View {
         Button(action: action) {
             VStack(alignment: .leading, spacing: 16) {
 
-                // MARK: - Title
                 Text(pace.title)
                     .font(.system(size: 26, weight: .bold, design: .rounded))
                     .foregroundColor(titleColor)
 
-                // MARK: - Description
                 Text(pace.description)
                     .font(.system(size: 16, weight: .regular, design: .rounded))
                     .foregroundColor(descriptionColor)
                     .lineSpacing(4)
 
-                // MARK: - Tags
                 LazyVGrid(columns: columns, spacing: 12) {
                     ForEach(pace.tags, id: \.self) { tag in
                         Text(tag)
@@ -843,68 +851,53 @@ struct PaceButton: View {
         .animation(.spring(response: 0.35, dampingFraction: 0.8), value: isSelected)
     }
     
-    // MARK: - Color Logic
-    
     private var cardBackgroundColor: Color {
         if isSelected {
-            // Selected card - Dark mode: white, Light mode: dark brown
             return colorScheme == .dark ? Color("Button click") : Color("Button click")
         } else {
-            // Unselected card - Dark mode: dark brown, Light mode: white/card
             return colorScheme == .dark ? Color("Card") : Color("Card")
         }
     }
     
     private var titleColor: Color {
         if isSelected {
-            // Selected title - Dark mode: dark text, Light mode: white/light text
             return colorScheme == .dark ? Color("Card") : Color("Background")
         } else {
-            // Unselected title - Dark mode: light text, Light mode: dark text
             return colorScheme == .dark ? Color("a") : Color("Title")
         }
     }
     
     private var descriptionColor: Color {
         if isSelected {
-            // Selected description - Dark mode: medium dark, Light mode: light
             return colorScheme == .dark ? Color("Light small text") : Color("Background").opacity(0.8)
         } else {
-            // Unselected description
             return colorScheme == .dark ? Color("Light small text") : Color("Light small text")
         }
     }
     
     private var tagBackgroundColor: Color {
         if isSelected {
-            // Selected tags - Dark mode: light gray, Light mode: white/cream
             return colorScheme == .dark ? Color("Tags 1") : Color("Background").opacity(0.3)
         } else {
-            // Unselected tags
             return colorScheme == .dark ? Color("Tags 1") : Color("Light small text").opacity(0.2)
         }
     }
     
     private var tagTextColor: Color {
         if isSelected {
-            // Selected tag text
             return colorScheme == .dark ? Color("Tags words") : Color("Background")
         } else {
-            // Unselected tag text
             return colorScheme == .dark ? Color("Tags words").opacity(0.9) : Color("Options")
         }
     }
 }
+
 // MARK: - Preview
 struct AI_Questionnaire_View_Previews: PreviewProvider {
     static var previews: some View {
         AI_Questionnaire_View(
             viewModel: AI_Questionnaire_Model(),
             showPrePage: .constant(false)
-  
-
-
         )
     }
 }
-
