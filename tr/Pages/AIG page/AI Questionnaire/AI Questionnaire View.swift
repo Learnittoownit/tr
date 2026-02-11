@@ -95,7 +95,7 @@ struct LoadingScreen: View {
                             Color(red: 0.45, green: 0.6, blue: 0.5),
                             style: StrokeStyle(lineWidth: 12, lineCap: .round)
                         )
-                        .frame(width: 210, height: 280)
+                        .frame(width: 280, height: 280)
                         .rotationEffect(.degrees(-90))
                         .animation(.easeInOut(duration: 0.5), value: viewModel.generationProgress)
                     
@@ -384,13 +384,13 @@ struct ExperienceCard: View {
 
                 Text(title)
                     .font(.system(size: 18, weight: .bold, design: .rounded))
-                    .foregroundColor(isSelected ? Color("Background") : Color("Options"))
+                    .foregroundColor(isSelected ? Color("select") : Color("Options"))
                     .multilineTextAlignment(.center)
                     .fixedSize(horizontal: false, vertical: true)
 
                 Text(description)
                     .font(.system(size: 13))
-                    .foregroundColor(isSelected ? Color("Background").opacity(0.9) : Color("Light small text"))
+                    .foregroundColor(isSelected ? Color("Select dis") : Color("Light small text"))
                     .multilineTextAlignment(.center)
                     .lineSpacing(2)
                     .fixedSize(horizontal: false, vertical: true)
@@ -455,14 +455,14 @@ struct CompanionCard: View {
                 Text(companion.title)
                     .font(.system(size: 20, weight: .bold, design: .rounded))
                     .foregroundColor(
-                        isSelected ? Color("Background") : Color("Options")
+                        isSelected ? Color("select") : Color("Options")
                     )
 
                 Text(companion.description)
                     .font(.system(size: 14, weight: .regular, design: .rounded))
                     .foregroundColor(
                         isSelected
-                        ? Color("Background").opacity(0.9)
+                        ? Color("Select dis")
                         : Color("Light small text")
                     )
                     .lineLimit(2)
@@ -535,14 +535,14 @@ struct BudgetButton: View {
                     Text(budget.title)
                         .font(.system(size: 20, weight: .semibold, design: .rounded))
                         .foregroundColor(
-                            isSelected ? Color("Background") : Color("Options")
+                            isSelected ? Color("select") : Color("Options")
                         )
 
                     Text(budget.range)
                         .font(.system(size: 15, weight: .regular, design: .rounded))
                         .foregroundColor(
                             isSelected
-                            ? Color("Background").opacity(0.9)
+                            ? Color("Select dis")
                             : Color("Light small text")
                         )
                 }
@@ -621,7 +621,7 @@ struct Question5_Days: View {
                 .font(.system(size: 16, weight: .medium, design: .rounded))
                 .foregroundColor(
                     colorScheme == .dark
-                    ? Color("Light small text")
+                    ? Color("Green")
                     : Color("Light small text").opacity(0.55)
                 )
             }
