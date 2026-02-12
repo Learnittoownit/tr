@@ -143,6 +143,7 @@ struct EditActivitySheet: View {
                 .frame(height: 100)
                 .padding(12)
                 .background(Color("InputField"))                .clipShape(RoundedRectangle(cornerRadius: 35))
+                .scrollContentBackground(.hidden)
             
             if notes.isEmpty {
                 Text("Description, reminders, tips...")
@@ -201,7 +202,7 @@ struct EditActivitySheet: View {
                 Text("Save Changes")
                     .font(.system(size: 17, weight: .semibold, design: .rounded))
                     .dynamicTypeSize(.medium ... .accessibility1)
-                    .foregroundStyle(.white)
+                    .foregroundStyle(Color("jsavebutton"))
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 16)
                     .background(isValidActivity ? Color("AddButton") : Color.gray)  // ✅ Changed from #403029
@@ -230,10 +231,10 @@ struct EditActivitySheet: View {
                 Text("Cancel")
                     .font(.system(size: 17, design: .rounded))
                     .dynamicTypeSize(.medium ... .accessibility1)
-                    .foregroundStyle(Color(hex: "#403029"))
+                    .foregroundStyle(Color("jcancel"))   // ✅ text color goes here (NOT background)
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 16)
-                    .background(Color("CancelButton"))  // ✅ Changed from #CCBFB7
+                    .background(Color("CancelButton"))   // ✅ pill background
                     .clipShape(RoundedRectangle(cornerRadius: 100))
             }
         }

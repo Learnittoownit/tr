@@ -5,7 +5,8 @@ struct CreateTripSheet: View {
     
     // MARK: - Environment
     @Environment(\.dismiss) private var dismiss
-   // @Environment(\.modelContext) private var modelContext
+    @Environment(\.modelContext) private var modelContext
+    @Environment(\.colorScheme) private var colorScheme
     let viewModel: JournalViewModel  // ✅ Receive viewModel from parent!
 
     
@@ -55,7 +56,8 @@ struct CreateTripSheet: View {
         NavigationStack {
             ZStack {
                 // Background with selected color
-                Color(hex: selectedColor)
+               Color("Header")
+
                     .ignoresSafeArea()
                 
                 VStack(spacing: 0) {
@@ -106,9 +108,10 @@ struct CreateTripSheet: View {
                     }
                     .padding(20)
                     
-                    // White space below
-                    Color.white
+                    Color("jsavebutton")
                         .ignoresSafeArea()
+           
+
                 }
             }
             .navigationTitle("Create Trip")
