@@ -15,7 +15,7 @@ struct AI_PrePage: View {
         @Environment(\.colorScheme) var colorScheme
         
         var body: some View {
-            HStack(spacing: 12) {
+            HStack(spacing: 15) {
                 Image(systemName: icon)
                     .font(.system(size: 16, weight: .semibold))
                     .foregroundColor(Color("Green"))
@@ -41,11 +41,11 @@ struct AI_PrePage: View {
                     .transition(.opacity)
             } else {
                 // PrePage Content
-                VStack(spacing: 0) {
+                VStack(spacing: 35) {
                     Spacer()
                     
                     // Main Content
-                    VStack(spacing: 40) {
+                    VStack(spacing: 25) {
                         // Icon/Visual
                         ZStack {
                             // Gradient Circle Background
@@ -63,19 +63,19 @@ struct AI_PrePage: View {
                                 .frame(width: 180, height: 180)
                             
                             // AI Sparkle Icon
-                            VStack(spacing: 8) {
+                            VStack(spacing: 15) {
                                 Image(systemName: "sparkles")
                                     .font(.system(size: 60, weight: .medium))
                                     .foregroundColor(Color("Green"))
                                 
-                                Text("AI")
+                                
                                     .font(.system(size: 28, weight: .bold, design: .rounded))
                                     .foregroundColor(Color("Title"))
                             }
                         }
                         
                         // Title & Description
-                        VStack(spacing: 16) {
+                        VStack(spacing: 15) {
                             Text("AI Trip Generator")
                                 .font(.system(size: 32, weight: .bold, design: .rounded))
                                 .foregroundColor(Color("Title"))
@@ -92,9 +92,9 @@ struct AI_PrePage: View {
                         }
                         
                         // Generations Remaining Card
-                        VStack(spacing: 16) {
+                        VStack(spacing: 15) {
                             // Counter Display
-                            HStack(spacing: 12) {
+                            HStack(spacing: 18) {
                                 // Remaining number
                                 Text("\(viewModel.remainingGenerations)")
                                     .font(.system(size: 48, weight: .bold, design: .rounded))
@@ -129,23 +129,24 @@ struct AI_PrePage: View {
                         .cornerRadius(24)
                         .overlay(
                             RoundedRectangle(cornerRadius: 24)
-                                .stroke(Color("Green").opacity(0.2), lineWidth: 2)
+                                .stroke(Color("Card").opacity(0.15), lineWidth: 2)
                         )
                         
-                        // Info Points
-                        VStack(alignment: .leading, spacing: 12) {
+                        // Info Points (adjusted spacing here only)
+                        VStack(alignment: .leading, spacing: 18) {
                             InfoRow(icon: "clock.fill", text: "Takes only 2 minutes")
                             InfoRow(icon: "brain.head.profile", text: "Personalized recommendations")
                             InfoRow(icon: "arrow.clockwise", text: "Resets monthly")
                         }
                         .padding(.horizontal, 40)
+                        .padding(.top, 22) // زودنا المسافة هنا
                     }
                     
                     Spacer()
                     
                     
                     // Bottom Buttons
-                    VStack(spacing: 16) {
+                    VStack(spacing: 10) {
                         Button(action: {
                             if viewModel.remainingGenerations > 0 {
                                 withAnimation(.spring(response: 0.5, dampingFraction: 0.8)) {
