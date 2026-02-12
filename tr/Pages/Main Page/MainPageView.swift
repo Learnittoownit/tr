@@ -48,16 +48,13 @@ struct MainPage: View {
             case .main:
                 mainContent
             case .aiPrePage:
-                // استبدل بـ AI_PrePage() عندما تكون متوفرة
-                AI_PrePage()
-                    .transition(.identity) // لا انتقال
+                AI_PrePage(onBack: { route = .main })
+                    .transition(.identity)
             case .journal:
-                // استبدل بـ JournalView() عندما تكون متوفرة
-                JournalView()
-                    .transition(.identity) // لا انتقال
+                JournalView(onBack: { route = .main })
+                    .transition(.identity)
             }
         }
-        // منع أي أنيميشن ضمن تغييرات الحالة
         .animation(nil, value: route)
     }
 
@@ -101,11 +98,9 @@ struct MainPage: View {
                         titleOffsetY: -10,
                         iconOffsetY: 8,
                         action: {
-                            // حركة الزر (بصرية فقط)
                             withAnimation(.spring(response: 0.45, dampingFraction: 0.75)) {
                                 vm.generatePlanTapped()
                             }
-                            // ✅ انتقال فوري بتغيير الحالة مباشرة (لا NavigationStack)
                             route = .aiPrePage
                         }
                     )
@@ -126,7 +121,6 @@ struct MainPage: View {
                             withAnimation(.spring(response: 0.45, dampingFraction: 0.75)) {
                                 vm.planTripTapped()
                             }
-                            // ✅ انتقال فوري بتغيير الحالة مباشرة (لا NavigationStack)
                             route = .journal
                         }
                     )
@@ -146,7 +140,6 @@ struct MainPage: View {
                 appeared = true
             }
         }
-        // تعطيل أي أنيميشن ضمن هذه الشاشة
         .transaction { t in t.animation = nil }
     }
 }
@@ -165,7 +158,6 @@ struct CircleActionButton: View {
     var body: some View {
         Button(action: action) {
             ZStack {
-                // Glow effect
                 Circle()
                     .fill(
                         colorScheme == .dark
@@ -175,7 +167,6 @@ struct CircleActionButton: View {
                     .blur(radius: 20)
                     .scaleEffect(isHovering ? 1.1 : 1.0)
 
-                // Main circle
                 Circle()
                     .fill(
                         colorScheme == .dark
@@ -184,7 +175,6 @@ struct CircleActionButton: View {
                     )
                     .shadow(color: .black.opacity(0.25), radius: 15, x: 0, y: 8)
 
-                // Shimmer overlay
                 Circle()
                     .fill(
                         LinearGradient(
@@ -200,7 +190,6 @@ struct CircleActionButton: View {
                     .blendMode(.overlay)
 
                 VStack(spacing: 4) {
-                    // Icon
                     ZStack {
                         Circle()
                             .fill(.white.opacity(0.25))
@@ -350,3 +339,4 @@ private extension MainPage {
     MainPage()
         .preferredColorScheme(.dark)
 }
+

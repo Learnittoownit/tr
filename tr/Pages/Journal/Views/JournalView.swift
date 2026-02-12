@@ -9,7 +9,11 @@ struct JournalView: View {
     
     // MARK: - Environment
     @Environment(\.modelContext) private var modelContext
-    @Environment(\.dismiss) private var dismiss   // ✅ لزر Back النصّي
+    // لم نعد نستخدم dismiss للرجوع للمين بيج ضمن MainPage
+    @Environment(\.dismiss) private var dismiss   // يبقى كـ fallback لو انعرض داخل NavigationStack في مكان آخر
+    
+    // MARK: - Routing back to MainPage
+    var onBack: (() -> Void)? = nil
     
     // MARK: - State
     @State private var viewModel: JournalViewModel?
@@ -54,7 +58,12 @@ struct JournalView: View {
                 // ✅ زر Back النصّي الوحيد
                 ToolbarItem(placement: .navigationBarLeading) {
                     Button {
-                        dismiss()
+                        if let onBack {
+                            onBack() // يرجع للمين بيج ضمن MainPage
+                        } else {
+                            // fallback لو انعرض داخل NavigationStack حقيقي
+                            dismiss()
+                        }
                     } label: {
                         Text("Back")
                             .font(.system(size: 17, design: .rounded))
@@ -288,3 +297,4 @@ extension Color {
     JournalView()
         .modelContainer(DatabaseConfig.createPreviewContainer())
 }
+

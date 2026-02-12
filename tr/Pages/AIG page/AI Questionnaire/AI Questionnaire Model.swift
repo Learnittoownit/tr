@@ -241,6 +241,23 @@ class AI_Questionnaire_Model: ObservableObject {
         isGenerating = false
     }
     
+    // NEW: Reset all answers to start fresh
+    func resetAllAnswers() {
+        currentQuestion = 1
+        isGenerating = false
+        generationProgress = 0.0
+        generationStep = "Analyzing your destination"
+        showGeneratedPlan = false
+        generatedTrip = nil
+        
+        selectedCity = nil
+        selectedExperiences.removeAll()
+        selectedCompanion = nil
+        selectedBudget = nil
+        numberOfDays = 1
+        selectedPace = nil
+    }
+    
     // Create mock trip (replace with GPT response parsing later)
     private func createMockTrip() {
         let cityName = selectedCity?.name ?? "Riyadh"
@@ -338,6 +355,4 @@ class AI_Questionnaire_Model: ObservableObject {
         return activities
     }
 }
-
-
 

@@ -8,6 +8,9 @@ struct AI_PrePage: View {
     @Environment(\.dismiss) var dismiss
     @Environment(\.colorScheme) var colorScheme
     
+    // Add a back action to integrate with MainPage routing
+    var onBack: (() -> Void)?
+
     // MARK: - Info Row Component
     struct InfoRow: View {
         let icon: String
@@ -149,6 +152,8 @@ struct AI_PrePage: View {
                     VStack(spacing: 10) {
                         Button(action: {
                             if viewModel.remainingGenerations > 0 {
+                                // NEW: start fresh each time user starts the questionnaire
+                                viewModel.resetAllAnswers()
                                 withAnimation(.spring(response: 0.5, dampingFraction: 0.8)) {
                                     showQuestionnaire = true
                                 }
@@ -175,8 +180,14 @@ struct AI_PrePage: View {
                         .disabled(viewModel.remainingGenerations == 0)
                         // Back Button
                         Button(action: {
-                            Task { @MainActor in
-                                dismiss()
+                            // If provided by MainPage, use it to go back to main route
+                            if let onBack {
+                                onBack()
+                            } else {
+                                // Fallback to dismiss if presented in a NavigationStack
+                                Task { @MainActor in
+                                    dismiss()
+                                }
                             }
                         }) {
                             Text("Back")
@@ -205,3 +216,4 @@ struct AI_PrePage_Previews: PreviewProvider {
         AI_PrePage()
     }
 }
+
