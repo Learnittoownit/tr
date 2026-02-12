@@ -175,7 +175,9 @@ struct AI_PrePage: View {
                         .disabled(viewModel.remainingGenerations == 0)
                         // Back Button
                         Button(action: {
-                            dismiss()
+                            Task { @MainActor in
+                                dismiss()
+                            }
                         }) {
                             Text("Back")
                                 .font(.system(size: 16, weight: .semibold, design: .rounded))
@@ -185,23 +187,21 @@ struct AI_PrePage: View {
                                 .background(Color("Card"))
                                 .cornerRadius(25)
                         }
-                        .navigationBarBackButtonHidden(true)   // ✅ HERE
                     }
                     .padding(.horizontal, 30)
                     .padding(.bottom, 40)
                 }
-                   
-                    }
-                }
             }
         }
+        // Hide system back button for this screen
+        .navigationBarBackButtonHidden(true)
+    }
+}
 
 
 // MARK: - Preview
 struct AI_PrePage_Previews: PreviewProvider {
     static var previews: some View {
         AI_PrePage()
-         
-
     }
 }
