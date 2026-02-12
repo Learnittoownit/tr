@@ -73,9 +73,10 @@ struct JournalView: View {
                 }
             }
             .sheet(isPresented: $showingCreateTrip) {
-                CreateTripSheet()
-            }
-        }
+                if let viewModel = viewModel {
+                    CreateTripSheet(viewModel: viewModel)  // ✅ Pass the viewModel!
+                }
+            }        }
         .onAppear {
             if viewModel == nil {
                 viewModel = JournalViewModel(modelContext: modelContext)

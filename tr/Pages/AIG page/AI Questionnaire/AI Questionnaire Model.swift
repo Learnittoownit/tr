@@ -1,6 +1,7 @@
 import Foundation
 import SwiftUI
 import Combine
+import SwiftData  // ✅ Add this line!
 
 // MARK: - Questionnaire Data Models
 struct TravelCompanion: Identifiable, Hashable {
@@ -353,6 +354,92 @@ class AI_Questionnaire_Model: ObservableObject {
         }
         
         return activities
+    }
+    
+    // MARK: - Convert to SwiftData Models
+    func saveToJournal(modelContext: ModelContext) -> Trip? {
+        guard let generatedTrip = generatedTrip else {
+            print("❌ No generated trip to save")
+            return nil
+        }
+        
+        print("🔵 Starting conversion to SwiftData...")
+        
+        // Create the Trip
+        let trip = Trip(
+            name: "\(generatedTrip.cityName) journey",
+            startDate: Date(), // Today
+            endDate: Calendar.current.date(byAdding: .day, value: generatedTrip.days.count - 1, to: Date()) ?? Date(),
+            colorTheme: Trip.availableThemes.randomElement() ?? "#FFB5A0"
+        )
+        
+        print("🔵 Created trip: \(trip.name)")
+        
+        // Convert GeneratedDays to Days
+        var swiftDataDays: [Day] = []
+        
+        for (index, generatedDay) in generatedTrip.days.enumerated() {
+            let dayDate = Calendar.current.date(byAdding: .day, value: index, to: Date()) ?? Date()
+            let day = Day(date: dayDate, dayNumber: generatedDay.dayNumber)
+            
+            // Convert GeneratedActivities to Activities
+            var swiftDataActivities: [Activity] = []
+            
+            for generatedActivity in generatedDay.activities {
+                // Parse time string "9:00 AM" to Date
+                let timeComponents = parseTime(generatedActivity.time)
+                let activityTime = Calendar.current.date(bySettingHour: timeComponents.hour, minute: timeComponents.minute, second: 0, of: dayDate) ?? dayDate
+                
+                // Create Activity (only using parameters accepted by initializer)
+                let activity = Activity(
+                    name: generatedActivity.name,
+                    time: activityTime,
+                    color: "#E0C48A", // Default golden color
+                    placeName: nil,
+                    notes: generatedActivity.description
+                )
+                
+                // ✅ Set mapLink AFTER creating the activity
+                if let firstLink = generatedActivity.links.first {
+                    activity.mapLink = firstLink.url
+                }
+                
+                activity.day = day
+                swiftDataActivities.append(activity)
+            }
+            
+            day.activities = swiftDataActivities
+            day.trip = trip
+            swiftDataDays.append(day)
+        }
+        
+        trip.days = swiftDataDays
+        
+        // Insert into database
+        modelContext.insert(trip)
+        
+        do {
+            try modelContext.save()
+            print("✅ Saved to journal successfully!")
+            return trip
+        } catch {
+            print("❌ Failed to save: \(error)")
+            return nil
+        }
+    }
+
+    // Helper function to parse time strings like "9:00 AM"
+    private func parseTime(_ timeString: String) -> (hour: Int, minute: Int) {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "h:mm a"
+        
+        if let date = formatter.date(from: timeString) {
+            let components = Calendar.current.dateComponents([.hour, .minute], from: date)
+            return (hour: components.hour ?? 9, minute: components.minute ?? 0)
+        }
+        
+        // Default fallback
+        return (hour: 9, minute: 0)
     }
 }
 

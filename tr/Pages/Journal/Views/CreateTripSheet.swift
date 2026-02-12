@@ -5,7 +5,9 @@ struct CreateTripSheet: View {
     
     // MARK: - Environment
     @Environment(\.dismiss) private var dismiss
-    @Environment(\.modelContext) private var modelContext
+   // @Environment(\.modelContext) private var modelContext
+    let viewModel: JournalViewModel  // ✅ Receive viewModel from parent!
+
     
     // MARK: - State
     @State private var tripName = ""
@@ -154,7 +156,6 @@ struct CreateTripSheet: View {
             return
         }
         
-        let viewModel = JournalViewModel(modelContext: modelContext)
         _ = viewModel.createTrip(
             name: tripName,
             startDate: start,
@@ -318,6 +319,9 @@ struct ColorPickerSheet: View {
 
 // MARK: - Preview
 #Preview {
-    CreateTripSheet()
-        .modelContainer(DatabaseConfig.createPreviewContainer())
+    let container = DatabaseConfig.createPreviewContainer()
+    let viewModel = JournalViewModel(modelContext: container.mainContext)
+    
+    return CreateTripSheet(viewModel: viewModel)
+        .modelContainer(container)
 }

@@ -6,12 +6,19 @@
 //
 
 import SwiftUI
+import SwiftData
 
 @main
 struct trApp: App {
+    let container: ModelContainer
+    
+        init() {
+            container = DatabaseConfig.createContainer()
+        }
     var body: some Scene {
         WindowGroup {
-            MainPage()
+            MainPage().modelContainer(container)
+                
         }
     }
 }

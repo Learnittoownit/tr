@@ -4,6 +4,8 @@ import Combine
 struct AI_Questionnaire_View: View {
     @ObservedObject var viewModel: AI_Questionnaire_Model
     @Binding var showPrePage: Bool
+    @State private var navigateToJournal = false  // ✅ Add this!
+
     
     var body: some View {
         ZStack {
@@ -11,7 +13,12 @@ struct AI_Questionnaire_View: View {
                 .ignoresSafeArea()
                
             if viewModel.showGeneratedPlan {
-                AI_Plan_View(viewModel: viewModel, showPrePage: $showPrePage)
+                            AI_Plan_View(
+                                viewModel: viewModel,
+                                showPrePage: $showPrePage,
+                                onSaveToJournal: {  // ✅ Add this callback!
+                                    navigateToJournal = true
+                                })
                     .transition(.opacity)
             } else if viewModel.isGenerating {
                 LoadingScreen(viewModel: viewModel)
@@ -58,6 +65,9 @@ struct AI_Questionnaire_View: View {
         .animation(.spring(response: 0.5, dampingFraction: 0.8), value: viewModel.currentQuestion)
         .animation(.easeInOut(duration: 0.3), value: viewModel.isGenerating)
         .animation(.spring(response: 0.5, dampingFraction: 0.8), value: viewModel.showGeneratedPlan)
+        .navigationDestination(isPresented: $navigateToJournal) {  // ✅ Add this!
+                    JournalView()
+                }
     }
 }
 

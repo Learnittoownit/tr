@@ -1,5 +1,7 @@
 import SwiftUI
 import Combine
+import SwiftData
+
 
 // MARK: - AI Plan View
 struct AI_Plan_View: View {
@@ -7,6 +9,9 @@ struct AI_Plan_View: View {
     @Binding var showPrePage: Bool
     @State private var expandedDays: Set<Int> = [1] // First day expanded by default
     @Environment(\.dismiss) var dismiss
+    @Environment(\.modelContext) private var modelContext  // ✅ Add this!
+    var onSaveToJournal: () -> Void  // ✅ Add this line!
+
     
     var body: some View {
         ZStack {
@@ -107,8 +112,14 @@ struct AI_Plan_View: View {
     
     private var saveButton: some View {
         Button(action: {
-            // Save to journal action
-            print("Saving to journal...")
+            // ✅ Call the method directly on viewModel
+            if let savedTrip = viewModel.saveToJournal(modelContext: modelContext) {
+                print("✅ Trip saved: \(savedTrip.name)")
+                onSaveToJournal()  // ✅ Call callback!
+                dismiss()
+            } else {
+                print("❌ Failed to save trip")
+            }
         }) {
             Text("Save to journal")
                 .font(.system(size: 18, weight: .semibold, design: .rounded))
@@ -120,7 +131,6 @@ struct AI_Plan_View: View {
         }
         .shadow(color: Color.black.opacity(0.1), radius: 12, x: 0, y: 6)
     }
-    
     private func toggleDay(_ dayNumber: Int) {
         withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
             if expandedDays.contains(dayNumber) {
@@ -276,6 +286,12 @@ struct AI_Plan_View_Previews: PreviewProvider {
         )
         viewModel.showGeneratedPlan = true
         
-        return AI_Plan_View(viewModel: viewModel, showPrePage: .constant(false))
+        return AI_Plan_View(
+            viewModel: viewModel,
+            showPrePage: .constant(false),
+            onSaveToJournal: {  // ✅ Add the callback!
+                print("Navigate to Journal - Preview")
+            }
+        )
     }
 }

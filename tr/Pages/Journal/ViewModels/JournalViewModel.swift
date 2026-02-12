@@ -64,10 +64,15 @@ final class JournalViewModel {
         colorTheme: String
     ) -> Trip {
         
+        print("🔵 START createTrip")
+        print("🔵 Trip name: \(name)")
+        print("🔵 Start date: \(startDate)")
+        print("🔵 End date: \(endDate)")
+        print("🔵 Color theme: \(colorTheme)")
+        
         // Safety check: Ensure dates are valid
         guard startDate <= endDate else {
             print("❌ Invalid dates: start (\(startDate)) is after end (\(endDate))")
-            // Fix the dates automatically
             let fixedEndDate = startDate
             return createTrip(name: name, startDate: startDate, endDate: fixedEndDate, colorTheme: colorTheme)
         }
@@ -79,6 +84,8 @@ final class JournalViewModel {
             colorTheme: colorTheme
         )
         
+        print("🔵 Created trip object: \(trip.name)")
+        
         // Generate days (up to 14 days)
         let days = generateDays(from: startDate, to: endDate)
         trip.days = days
@@ -86,11 +93,39 @@ final class JournalViewModel {
             day.trip = trip
         }
         
+        print("🔵 Generated \(days.count) days")
+        
         modelContext.insert(trip)
+        print("🔵 Inserted trip into context")
+        
+        // ✅ DEBUG: Try to save immediately
+        do {
+            try modelContext.save()
+            print("✅ SAVED SUCCESSFULLY TO DATABASE")
+        } catch {
+            print("❌ SAVE FAILED: \(error)")
+            print("❌ Error details: \(error.localizedDescription)")
+        }
+        
+        // ✅ DEBUG: Fetch immediately after save
+        do {
+            let descriptor = FetchDescriptor<Trip>()
+            let allTrips = try modelContext.fetch(descriptor)
+            print("🔍 TRIPS IN DATABASE RIGHT AFTER SAVE: \(allTrips.count)")
+            for t in allTrips {
+                print("  - Trip: \(t.name), Color: \(t.colorTheme), Days: \(t.days.count)")
+            }
+        } catch {
+            print("❌ IMMEDIATE FETCH FAILED: \(error)")
+        }
+        
+        // Now call the normal save and fetch
         saveChanges()
         fetchTrips()
         
+        print("🔵 Final trips array count: \(trips.count)")
         print("✅ Created trip: \(name)")
+        
         return trip
     }
     
@@ -131,10 +166,13 @@ final class JournalViewModel {
     private func saveChanges() {
         do {
             try modelContext.save()
-            print("✅ Changes saved")
+            print("✅ Changes saved successfully")
+            print("📊 Total trips in context: \(trips.count)")
         } catch {
             errorMessage = "Failed to save"
-            print("❌ Error saving: \(error)")
+            print("❌ ERROR SAVING TO DATABASE:")
+            print("❌ Error: \(error)")
+            print("❌ Error description: \(error.localizedDescription)")
         }
     }
 }
