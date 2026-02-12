@@ -691,7 +691,7 @@ struct QuickDayCard: View {
                     .foregroundColor(isSelected ? Color("Green") : numberColor)
 
                 Text(label)
-                    .font(.system(size: 11, weight: .semibold, design: .rounded))
+                    .font(.system(size: 15, weight: .semibold, design: .rounded)) // <- size changed to 15
                     .foregroundColor(isSelected ? Color("Background") : labelColor)
             }
             .frame(width: 96, height: 96)
