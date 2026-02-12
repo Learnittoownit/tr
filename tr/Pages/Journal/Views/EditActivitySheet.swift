@@ -89,8 +89,9 @@ struct EditActivitySheet: View {
         TextField(placeholder, text: text)
             .font(.system(size: 16, design: .rounded))
             .dynamicTypeSize(.medium ... .accessibility2)
-            .padding(inputPadding)
-            .background(Color("InputField"))            .clipShape(RoundedRectangle(cornerRadius: 12))
+            .padding(.horizontal, 20)  // ✅ Increased from 16 to 20
+                .padding(.vertical, 16)    // ✅ Added vertical padding
+            .background(Color("InputField"))            .clipShape(RoundedRectangle(cornerRadius: 35))
     }
     
     // MARK: - Time Picker
@@ -109,8 +110,9 @@ struct EditActivitySheet: View {
             )
             .labelsHidden()
         }
-        .padding(inputPadding)
-        .background(Color("InputField"))        .clipShape(RoundedRectangle(cornerRadius: 12))
+        .padding(.horizontal, 20)  // ✅ Increased from 16 to 20
+            .padding(.vertical, 16)    // ✅ Added vertical padding
+        .background(Color("InputField"))        .clipShape(RoundedRectangle(cornerRadius: 35))
     }
     
     // MARK: - Links Section
@@ -126,8 +128,9 @@ struct EditActivitySheet: View {
                     .font(.system(size: 15, design: .rounded))
                     .dynamicTypeSize(.small ... .accessibility2)
             }
-            .padding(inputPadding)
-            .background(Color("InputField"))            .clipShape(RoundedRectangle(cornerRadius: 12))
+            .padding(.horizontal, 20)  // ✅ Increased from 16 to 20
+                .padding(.vertical, 16)    // ✅ Added vertical padding
+            .background(Color("InputField"))            .clipShape(RoundedRectangle(cornerRadius: 35))
         }
     }
     
@@ -139,14 +142,14 @@ struct EditActivitySheet: View {
                 .dynamicTypeSize(.small ... .accessibility2)
                 .frame(height: 100)
                 .padding(12)
-                .background(Color("InputField"))                .clipShape(RoundedRectangle(cornerRadius: 12))
+                .background(Color("InputField"))                .clipShape(RoundedRectangle(cornerRadius: 35))
             
             if notes.isEmpty {
                 Text("Description, reminders, tips...")
                     .font(.system(size: 15, design: .rounded))
                     .dynamicTypeSize(.small ... .accessibility1)
                     .foregroundStyle(.gray)
-                    .padding(.horizontal, 16)
+                    .padding(.horizontal, 20)
                     .padding(.vertical, 20)
                     .allowsHitTesting(false)
             }
@@ -156,7 +159,8 @@ struct EditActivitySheet: View {
     // MARK: - Color Picker
     private var colorPicker: some View {
         HStack(spacing: 16) {
-            ForEach(Array(availableColors.enumerated()), id: \.offset) { index, color in
+            // First 4 static colors
+            ForEach(Array(availableColors.prefix(4).enumerated()), id: \.offset) { index, color in
                 Button {
                     selectedColor = color
                 } label: {
@@ -174,6 +178,14 @@ struct EditActivitySheet: View {
                 .accessibilityLabel("Select color")
                 .accessibilityAddTraits(selectedColor == color ? .isSelected : [])
             }
+            
+            // Native iOS Color Picker (same size as circles)
+            ColorPicker("", selection: Binding(
+                get: { Color(hex: selectedColor) },
+                set: { newColor in selectedColor = newColor.toHex() }
+            ), supportsOpacity: false)
+            .labelsHidden()
+            .frame(width: 50, height: 50)  // ✅ Same size as static colors!
         }
         .frame(maxWidth: .infinity)
         .padding(.top, 8)

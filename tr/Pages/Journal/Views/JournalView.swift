@@ -47,7 +47,7 @@ struct JournalView: View {
                         .padding(.bottom, 16)
                 }
             }
-            .navigationTitle("Journal")
+            .navigationTitle("Trips")
             .navigationBarTitleDisplayMode(.large)
             .navigationBarBackButtonHidden(true)   // ✅ إخفاء السهم الافتراضي
             .toolbar {
@@ -81,6 +81,7 @@ struct JournalView: View {
         .onChange(of: searchText) { _, newValue in
             viewModel?.searchQuery = newValue
         }
+        
     }
     
     // MARK: - Glassy Bottom Search Bar (iOS Style)

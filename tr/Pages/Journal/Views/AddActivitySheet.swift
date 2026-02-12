@@ -19,7 +19,7 @@ struct AddActivitySheet: View {
     @State private var menuLink = ""
     @State private var bookingLink = ""
     @State private var selectedColor = "#E0C48A" // Default golden
-    @State private var showingColorPicker = false
+//    @State private var showingColorPicker = false
     
     // MARK: - Scaled Metrics
     @ScaledMetric private var inputPadding: CGFloat = 16
@@ -70,9 +70,9 @@ struct AddActivitySheet: View {
                 bottomButtons
             }
         }
-        .sheet(isPresented: $showingColorPicker) {
-            CustomColorPickerSheet(selectedColor: $selectedColor)
-        }
+//        .sheet(isPresented: $showingColorPicker) {
+//            CustomColorPickerSheet(selectedColor: $selectedColor)
+//        }
     }
     
     // MARK: - Input Field
@@ -80,8 +80,9 @@ struct AddActivitySheet: View {
         TextField(placeholder, text: text)
             .font(.system(size: 16, design: .rounded))
             .dynamicTypeSize(.medium ... .accessibility2)
-            .padding(inputPadding)
-            .background(Color("InputField"))            .clipShape(RoundedRectangle(cornerRadius: 12))
+            .padding(.horizontal, 20)  // ✅ Increased from 16 to 20
+                   .padding(.vertical, 16)    // ✅ Added vertical padding
+            .background(Color("InputField"))            .clipShape(RoundedRectangle(cornerRadius: 35))
     }
     
     // MARK: - Time Picker
@@ -100,8 +101,9 @@ struct AddActivitySheet: View {
             )
             .labelsHidden()
         }
-        .padding(inputPadding)
-        .background(Color("InputField"))        .clipShape(RoundedRectangle(cornerRadius: 12))
+        .padding(.horizontal, 20)  // ✅ Increased from 16 to 20
+               .padding(.vertical, 16)    // ✅ Added vertical padding
+        .background(Color("InputField"))        .clipShape(RoundedRectangle(cornerRadius: 35))
     }
     
     // MARK: - Links Section
@@ -117,8 +119,9 @@ struct AddActivitySheet: View {
                     .font(.system(size: 15, design: .rounded))
                     .dynamicTypeSize(.small ... .accessibility2)
             }
-            .padding(inputPadding)
-            .background(Color("InputField"))            .clipShape(RoundedRectangle(cornerRadius: 12))
+            .padding(.horizontal, 20)  // ✅ Increased from 16 to 20
+                   .padding(.vertical, 16)    // ✅ Added vertical padding
+            .background(Color("InputField"))            .clipShape(RoundedRectangle(cornerRadius: 35))
         }
     }
     
@@ -129,15 +132,16 @@ struct AddActivitySheet: View {
                 .font(.system(size: 15, design: .rounded))
                 .dynamicTypeSize(.small ... .accessibility2)
                 .frame(height: 100)
-                .padding(12)
-                .background(Color("InputField"))                .clipShape(RoundedRectangle(cornerRadius: 12))
+                .padding(.horizontal, 20)  // ✅ Increased from 16 to 20
+                       .padding(.vertical, 16)    // ✅ Added vertical padding
+                .background(Color("InputField"))                .clipShape(RoundedRectangle(cornerRadius: 35))
             
             if notes.isEmpty {
                 Text("Description, reminders, tips...")
                     .font(.system(size: 15, design: .rounded))
                     .dynamicTypeSize(.small ... .accessibility1)
                     .foregroundStyle(.gray)
-                    .padding(.horizontal, 16)
+                    .padding(.horizontal, 20)
                     .padding(.vertical, 20)
                     .allowsHitTesting(false)
             }
@@ -167,45 +171,17 @@ struct AddActivitySheet: View {
                 .accessibilityAddTraits(selectedColor == color ? .isSelected : [])
             }
             
-            // Color wheel picker button (iOS style)
-            Button {
-                showingColorPicker = true
-            } label: {
-                ZStack {
-                    // Outer rainbow ring
-                    Circle()
-                        .strokeBorder(
-                            AngularGradient(
-                                gradient: Gradient(colors: [
-                                    .red, .yellow, .green, .cyan, .blue, .purple, .pink, .red
-                                ]),
-                                center: .center,
-                                startAngle: .degrees(0),
-                                endAngle: .degrees(360)
-                            ),
-                            lineWidth: 4
-                        )
-                        .frame(width: 50, height: 50)
-                    
-                    // Inner light circle
-                    Circle()
-                        .fill(Color(hex: "#F5DEB3"))
-                        .frame(width: 38, height: 38)
-                    
-                    // Selection border
-                    if !availableColors.prefix(4).contains(selectedColor) {
-                        Circle()
-                            .strokeBorder(Color(hex: "#403029"), lineWidth: 3)
-                            .frame(width: 50, height: 50)
-                    }
-                }
-            }
-            .accessibilityLabel("Choose custom color")
+            // Native iOS Color Picker (same size as circles)
+            ColorPicker("", selection: Binding(
+                get: { Color(hex: selectedColor) },
+                set: { newColor in selectedColor = newColor.toHex() }
+            ), supportsOpacity: false)
+            .labelsHidden()
+            .frame(width: 50, height: 50)  // ✅ Same size as static colors!
         }
         .frame(maxWidth: .infinity)
         .padding(.top, 8)
     }
-    
     // MARK: - Bottom Buttons
     private var bottomButtons: some View {
         VStack(spacing: 12) {
