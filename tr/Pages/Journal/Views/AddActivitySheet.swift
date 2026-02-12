@@ -36,7 +36,7 @@ struct AddActivitySheet: View {
     // MARK: - Body
     var body: some View {
         ZStack {
-            Color("Background")  // ✅ Changed from #FBF5ED
+            Color("Background")
                 .ignoresSafeArea()
             
             VStack(spacing: 0) {
@@ -75,14 +75,25 @@ struct AddActivitySheet: View {
 //        }
     }
     
-    // MARK: - Input Field
+    // MARK: - Input Field (custom placeholder)
     private func inputField(placeholder: String, text: Binding<String>) -> some View {
-        TextField(placeholder, text: text)
-            .font(.system(size: 16, design: .rounded))
-            .dynamicTypeSize(.medium ... .accessibility2)
-            .padding(.horizontal, 20)  // ✅ Increased from 16 to 20
-                   .padding(.vertical, 16)    // ✅ Added vertical padding
-            .background(Color("InputField"))            .clipShape(RoundedRectangle(cornerRadius: 35))
+        ZStack(alignment: .leading) {
+            if text.wrappedValue.isEmpty {
+                Text(placeholder)
+                    .font(.system(size: 16, design: .rounded))
+                    .foregroundStyle(Color("Color 1").opacity(0.6)) // custom placeholder color
+                    .padding(.horizontal, 20)
+            }
+            
+            TextField("", text: text)
+                .font(.system(size: 16, design: .rounded))
+                .dynamicTypeSize(.medium ... .accessibility2)
+                .foregroundStyle(Color("Color 1")) // Match description text color
+                .padding(.horizontal, 20)
+        }
+        .padding(.vertical, 16)
+        .background(Color("InputField"))
+        .clipShape(RoundedRectangle(cornerRadius: 35))
     }
     
     // MARK: - Time Picker
@@ -91,6 +102,7 @@ struct AddActivitySheet: View {
             Text("Time")
                 .font(.system(size: 16, design: .rounded))
                 .dynamicTypeSize(.medium ... .accessibility1)
+                .foregroundStyle(Color("Color 1")) // Match description text color
             
             Spacer()
             
@@ -100,28 +112,47 @@ struct AddActivitySheet: View {
                 displayedComponents: .hourAndMinute
             )
             .labelsHidden()
+            .tint(Color("Color 1")) // Controls picker tint
         }
-        .padding(.horizontal, 20)  // ✅ Increased from 16 to 20
-               .padding(.vertical, 16)    // ✅ Added vertical padding
-        .background(Color("InputField"))        .clipShape(RoundedRectangle(cornerRadius: 35))
+        .padding(.horizontal, 20)
+        .padding(.vertical, 16)
+        .background(Color("InputField"))
+        .clipShape(RoundedRectangle(cornerRadius: 35))
     }
     
-    // MARK: - Links Section
+    // MARK: - Links Section (custom placeholder)
     private var linksSection: some View {
         VStack(spacing: 12) {
-            HStack {
-                Image(systemName: "link")
-                    .font(.system(size: 14, design: .rounded))
-                    .foregroundStyle(.gray)
-                    .accessibilityHidden(true)
+            ZStack(alignment: .leading) {
+                if mapLink.isEmpty {
+                    HStack(spacing: 8) {
+                        Image(systemName: "link")
+                            .font(.system(size: 14, design: .rounded))
+                            .foregroundStyle(Color("Color 1").opacity(0.6))
+                            .accessibilityHidden(true)
+                        Text("Map, Menu, Booking...")
+                            .font(.system(size: 16, design: .rounded))
+                            .foregroundStyle(Color("Color 1").opacity(0.6))
+                    }
+                    .padding(.horizontal, 20)
+                }
                 
-                TextField("Map, Menu, Booking...", text: $mapLink)
-                    .font(.system(size: 15, design: .rounded))
-                    .dynamicTypeSize(.small ... .accessibility2)
+                HStack {
+                    Image(systemName: "link")
+                        .font(.system(size: 14, design: .rounded))
+                        .foregroundStyle(Color("Color 1"))
+                        .accessibilityHidden(true)
+                    
+                    TextField("", text: $mapLink)
+                        .font(.system(size: 16, design: .rounded))
+                        .dynamicTypeSize(.medium ... .accessibility1)
+                        .foregroundStyle(Color("Color 1")) // Match description text color
+                }
+                .padding(.horizontal, 20)
             }
-            .padding(.horizontal, 20)  // ✅ Increased from 16 to 20
-                   .padding(.vertical, 16)    // ✅ Added vertical padding
-            .background(Color("InputField"))            .clipShape(RoundedRectangle(cornerRadius: 35))
+            .padding(.vertical, 16)
+            .background(Color("InputField"))
+            .clipShape(RoundedRectangle(cornerRadius: 35))
         }
     }
     
@@ -131,16 +162,19 @@ struct AddActivitySheet: View {
             TextEditor(text: $notes)
                 .font(.system(size: 15, design: .rounded))
                 .dynamicTypeSize(.small ... .accessibility2)
+                .foregroundStyle(Color("Color 1")) // Description text color
                 .frame(height: 100)
-                .padding(.horizontal, 20)  // ✅ Increased from 16 to 20
-                       .padding(.vertical, 16)    // ✅ Added vertical padding
-                .background(Color("InputField"))                .clipShape(RoundedRectangle(cornerRadius: 35))
+                .padding(.horizontal, 20)
+                .padding(.vertical, 16)
+                .background(Color("InputField"))
+                .clipShape(RoundedRectangle(cornerRadius: 35))
+                .scrollContentBackground(.hidden)
             
             if notes.isEmpty {
                 Text("Description, reminders, tips...")
                     .font(.system(size: 15, design: .rounded))
                     .dynamicTypeSize(.small ... .accessibility1)
-                    .foregroundStyle(.gray)
+                    .foregroundStyle(Color("Color 1").opacity(0.6)) // subtle placeholder
                     .padding(.horizontal, 20)
                     .padding(.vertical, 20)
                     .allowsHitTesting(false)
@@ -177,7 +211,7 @@ struct AddActivitySheet: View {
                 set: { newColor in selectedColor = newColor.toHex() }
             ), supportsOpacity: false)
             .labelsHidden()
-            .frame(width: 50, height: 50)  // ✅ Same size as static colors!
+            .frame(width: 50, height: 50)
         }
         .frame(maxWidth: .infinity)
         .padding(.top, 8)
@@ -195,7 +229,7 @@ struct AddActivitySheet: View {
                     .foregroundStyle(.white)
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 16)
-                    .background(isValidActivity ? Color("AddButton") : Color.gray)  // ✅ Changed from #403029
+                    .background(isValidActivity ? Color("AddButton") : Color.gray)
                     .clipShape(RoundedRectangle(cornerRadius: 100))
             }
             .disabled(!isValidActivity)
@@ -207,15 +241,15 @@ struct AddActivitySheet: View {
                 Text("Cancel")
                     .font(.system(size: 17, design: .rounded))
                     .dynamicTypeSize(.medium ... .accessibility1)
-                    .foregroundStyle(Color(hex: "#403029"))
+                    .foregroundStyle(Color("jcancel"))
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 16)
-                    .background(Color("CancelButton"))  // ✅ Changed from #CCBFB7
+                    .background(Color("CancelButton"))
                     .clipShape(RoundedRectangle(cornerRadius: 100))
             }
         }
         .padding(20)
-        .background(Color("Background"))  // ✅ Changed from #FBF5ED
+        .background(Color("Background"))
     }
     
     // MARK: - Methods

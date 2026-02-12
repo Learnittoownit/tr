@@ -18,6 +18,7 @@ struct TripDetailView: View {
     // MARK: - Environment
     @Environment(\.dismiss) private var dismiss
     @Environment(\.modelContext) private var modelContext
+    @Environment(\.colorScheme) private var colorScheme
     
     // MARK: - State
     let trip: Trip
@@ -37,7 +38,7 @@ struct TripDetailView: View {
     // MARK: - Body
     var body: some View {
         ZStack {
-            Color("Background")  // ✅ Changed from #FBF5ED
+            Color("Background")
                 .ignoresSafeArea()
             
             VStack(spacing: 0) {
@@ -96,7 +97,8 @@ struct TripDetailView: View {
                                 .foregroundStyle(Color(hex: "#3A2F27"))
                                 .padding(.horizontal, 12)
                                 .padding(.vertical, 6)
-                                .background(Color.white.opacity(0.6))
+                                // White capsule in dark mode; keep semi-transparent white in light mode
+                                .background(colorScheme == .dark ? Color.white : Color.white.opacity(0.6))
                                 .clipShape(Capsule())
                             }
                             .accessibilityLabel("Change trip color")
@@ -147,7 +149,7 @@ struct TripDetailView: View {
                 } label: {
                     Text("Back")
                         .font(.system(size: 17, design: .rounded))
-                        .foregroundStyle(Color(hex: "#3A2F27"))
+                        .foregroundStyle(colorScheme == .dark ? Color.white : Color(hex: "#3A2F27"))
                 }
             }
             
@@ -157,7 +159,8 @@ struct TripDetailView: View {
                 } label: {
                     Text("Save")
                         .font(.system(size: 17, weight: .semibold, design: .rounded))
-                        .foregroundStyle(hasChanges ? Color(hex: "#3A2F27") : .gray)
+                        // Make Save white in dark mode (even when disabled), keep existing behavior in light mode
+                        .foregroundStyle(colorScheme == .dark ? Color.white : (hasChanges ? Color(hex: "#3A2F27") : .gray))
                 }
                 .disabled(!hasChanges)
             }
@@ -293,7 +296,7 @@ struct DayRow: View {
                         .foregroundStyle(.white)
                         .frame(maxWidth: .infinity)
                         .padding(.vertical, 14)
-                        .background(Color("AddButton"))  // ✅ Changed from #403029
+                        .background(Color(hex: "#403029"))  // Fixed hex to match light mode in all appearances
                         .clipShape(RoundedRectangle(cornerRadius: 35))
                     }
                     .accessibilityLabel("Add activity to day \(day.dayNumber)")
@@ -309,8 +312,6 @@ struct ActivityCard: View {
     let activity: Activity
     let onEdit: () -> Void
     let onDelete: () -> Void
-    
-    //@ScaledMetric private var cardPadding: CGFloat = 16
     
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
@@ -372,7 +373,6 @@ struct ActivityCard: View {
         .padding(20)
         .background(Color(hex: activity.color).opacity(0.5))
         .clipShape(RoundedRectangle(cornerRadius: 35))
-      
         .accessibilityElement(children: .combine)
     }
     

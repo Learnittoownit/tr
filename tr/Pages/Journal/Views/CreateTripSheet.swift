@@ -55,19 +55,27 @@ struct CreateTripSheet: View {
     var body: some View {
         NavigationStack {
             ZStack {
-                // Background with selected color
-               Color("Header")
-
+                // Header background reflects the selected color
+                Color(hex: selectedColor)
                     .ignoresSafeArea()
                 
                 VStack(spacing: 0) {
-                    // Header section with colored background
+                    // Header section
                     VStack(spacing: 20) {
-                        // Trip Name Input
-                        TextField("Trip Name..", text: $tripName)
-                            .font(.system(size: 32, weight: .bold, design: .rounded))
-                            .foregroundStyle(Color(hex: "#3A2F27"))
-                            .multilineTextAlignment(.leading)
+                        // Trip Name Input with custom darker placeholder
+                        ZStack(alignment: .leading) {
+                            if tripName.isEmpty {
+                                Text("Trip Name..")
+                                    .font(.system(size: 32, weight: .bold, design: .rounded))
+                                    .foregroundStyle(placeholderColor)
+                                    .accessibilityHidden(true)
+                            }
+                            TextField("", text: $tripName)
+                                .font(.system(size: 32, weight: .bold, design: .rounded))
+                                .foregroundStyle(Color(hex: "#3A2F27"))
+                                .multilineTextAlignment(.leading)
+                                .accessibilityLabel("Trip Name")
+                        }
                         
                         // Duration and Color buttons
                         HStack(spacing: 12) {
@@ -92,7 +100,11 @@ struct CreateTripSheet: View {
                             Button {
                                 showingColorPicker = true
                             } label: {
-                                HStack {
+                                HStack(spacing: 8) {
+                                    // Show current selection
+                                    Circle()
+                                        .fill(Color(hex: selectedColor))
+                                        .frame(width: 16, height: 16)
                                     Text("Color")
                                         .font(.system(size: 15, design: .rounded))
                                     Image(systemName: "chevron.down")
@@ -108,10 +120,9 @@ struct CreateTripSheet: View {
                     }
                     .padding(20)
                     
+                    // Bottom area
                     Color("jsavebutton")
                         .ignoresSafeArea()
-           
-
                 }
             }
             .navigationTitle("Create Trip")
@@ -122,7 +133,7 @@ struct CreateTripSheet: View {
                         dismiss()
                     }
                     .font(.system(size: 17, design: .rounded))
-                    .foregroundStyle(Color(hex: "#3A2F27"))
+                    .foregroundStyle(colorScheme == .dark ? Color.white : Color(hex: "#3A2F27"))
                 }
                 
                 ToolbarItem(placement: .navigationBarTrailing) {
@@ -144,6 +155,14 @@ struct CreateTripSheet: View {
                 ColorPickerSheet(selectedColor: $selectedColor)
             }
         }
+    }
+    
+    // MARK: - Placeholder Color
+    private var placeholderColor: Color {
+        // Slightly lower opacity than before
+        colorScheme == .dark
+        ? Color.white.opacity(0.8)   // was 0.9
+        : Color(hex: "#3A2F27").opacity(0.75) // was 0.85
     }
     
     // MARK: - Methods

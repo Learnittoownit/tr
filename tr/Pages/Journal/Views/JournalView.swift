@@ -11,6 +11,7 @@ struct JournalView: View {
     @Environment(\.modelContext) private var modelContext
     // لم نعد نستخدم dismiss للرجوع للمين بيج ضمن MainPage
     @Environment(\.dismiss) private var dismiss   // يبقى كـ fallback لو انعرض داخل NavigationStack في مكان آخر
+    @Environment(\.colorScheme) private var colorScheme
     
     // MARK: - Routing back to MainPage
     var onBack: (() -> Void)? = nil
@@ -68,7 +69,7 @@ struct JournalView: View {
                         Text("Back")
                             .font(.system(size: 17, design: .rounded))
                             .dynamicTypeSize(.large ... .xxxLarge)
-                            .foregroundStyle(Color(hex: "#3A2F27"))
+                            .foregroundStyle(colorScheme == .dark ? Color.white : Color(hex: "#3A2F27"))
                     }
                 }
             }
@@ -100,19 +101,19 @@ struct JournalView: View {
             // Search Field
             HStack(spacing: 10) {
                 Image(systemName: "magnifyingglass")
-                    .foregroundStyle(.gray)
+                    .foregroundStyle(colorScheme == .dark ? Color.white : .gray)
                     .font(.system(size: 18))
                 
                 TextField("Search", text: $searchText)
                     .font(.system(size: 17))
-                    .foregroundStyle(Color(hex: "#3A2F27"))
+                    .foregroundStyle(colorScheme == .dark ? Color.white : Color("jplus"))
                 
                 if !searchText.isEmpty {
                     Button {
                         searchText = ""
                     } label: {
                         Image(systemName: "xmark.circle.fill")
-                            .foregroundStyle(.gray.opacity(0.6))
+                            .foregroundStyle(colorScheme == .dark ? Color.white : Color("jplus"))
                             .font(.system(size: 18))
                     }
                 } else {
@@ -120,7 +121,7 @@ struct JournalView: View {
                         // Microphone action
                     } label: {
                         Image(systemName: "mic.fill")
-                            .foregroundStyle(.gray)
+                            .foregroundStyle(colorScheme == .dark ? Color.white : .gray)
                             .font(.system(size: 18))
                     }
                 }
@@ -138,7 +139,7 @@ struct JournalView: View {
             } label: {
                 Image(systemName: "plus")
                     .font(.system(size: 22, weight: .semibold))
-                    .foregroundStyle(Color(hex: "#3A2F27"))
+                    .foregroundStyle(colorScheme == .dark ? Color.white : Color(hex: "#3A2F27"))
                     .frame(width: 50, height: 50)
                     .background(
                         Circle()
@@ -298,4 +299,3 @@ extension Color {
     JournalView()
         .modelContainer(DatabaseConfig.createPreviewContainer())
 }
-
