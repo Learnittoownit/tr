@@ -24,104 +24,130 @@ final class MainPageViewModel: ObservableObject {
     }
 }
 
+// MARK: - Routing (بدون NavigationStack)
+
+private enum MainRoute {
+    case main
+    case aiPrePage
+    case journal
+}
+
 // MARK: - View
 
 struct MainPage: View {
     @StateObject private var vm = MainPageViewModel()
     @Environment(\.colorScheme) var colorScheme
 
-    // ✅ NAV STATE
-    @State private var goToAIPrePage = false
-    @State private var goToJournal = false
+    // ✅ ROUTE STATE بدل NavigationStack
+    @State private var route: MainRoute = .main
     @State private var appeared = false
 
     var body: some View {
-        NavigationStack {
-            ZStack {
-                background
-
-                VStack {
-                    // Header
-                    HStack {
-                        header
-                            .padding(.top, 90)
-                            .padding(.leading, 80)
-                            .opacity(appeared ? 1 : 0)
-                            .offset(y: appeared ? 0 : -20)
-
-                        Spacer()
-                    }
-
-                    Spacer()
-
-                    // Bottom subtitle
-                    subtitle
-                        .padding(.bottom, 60)
-                        .opacity(appeared ? 1 : 0)
-                        .offset(y: appeared ? 0 : 20)
-                }
-
-                // Buttons
-                GeometryReader { geometry in
-                    let leftX = geometry.size.width * 0.35
-                    let rightX = geometry.size.width * 0.65
-                    let generateY: CGFloat = 320
-                    let planY: CGFloat = 570
-
-                    ZStack {
-                        CircleActionButton(
-                            title: "Generate Your Plan",
-                            icon: "sparkles",
-                            action: {
-                                withAnimation(.spring(response: 0.45, dampingFraction: 0.75)) {
-                                    vm.generatePlanTapped()
-                                }
-                                goToAIPrePage = true
-                            }
-                        )
-                        .frame(width: 250, height: 250)
-                        .position(
-                            x: vm.swapped ? rightX : leftX,
-                            y: vm.swapped ? planY : generateY
-                        )
-                        .opacity(appeared ? 1 : 0)
-                        .scaleEffect(appeared ? 1 : 0.8)
-
-                        CircleActionButton(
-                            title: "Plan Your Trip",
-                            icon: "map.fill",
-                            action: {
-                                withAnimation(.spring(response: 0.45, dampingFraction: 0.75)) {
-                                    vm.planTripTapped()
-                                }
-                                goToJournal = true
-                            }
-                        )
-                        .frame(width: 250, height: 250)
-                        .position(
-                            x: vm.swapped ? leftX : rightX,
-                            y: vm.swapped ? generateY : planY
-                        )
-                        .opacity(appeared ? 1 : 0)
-                        .scaleEffect(appeared ? 1 : 0.8)
-                    }
-                }
-            }
-            .ignoresSafeArea()
-            .onAppear {
-                withAnimation(.spring(response: 0.6, dampingFraction: 0.8).delay(0.1)) {
-                    appeared = true
-                }
-            }
-
-            // ✅ DESTINATIONS
-            .navigationDestination(isPresented: $goToAIPrePage) {
+        ZStack {
+            switch route {
+            case .main:
+                mainContent
+            case .aiPrePage:
+                // استبدل بـ AI_PrePage() عندما تكون متوفرة
                 AI_PrePage()
-            }
-            .navigationDestination(isPresented: $goToJournal) {
+                    .transition(.identity) // لا انتقال
+            case .journal:
+                // استبدل بـ JournalView() عندما تكون متوفرة
                 JournalView()
+                    .transition(.identity) // لا انتقال
             }
         }
+        // منع أي أنيميشن ضمن تغييرات الحالة
+        .animation(nil, value: route)
+    }
+
+    // شاشة الرئيسية (الأزرار)
+    private var mainContent: some View {
+        ZStack {
+            background
+
+            VStack {
+                // Header
+                HStack {
+                    header
+                        .padding(.top, 90)
+                        .padding(.leading, 80)
+                        .opacity(appeared ? 1 : 0)
+                        .offset(y: appeared ? 0 : -20)
+
+                    Spacer()
+                }
+
+                Spacer()
+
+                // Bottom subtitle
+                subtitle
+                    .padding(.bottom, 60)
+                    .opacity(appeared ? 1 : 0)
+                    .offset(y: appeared ? 0 : 20)
+            }
+
+            // Buttons
+            GeometryReader { geometry in
+                let leftX = geometry.size.width * 0.35
+                let rightX = geometry.size.width * 0.65
+                let generateY: CGFloat = 320
+                let planY: CGFloat = 570
+
+                ZStack {
+                    CircleActionButton(
+                        title: "Generate Your Plan",
+                        icon: "sparkles",
+                        titleOffsetY: -10,
+                        iconOffsetY: 8,
+                        action: {
+                            // حركة الزر (بصرية فقط)
+                            withAnimation(.spring(response: 0.45, dampingFraction: 0.75)) {
+                                vm.generatePlanTapped()
+                            }
+                            // ✅ انتقال فوري بتغيير الحالة مباشرة (لا NavigationStack)
+                            route = .aiPrePage
+                        }
+                    )
+                    .frame(width: 250, height: 250)
+                    .position(
+                        x: vm.swapped ? rightX : leftX,
+                        y: vm.swapped ? planY : generateY
+                    )
+                    .opacity(appeared ? 1 : 0)
+                    .scaleEffect(appeared ? 1 : 0.8)
+
+                    CircleActionButton(
+                        title: "Plan Your Trip",
+                        icon: "map.fill",
+                        titleOffsetY: -6,
+                        iconOffsetY: 8,
+                        action: {
+                            withAnimation(.spring(response: 0.45, dampingFraction: 0.75)) {
+                                vm.planTripTapped()
+                            }
+                            // ✅ انتقال فوري بتغيير الحالة مباشرة (لا NavigationStack)
+                            route = .journal
+                        }
+                    )
+                    .frame(width: 250, height: 250)
+                    .position(
+                        x: vm.swapped ? leftX : rightX,
+                        y: vm.swapped ? generateY : planY
+                    )
+                    .opacity(appeared ? 1 : 0)
+                    .scaleEffect(appeared ? 1 : 0.8)
+                }
+            }
+        }
+        .ignoresSafeArea()
+        .onAppear {
+            withAnimation(.spring(response: 0.6, dampingFraction: 0.8).delay(0.1)) {
+                appeared = true
+            }
+        }
+        // تعطيل أي أنيميشن ضمن هذه الشاشة
+        .transaction { t in t.animation = nil }
     }
 }
 
@@ -130,6 +156,8 @@ struct MainPage: View {
 struct CircleActionButton: View {
     let title: String
     let icon: String
+    var titleOffsetY: CGFloat = 0
+    var iconOffsetY: CGFloat = 0
     let action: () -> Void
     @Environment(\.colorScheme) var colorScheme
     @State private var isHovering = false
@@ -171,7 +199,6 @@ struct CircleActionButton: View {
                     )
                     .blendMode(.overlay)
 
-                // ✅ ONLY CHANGE IS HERE
                 VStack(spacing: 4) {
                     // Icon
                     ZStack {
@@ -196,9 +223,12 @@ struct CircleActionButton: View {
                             .font(.system(size: 26, weight: .semibold))
                             .foregroundStyle(.white)
                     }
+                    .offset(y: iconOffsetY)
 
                     LiquidGlassText(title: title)
                         .padding(.horizontal, 16)
+                        .frame(maxWidth: .infinity, alignment: .center)
+                        .offset(y: titleOffsetY)
                 }
             }
         }
