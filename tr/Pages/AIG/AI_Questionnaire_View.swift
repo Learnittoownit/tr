@@ -159,7 +159,7 @@ import Combine
                             
                             Text(viewModel.generationStep)
                                 .font(.system(size: 16, weight: .regular, design: .rounded))
-                                .foregroundColor(Color("select"))
+                                .foregroundColor(Color("small text loading page"))
                                 .multilineTextAlignment(.center)
                                 .padding(.horizontal, 40)
                         }

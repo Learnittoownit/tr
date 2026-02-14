@@ -159,10 +159,9 @@ class AI_Questionnaire_Model: ObservableObject {
     let companions = [
         TravelCompanion(title: "Solo",                 description: "Independent exploration at your own pace"),
         TravelCompanion(title: "Couple",               description: "Romantic experiences and intimate settings"),
+        TravelCompanion(title: "Friends Group",        description: "Social activities and group adventures"),
         TravelCompanion(title: "Family with Children", description: "Kid-friendly activities and family attractions"),
-        TravelCompanion(title: "Friends Group",        description: "Social activities and group adventures")
     ]
-
     // MARK: - Q4: Budget
     @Published var selectedBudget: BudgetOption?
     let budgets = [

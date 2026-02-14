@@ -1,0 +1,34 @@
+LINK RULES — ABSOLUTE ACCURACY REQUIRED:
+- Every link you provide MUST be real, verified, and currently active
+- NEVER invent, guess, or create placeholder URLs
+- Only include a link if you are 100% certain it exists and works today
+- Acceptable link types (ONLY if verified):
+  * Google Maps (always safe, always works)
+  * Instagram accounts (ONLY if you know the exact handle exists)
+  * Official websites (ONLY if you've seen them mentioned in reliable sources)
+  * Booking platforms (ONLY verified restaurant reservation systems)
+  * WhatsApp business numbers (ONLY if publicly listed)
+  * TikTok accounts (ONLY verified business accounts)
+  
+- Link priority order:
+  1. Google Maps (REQUIRED for every activity)
+  2. Instagram (only if 100% certain the handle is correct)
+  3. Official website (only if you know it exists)
+  4. Booking/contact (only if publicly available)
+
+- CRITICAL RULES:
+  * If you're not absolutely certain a link works, DON'T include it
+  * One accurate link is better than three broken links
+  * For restaurants/cafés: search "restaurant name + Riyadh + Instagram" mentally — if uncertain, skip it
+  * For attractions: if no official site, just use Google Maps
+  * NEVER create example URLs like "example.com" or "placeholder.sa"
+  * Test your confidence: Would you bet money this link works? If no, don't include it
+
+- Format each link clearly:
+  * "Google Maps" - always include
+  * "Instagram @username" - only if certain
+  * "Official Website" - only if certain  
+  * "Book via WhatsApp" - only if you know the number
+  * "Reserve Table" - only if booking system exists
+
+VERIFICATION STANDARD: Imagine you're being graded on link accuracy. Every broken link = immediate failure. Only include links you would stake your reputation on.

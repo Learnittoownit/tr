@@ -6,6 +6,20 @@ class OpenAIService {
     private let apiKey = "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"
     private let endpoint = "https://api.openai.com/v1/chat/completions"
 
+    private func selectModel(for prompt: String) -> String {
+        // Parse the prompt to detect complexity
+        let isLongTrip = prompt.contains("7 day") || prompt.contains("6 day") || prompt.contains("5 day")
+        let isPacked = prompt.contains("Packed")
+        let hasMultipleInterests = prompt.components(separatedBy: ",").count >= 3
+        
+        // Use the powerful model for complex requests
+        if (isLongTrip && isPacked) || (isLongTrip && hasMultipleInterests) {
+            return "gpt-4o" // More powerful, better quality for complex trips
+        } else {
+            return "gpt-4o-mini" // Fast and cheap for simple trips
+        }
+    }
+
     // MARK: - Main entry point
     func generatePlan(prompt: String) async throws -> String {
 
@@ -41,17 +55,40 @@ class OpenAIService {
           ]
         }
 
-        LINK RULES:
-        - Every activity MUST have at least 1 link, ideally 2-3
-        - Restaurants & cafés: provide their Instagram (e.g. https://www.instagram.com/zumariyadh) + booking link if they take reservations
-        - Hotels & spas: provide their official website booking link
-        - Attractions, parks, museums: provide official website if they have one + Google Maps
-        - Malls & shopping: provide official website or Instagram
-        - Always include a Google Maps link for EVERY activity as the last link
-        - Label each link clearly: "Instagram", "Google Maps", "Book a Table", "Official Website", "Reserve", "Tickets"
-        - Only use real URLs you are confident exist — if unsure of Instagram handle, use Google Maps only
-        - Never invent URLs
+        LINK RULES — ABSOLUTE ACCURACY REQUIRED:
+        - Every link you provide MUST be real, verified, and currently active
+        - NEVER invent, guess, or create placeholder URLs
+        - Only include a link if you are 100% certain it exists and works today
+        - Acceptable link types (ONLY if verified):
+          * Google Maps (always safe, always works)
+          * Instagram accounts (ONLY if you know the exact handle exists)
+          * Official websites (ONLY if you've seen them mentioned in reliable sources)
+          * Booking platforms (ONLY verified restaurant reservation systems)
+          * WhatsApp business numbers (ONLY if publicly listed)
+          * TikTok accounts (ONLY verified business accounts)
+          
+        - Link priority order:
+          1. Google Maps (REQUIRED for every activity)
+          2. Instagram (only if 100% certain the handle is correct)
+          3. Official website (only if you know it exists)
+          4. Booking/contact (only if publicly available)
 
+        - CRITICAL RULES:
+          * If you're not absolutely certain a link works, DON'T include it
+          * One accurate link is better than three broken links
+          * For restaurants/cafés: search "restaurant name + Riyadh + Instagram" mentally — if uncertain, skip it
+          * For attractions: if no official site, just use Google Maps
+          * NEVER create example URLs like "example.com" or "placeholder.sa"
+          * Test your confidence: Would you bet money this link works? If no, don't include it
+
+        - Format each link clearly:
+          * "Google Maps" - always include
+          * "Instagram @username" - only if certain
+          * "Official Website" - only if certain  
+          * "Book via WhatsApp" - only if you know the number
+          * "Reserve Table" - only if booking system exists
+
+        VERIFICATION STANDARD: Imagine you're being graded on link accuracy. Every broken link = immediate failure. Only include links you would stake your reputation on.
         QUALITY RULES:
         1. REAL PLACES ONLY — no invented names, no generic placeholders
         2. TRENDY & HIGH-RATED — prioritize places that are:
@@ -82,9 +119,11 @@ class OpenAIService {
         10. PRECISE MAP QUERIES — full name + city + Saudi Arabia
         """
 
+        let selectedModel = selectModel(for: prompt)
+        print("🤖 Using model: \(selectedModel)")
+
         let body: [String: Any] = [
-            "model": "gpt-4o-mini",
-            "temperature": 0.8,
+            "model": selectedModel,            "temperature": 0.8,
             "max_tokens": 4000,
             "messages": [
                 ["role": "system", "content": systemPrompt],
@@ -223,4 +262,5 @@ enum OpenAIError: LocalizedError {
         case .parsingFailed(let msg): return "JSON parsing failed: \(msg)"
         }
     }
+    
 }
