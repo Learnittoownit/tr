@@ -127,7 +127,7 @@ import Combine
                 VStack(spacing: 32) {
                     VStack(spacing: 12) {
                         Text("Creating your journey")
-                            .font(.system(size: 32, weight: .bold, design: .rounded))
+                            .font(.system(size: 28, weight: .bold, design: .rounded))
                             .foregroundColor(Color("title loading page"))
                         Text("Our AI is crafting the perfect itinerary\nbased on your preferences!").bold()
                             .font(.system(size: 16, weight: .regular, design: .rounded))
@@ -350,7 +350,7 @@ import Combine
                 let gridWidth = geo.size.width - (sidePadding * 2)
                 let cardWidth = (gridWidth - gridSpacing) / 2
                 
-                VStack(spacing: 24) {
+                VStack(spacing: 18) {
                     
                     VStack(spacing: 8) {
                         Text("What type of experiences\ninterest you?")
@@ -812,10 +812,10 @@ import Combine
         @Environment(\.colorScheme) var colorScheme
         
         var body: some View {
-            VStack(spacing: 0) {
+            VStack {
                 VStack(spacing: 8) {
                     Text("How do you prefer to travel?")
-                        .font(.system(size: 30, weight: .bold, design: .rounded))
+                        .font(.system(size: 28, weight: .bold, design: .rounded))
                         .foregroundColor(Color("Title"))
                         .multilineTextAlignment(.center)
                     
@@ -823,8 +823,8 @@ import Combine
                         .font(.system(size: 20, weight: .regular, design: .rounded))
                         .foregroundColor(Color("Light small text"))
                 }
-                .padding(.top, 20)
-                .padding(.horizontal, 40)
+                .padding(.top, 10)
+                .padding(.horizontal, 30)
                 
                 ScrollView(showsIndicators: false) {
                     VStack(spacing: 24) {
@@ -873,9 +873,9 @@ import Combine
                     LazyVGrid(columns: columns, spacing: 12) {
                         ForEach(pace.tags, id: \.self) { tag in
                             Text(tag)
-                                .font(.system(size: 13, weight: .semibold, design: .rounded))
+                                .font(.system(size: 15, weight: .semibold, design: .rounded))
                                 .foregroundColor(tagTextColor)
-                                .padding(.horizontal, 10)
+                                .padding(.horizontal, 20)
                                 .padding(.vertical, 10)
                                 .frame(maxWidth: .infinity)
                                 .background(tagBackgroundColor)
@@ -884,7 +884,7 @@ import Combine
                     }
                 }
                 .padding(28)
-                .frame(maxWidth: .infinity, minHeight: 240, alignment: .leading)
+                .frame(maxWidth: .infinity, minHeight: 150, alignment: .leading)
                 .background(cardBackgroundColor)
                 .cornerRadius(32)
             }

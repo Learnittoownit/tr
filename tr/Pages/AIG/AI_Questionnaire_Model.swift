@@ -212,17 +212,17 @@ class AI_Questionnaire_Model: ObservableObject {
         TravelPace(
             title: "Relaxed",
             description: "Take it slow and enjoy plenty of downtime between activities. Perfect for soaking in the atmosphere.",
-            tags: ["2-3 activities/day", "Lots of free time", "Flexible schedule"]
+            tags: ["2-3 activities", "Lots of free time", "Flexible schedule"]
         ),
         TravelPace(
             title: "Moderate",
             description: "Balanced approach with structured planning time to rest. The sweet spot for most travelers.",
-            tags: ["4-5 activities/day", "Balanced schedule", "Some flexibility"]
+            tags: ["4-5 activities", "Balanced schedule", "Some flexibility"]
         ),
         TravelPace(
             title: "Packed",
             description: "Maximize every moment with back-to-back experiences. See and do as much as possible in limited time.",
-            tags: ["6+ activities/day", "Full schedule", "Action-packed"]
+            tags: ["6+ activities", "Full schedule", "Action-packed"]
         )
     ]
 

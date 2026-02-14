@@ -7,9 +7,9 @@
 	objects = {
 
 /* Begin PBXFileReference section */
-		464924232F33630D0060CF75 /* tr.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; name = tr.app; path = "/Users/heavenlyrq/Desktop/tr/build/Debug-iphoneos/tr.app"; sourceTree = "<absolute>"; };
 		46B648312F404E3D00C6C2FB /* tr copy.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; name = "tr copy.app"; path = "/Users/heavenlyrq/Desktop/tr/build/Debug-iphoneos/tr copy.app"; sourceTree = "<absolute>"; };
 		46B648332F404E5600C6C2FB /* tr-copy-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = "tr-copy-Info.plist"; sourceTree = "<group>"; };
+		46B648692F40F10F00C6C2FB /* tr.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = tr.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
@@ -76,6 +76,7 @@
 			children = (
 				46B648332F404E5600C6C2FB /* tr-copy-Info.plist */,
 				464924252F33630D0060CF75 /* tr */,
+				46B648692F40F10F00C6C2FB /* tr.app */,
 			);
 			sourceTree = "<group>";
 		};
@@ -101,7 +102,7 @@
 			packageProductDependencies = (
 			);
 			productName = tr;
-			productReference = 464924232F33630D0060CF75 /* tr.app */;
+			productReference = 46B648692F40F10F00C6C2FB /* tr.app */;
 			productType = "com.apple.product-type.application";
 		};
 		46B6482A2F404E3D00C6C2FB /* tr copy */ = {

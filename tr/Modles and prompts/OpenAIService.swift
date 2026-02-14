@@ -21,7 +21,7 @@ class OpenAIService {
     func generatePlan(prompt: String) async throws -> String {
 
         let systemPrompt = """
-        You are an expert Saudi Arabia travel curator. Generate personalized itineraries with SMART, CONTEXTUAL links.
+        You are an expert Saudi Arabia travel curator. Generate accurate itineraries with VERIFIED links only.
 
         CRITICAL: Return ONLY valid JSON. No markdown, no explanation.
 
@@ -34,13 +34,12 @@ class OpenAIService {
               "activities": [
                 {
                   "time": "9:00 AM",
-                  "name": "Place Name",
-                  "description": "Amazing description. Mention if reservations recommended.",
-                  "mapQuery": "Place Name, City, Saudi Arabia",
+                  "name": "Najd Village Restaurant",
+                  "description": "Traditional Saudi cuisine in authentic setting. Reservations recommended for dinner.",
+                  "mapQuery": "Najd Village Restaurant, Al Takhassusi, Riyadh, Saudi Arabia",
                   "links": [
-                    { "url": "https://instagram.com/place", "label": "Instagram" },
-                    { "url": "https://booking.com", "label": "Book Table" },
-                    { "url": "https://maps.google.com", "label": "Google Maps" }
+                    { "url": "https://www.google.com/maps/search/?api=1&query=Najd+Village+Restaurant+Riyadh", "label": "Google Maps" },
+                    { "url": "https://hungerstation.com/sa/restaurant/najd-village", "label": "Book Table" }
                   ]
                 }
               ]
@@ -48,90 +47,57 @@ class OpenAIService {
           ]
         }
 
-        🎯 SMART LINK RULES - Only Include Relevant Links:
+        🎯 SIMPLE LINK RULES:
 
-        📍 ALWAYS INCLUDE:
-        - Google Maps (every activity needs this)
+        FOR RESTAURANTS & CAFÉS ONLY:
+        ✅ Google Maps (REQUIRED - use exact name + district + city)
+        ✅ Booking Website (ONLY if you are 100% CERTAIN it exists and is widely used)
+           - Popular platforms: HungerStation, Jahez, OpenTable, Reserveout
+           - Restaurant's own booking site (ONLY if you KNOW it exists)
+           - If uncertain about booking link → SKIP IT, just give Google Maps
 
-        🍽️ FOR RESTAURANTS & CAFÉS:
-        - Instagram (if the place has social media presence)
-        - Booking link (HungerStation, Jahez, restaurant website, or reservation system)
-        - In description: Mention "Reservations recommended" or "Walk-ins welcome"
-        Target: Instagram + Booking + Google Maps = 3 links
+        FOR EVERYTHING ELSE (Parks, Museums, Malls, Hotels, Attractions):
+        ✅ Google Maps ONLY
+           - No booking links
+           - No official websites
+           - Just accurate Google Maps
 
-        🏨 FOR HOTELS & RESORTS:
-        - Official website (booking.com, hotel website)
-        - Instagram (if they have one)
-        - NO booking link if it's just a visit/tour (not staying overnight)
-        Target: 2-3 links
+        ❌ NEVER INCLUDE:
+        - Instagram, TikTok, Twitter, WhatsApp, or ANY social media
+        - Guessed or uncertain URLs
+        - Generic booking.com links
+        - Unverified websites
 
-        🏛️ FOR MUSEUMS & ATTRACTIONS:
-        - Official website (if tickets can be purchased online)
-        - Instagram (if they have active social media)
-        - NO booking link if it's free entry or tickets at door
-        - In description: Mention "Book tickets online" or "Free entry"
-        Target: 1-2 links (+ Google Maps)
+        🎯 GOOGLE MAPS ACCURACY (VERY IMPORTANT):
+        - Use FULL official name of the place
+        - Include district/neighborhood name
+        - Include city name
+        - Examples:
+          * "Najd Village Restaurant, Al Takhassusi Street, Riyadh, Saudi Arabia"
+          * "The Globe Restaurant, Al Faisaliyah Tower, Riyadh, Saudi Arabia"
+          * "Lusin Restaurant, Tahlia Street, Jeddah, Saudi Arabia"
+          * "National Museum of Saudi Arabia, King Abdulaziz Historical Center, Riyadh, Saudi Arabia"
+          * "Al Nakheel Mall, Riyadh, Saudi Arabia"
 
-        🛍️ FOR SHOPPING MALLS & MARKETS:
-        - Instagram (if mall has official account)
-        - NO booking links (you don't book malls!)
-        Target: 1-2 links (+ Google Maps)
+        BOOKING LINK VERIFICATION (Restaurants/Cafés only):
+        - Only include if you are ABSOLUTELY certain the link is real and active
+        - Popular chains (Starbucks, McDonald's, local chains) → you can confidently add HungerStation/Jahez
+        - Independent restaurants → ONLY if you know they have a verified booking system
+        - When in doubt → SKIP the booking link, just give Google Maps
 
-        🌳 FOR PARKS & OUTDOOR SPACES:
-        - Instagram (if it's a famous park with social media)
-        - NO booking/website needed
-        Target: 1-2 links (+ Google Maps)
-
-        ⚡ KEY PRINCIPLES:
-        1. BE CONTEXTUAL - Don't add booking links for places you can't book
-        2. BE USEFUL - Only Instagram if the place actively uses it
-        3. BE ACCURATE - Better to skip a link than provide a wrong one
-        4. IN DESCRIPTION - Always mention if reservations needed/recommended
-        
         DESCRIPTION REQUIREMENTS:
-        - If restaurant needs reservation: "Reservations recommended for dinner" or "Book ahead on weekends"
-        - If walk-ins accepted: "Walk-ins welcome" or "No reservation needed"
-        - If tickets required: "Purchase tickets online to skip the queue"
-        - If free entry: "Free admission" or "Open to public"
+        - For restaurants: Mention if "Reservations recommended" or "Walk-ins welcome"
+        - For attractions: Mention "Free entry" or "Tickets required"
+        - Keep it 2 sentences maximum
 
-        EXAMPLE OUTPUTS:
+        QUALITY RULES:
+        - Real, operational places only (4.5+ stars on Google Maps)
+        - Currently open (not closed/under construction)
+        - Match user preferences: pace, budget, interests
+        - No repetition across all days
+        - Mix famous spots with hidden gems
 
-        ✅ GOOD - Restaurant:
-        {
-          "name": "Takya Restaurant",
-          "description": "Traditional Saudi cuisine with modern twist. Reservations recommended for dinner.",
-          "links": [
-            {"url": "https://instagram.com/takya", "label": "Instagram"},
-            {"url": "https://hungerstation.com/takya", "label": "Book Table"},
-            {"url": "https://maps.google.com/...", "label": "Google Maps"}
-          ]
-        }
-
-        ✅ GOOD - Park:
-        {
-          "name": "King Abdullah Park",
-          "description": "Beautiful green space perfect for picnics. Free entry, open daily.",
-          "links": [
-            {"url": "https://instagram.com/kingabdullahpark", "label": "Instagram"},
-            {"url": "https://maps.google.com/...", "label": "Google Maps"}
-          ]
-        }
-
-        ❌ BAD - Park with booking link:
-        {
-          "name": "Park",
-          "links": [
-            {"url": "booking.com/park", "label": "Book Visit"} ← WRONG! You don't book parks!
-          ]
-        }
-
-        PLACE SELECTION:
-        - Real, popular, highly-rated places (4.5+ stars)
-        - Viral on social media when relevant
-        - Match pace: Relaxed (2-3/day), Moderate (4-5/day), Packed (6/day)
-        - Match budget and interests
-        - Zero repetition
-        - Mix hidden gems with popular spots
+        REMEMBER: 1 accurate link is better than 3 broken links!
         """
 
         let selectedModel = selectModel(for: prompt)

@@ -44,7 +44,8 @@ struct AI_PrePage: View {
                 )            } else {
                 VStack(spacing: 35) {
                     Spacer()
-                    
+                    Spacer()
+
                     VStack(spacing: 25) {
                         // Icon
                         ZStack {
@@ -73,7 +74,7 @@ struct AI_PrePage: View {
                                 .foregroundColor(Color("Title"))
                                 .multilineTextAlignment(.center)
                             
-                            Text("Let our AI create the perfect itinerary just for you")
+                            Text("Let our AI create the perfect itinerary just for you").bold()
                                 .font(.system(size: 16, weight: .regular, design: .rounded))
                                 .foregroundColor(Color("Light small text"))
                                 .multilineTextAlignment(.center)
@@ -120,7 +121,7 @@ struct AI_PrePage: View {
                         .padding(.top, 22)
                     }
                     
-                    Spacer()
+              
                     
                     // Bottom Buttons
                     VStack(spacing: 10) {
