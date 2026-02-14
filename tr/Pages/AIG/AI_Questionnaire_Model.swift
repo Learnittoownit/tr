@@ -174,12 +174,12 @@ class AI_Questionnaire_Model: ObservableObject {
     @Published var selectedExperiences: Set<ExperienceType> = []
     let experiences = [
         ExperienceType(title: "Cultural &\nHistorical", description: "Museums, heritage sites, and monuments"),
-        ExperienceType(title: "Adventure &\nNature",    description: "Hiking, deserts, and natural landscapes"),
-        ExperienceType(title: "Relaxation",             description: "Serenity, tranquility, and wellness"),
-        ExperienceType(title: "Shopping &\nModern",     description: "Malls, boutiques, urban attractions"),
-        ExperienceType(title: "Food &\nCulinary",       description: "Local cuisine, food tours, and dining")
+        ExperienceType(title: "Adventure &\nNature", description: "Hiking, deserts, and natural landscapes"),
+        ExperienceType(title: "Relaxation", description: "Serenity, tranquility, and wellness"),
+        ExperienceType(title: "Shopping &\nModern", description: "Malls, boutiques, urban attractions"),
+        ExperienceType(title: "Food &\nDining", description: "Restaurants, fine dining, and local cuisine"),
+        ExperienceType(title: "Cafés &\nCoffee", description: "Coffee shops, dessert cafés, and specialty drinks")
     ]
-
     // MARK: - Q3: Travel Companions
     @Published var selectedCompanion: TravelCompanion?
     let companions = [

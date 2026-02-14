@@ -131,7 +131,7 @@ import Combine
                             .foregroundColor(Color("title loading page"))
                         Text("Our AI is crafting the perfect itinerary\nbased on your preferences!").bold()
                             .font(.system(size: 16, weight: .regular, design: .rounded))
-                            .foregroundColor(Color("small text loading page"))
+                            .foregroundColor(Color("small text loading page")).bold()
                             .multilineTextAlignment(.center)
                             .lineSpacing(4)
                     }
@@ -330,44 +330,43 @@ import Combine
         }
     }
     
-    struct Question2_ExperienceTypes: View {
-        @ObservedObject var viewModel: AI_Questionnaire_Model
-        
-        private let gridSpacing: CGFloat = 20
-        private let sidePadding: CGFloat = 1
-        private let cardHeight: CGFloat = 165
-        
-        private func toggle(_ experience: ExperienceType) {
-            if viewModel.selectedExperiences.contains(experience) {
-                viewModel.selectedExperiences.remove(experience)
-            } else {
-                viewModel.selectedExperiences.insert(experience)
+        struct Question2_ExperienceTypes: View {
+            @ObservedObject var viewModel: AI_Questionnaire_Model
+            
+            private let gridSpacing: CGFloat = 20
+            private let sidePadding: CGFloat = 1
+            private let cardHeight: CGFloat = 165
+            
+            private func toggle(_ experience: ExperienceType) {
+                if viewModel.selectedExperiences.contains(experience) {
+                    viewModel.selectedExperiences.remove(experience)
+                } else {
+                    viewModel.selectedExperiences.insert(experience)
+                }
             }
-        }
-        
-        var body: some View {
-            GeometryReader { geo in
-                let gridWidth = geo.size.width - (sidePadding * 2)
-                let cardWidth = (gridWidth - gridSpacing) / 2
-                
-                VStack(spacing: 18) {
+            
+            var body: some View {
+                GeometryReader { geo in
+                    let gridWidth = geo.size.width - (sidePadding * 2)
+                    let cardWidth = (gridWidth - gridSpacing) / 2
                     
-                    VStack(spacing: 8) {
-                        Text("What type of experiences\ninterest you?")
-                            .font(.system(size: 27, weight: .bold, design: .rounded))
-                            .foregroundColor(Color("Title"))
-                            .multilineTextAlignment(.center)
-                            .lineLimit(nil)
-                            .fixedSize(horizontal: false, vertical: true)
+                    VStack(spacing: 18) {
                         
-                        Text("Select all that apply").bold()
-                            .font(.system(size: 20))
-                            .foregroundColor(Color("Light small text"))
-                    }
-                    .frame(maxWidth: .infinity)
-                    
-                    VStack(spacing: 16) {
+                        VStack(spacing: 8) {
+                            Text("What type of experiences\ninterest you?")
+                                .font(.system(size: 27, weight: .bold, design: .rounded))
+                                .foregroundColor(Color("Title"))
+                                .multilineTextAlignment(.center)
+                                .lineLimit(nil)
+                                .fixedSize(horizontal: false, vertical: true)
+                            
+                            Text("Select all that apply").bold()
+                                .font(.system(size: 20))
+                                .foregroundColor(Color("Light small text"))
+                        }
+                        .frame(maxWidth: .infinity)
                         
+                        // 2x3 Grid for all 6 items
                         LazyVGrid(
                             columns: [
                                 GridItem(.fixed(cardWidth), spacing: gridSpacing),
@@ -375,7 +374,7 @@ import Combine
                             ],
                             spacing: 16
                         ) {
-                            ForEach(Array(viewModel.experiences.prefix(4))) { experience in
+                            ForEach(viewModel.experiences) { experience in
                                 ExperienceCard(
                                     title: experience.title,
                                     description: experience.description,
@@ -388,30 +387,13 @@ import Combine
                         }
                         .frame(width: gridWidth)
                         
-                        if let last = viewModel.experiences.last {
-                            HStack {
-                                Spacer()
-                                ExperienceCard(
-                                    title: last.title,
-                                    description: last.description,
-                                    isSelected: viewModel.selectedExperiences.contains(last)
-                                ) {
-                                    toggle(last)
-                                }
-                                .frame(width: cardWidth, height: cardHeight)
-                                Spacer()
-                            }
-                            .frame(width: gridWidth)
-                        }
+                        Spacer(minLength: 0)
                     }
-                    
-                    Spacer(minLength: 0)
+                    .padding(.horizontal, sidePadding)
+                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
                 }
-                .padding(.horizontal, sidePadding)
-                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
             }
         }
-    }
     
     struct ExperienceCard: View {
         let title: String

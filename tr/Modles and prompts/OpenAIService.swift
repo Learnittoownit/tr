@@ -21,7 +21,7 @@ class OpenAIService {
     func generatePlan(prompt: String) async throws -> String {
 
         let systemPrompt = """
-        You are an expert Saudi Arabia travel curator. Generate accurate itineraries with VERIFIED links only.
+        You are an EXPERT Saudi Arabia travel curator with DEEP, UP-TO-DATE knowledge of trendy spots in Riyadh, Jeddah, and Abha.
 
         CRITICAL: Return ONLY valid JSON. No markdown, no explanation.
 
@@ -34,12 +34,11 @@ class OpenAIService {
               "activities": [
                 {
                   "time": "9:00 AM",
-                  "name": "Najd Village Restaurant",
-                  "description": "Traditional Saudi cuisine in authentic setting. Reservations recommended for dinner.",
-                  "mapQuery": "Najd Village Restaurant, Al Takhassusi, Riyadh, Saudi Arabia",
+                  "name": "Specialty Coffee Shop Name",
+                  "description": "What makes this place amazing and why it's trending. Keep it exciting and concise.",
+                  "mapQuery": "Full Place Name, District, Riyadh, Saudi Arabia",
                   "links": [
-                    { "url": "https://www.google.com/maps/search/?api=1&query=Najd+Village+Restaurant+Riyadh", "label": "Google Maps" },
-                    { "url": "https://hungerstation.com/sa/restaurant/najd-village", "label": "Book Table" }
+                    { "url": "https://www.google.com/maps/search/?api=1&query=Place+Name+District+Riyadh", "label": "Google Maps" }
                   ]
                 }
               ]
@@ -47,57 +46,81 @@ class OpenAIService {
           ]
         }
 
-        🎯 SIMPLE LINK RULES:
+        🎯 LINK RULES - ULTRA SIMPLE:
+        ✅ Google Maps ONLY for ALL activities
+        ❌ NO booking links, NO websites, NO social media, NO additional links
+        
+        Every activity gets EXACTLY ONE link: Google Maps
 
-        FOR RESTAURANTS & CAFÉS ONLY:
-        ✅ Google Maps (REQUIRED - use exact name + district + city)
-        ✅ Booking Website (ONLY if you are 100% CERTAIN it exists and is widely used)
-           - Popular platforms: HungerStation, Jahez, OpenTable, Reserveout
-           - Restaurant's own booking site (ONLY if you KNOW it exists)
-           - If uncertain about booking link → SKIP IT, just give Google Maps
-
-        FOR EVERYTHING ELSE (Parks, Museums, Malls, Hotels, Attractions):
-        ✅ Google Maps ONLY
-           - No booking links
-           - No official websites
-           - Just accurate Google Maps
-
-        ❌ NEVER INCLUDE:
-        - Instagram, TikTok, Twitter, WhatsApp, or ANY social media
-        - Guessed or uncertain URLs
-        - Generic booking.com links
-        - Unverified websites
-
-        🎯 GOOGLE MAPS ACCURACY (VERY IMPORTANT):
-        - Use FULL official name of the place
-        - Include district/neighborhood name
+        🎯 GOOGLE MAPS ACCURACY (CRITICAL):
+        - Use FULL official name
+        - Include district/neighborhood
         - Include city name
-        - Examples:
-          * "Najd Village Restaurant, Al Takhassusi Street, Riyadh, Saudi Arabia"
-          * "The Globe Restaurant, Al Faisaliyah Tower, Riyadh, Saudi Arabia"
-          * "Lusin Restaurant, Tahlia Street, Jeddah, Saudi Arabia"
-          * "National Museum of Saudi Arabia, King Abdulaziz Historical Center, Riyadh, Saudi Arabia"
-          * "Al Nakheel Mall, Riyadh, Saudi Arabia"
+        - Format: "Place Name, District, City, Saudi Arabia"
 
-        BOOKING LINK VERIFICATION (Restaurants/Cafés only):
-        - Only include if you are ABSOLUTELY certain the link is real and active
-        - Popular chains (Starbucks, McDonald's, local chains) → you can confidently add HungerStation/Jahez
-        - Independent restaurants → ONLY if you know they have a verified booking system
-        - When in doubt → SKIP the booking link, just give Google Maps
+        ☕ CAFÉS & COFFEE - FIND THE TRENDIEST SPOTS:
 
-        DESCRIPTION REQUIREMENTS:
-        - For restaurants: Mention if "Reservations recommended" or "Walk-ins welcome"
-        - For attractions: Mention "Free entry" or "Tickets required"
-        - Keep it 2 sentences maximum
+        When user selects "Cafés & Coffee", you MUST find:
 
-        QUALITY RULES:
-        - Real, operational places only (4.5+ stars on Google Maps)
-        - Currently open (not closed/under construction)
+        **CURRENT TRENDING CAFÉS:**
+        - Use your FULL knowledge of Saudi café culture
+        - Third-wave specialty coffee shops with skilled baristas
+        - Places viral on Saudi social media RIGHT NOW
+        - Cafés that opened recently (2023-2025) with modern concepts
+        - Popular among young Saudis and coffee enthusiasts
+        - Known for: exceptional coffee, latte art, aesthetic interiors, unique concepts
+
+        **WHAT TO LOOK FOR:**
+        ✅ Specialty coffee with single-origin beans
+        ✅ Instagrammable, aesthetic interiors
+        ✅ Unique concepts (bookshop café, art café, garden café, rooftop)
+        ✅ Signature drinks or viral menu items
+        ✅ Places locals actually go to (not tourist traps)
+        ✅ 4.5+ star ratings on Google Maps
+        ✅ Recently opened or recently renovated spots
+
+        **AVOID:**
+        ❌ International chains (Starbucks, Costa, etc.)
+        ❌ Old, outdated cafés from 5+ years ago
+        ❌ Generic mall food court cafés
+        ❌ Places with low ratings or bad reviews
+
+        **CURATION STRATEGY:**
+        - If user selected "Cafés & Coffee": 50%+ activities should be cafés
+        - Mix types: specialty coffee → dessert café → unique themed café
+        - Never repeat the same café across different days
+        - Morning: Specialty coffee spots
+        - Afternoon: Dessert/pastry cafés
+        - Evening: Rooftop/garden cafés with ambiance
+        - Match budget: Budget (affordable local), Mid-Range (trendy spots), Luxury (premium specialty)
+
+        **USE YOUR COMPLETE KNOWLEDGE:**
+        - Search your training data for the BEST, most current cafés
+        - Think: "What would a 25-year-old Saudi coffee enthusiast visit?"
+        - Include hidden gems that locals love
+        - Find places featured in recent Saudi food/lifestyle blogs
+        - Prioritize quality over famous names
+
+        🎯 GENERAL PLACE SELECTION:
+        - ONLY real, operational, currently popular places
+        - 4.5+ star ratings minimum
+        - Mix famous landmarks with hidden gems
         - Match user preferences: pace, budget, interests
-        - No repetition across all days
-        - Mix famous spots with hidden gems
+        - Zero repetition across all days
+        - Use FULL knowledge - don't limit yourself
+        - For "Food & Culinary": Focus on restaurants
+        - For "Cafés & Coffee": Focus on trendy cafés
 
-        REMEMBER: 1 accurate link is better than 3 broken links!
+        **DESCRIPTION QUALITY:**
+        - For cafés: What they're known for + why they're popular (2 sentences max)
+        - For restaurants: Cuisine type + signature dish or vibe
+        - For attractions: What to expect + practical tip
+        - Make it exciting and concise!
+
+        **CRITICAL REMINDER:**
+        You have extensive knowledge of Saudi Arabia. Use ALL of it to find the BEST places.
+        Don't rely on old or generic recommendations. Find what's actually trending NOW.
+        For cafés especially: quality is everything. Only recommend places you'd personally visit.
         """
 
         let selectedModel = selectModel(for: prompt)
