@@ -2,6 +2,7 @@ import Foundation
 import SwiftUI
 import Combine
 import SwiftData
+import Security
 
 // MARK: - Questionnaire Data Models
 struct TravelCompanion: Identifiable, Hashable {
@@ -79,61 +80,86 @@ class AI_Questionnaire_Model: ObservableObject {
     @Published var generationFailed: Bool = false
     @Published var generationErrorMessage: String = ""
 
-    // MARK: - Ironclad Monthly Generations Counter
-    // We use THREE separate UserDefaults keys to make this bulletproof:
-    // 1. The remaining count
-    // 2. The month-year it was last set
-    // 3. A "has been initialized" flag so first launch works correctly
-    private let udGenerationsKey    = "ai_remaining_generations_v2"
-    private let udMonthYearKey      = "ai_last_month_year_v2"
-    private let udInitializedKey    = "ai_counter_initialized_v2"
+    // MARK: - PROTECTED Counter with iCloud Keychain
+    private let keychainGenerationsKey = "ai_remaining_v3"
+    private let keychainMonthYearKey = "ai_month_year_v3"
+    private let keychainInitializedKey = "ai_initialized_v3"
     private let maxGenerationsPerMonth = 5
 
     @Published var remainingGenerations: Int = 5 {
         didSet {
-            // ALWAYS save to UserDefaults the instant it changes
-            UserDefaults.standard.set(remainingGenerations, forKey: udGenerationsKey)
-            UserDefaults.standard.synchronize() // force immediate write to disk
-            print("💾 Saved remainingGenerations = \(remainingGenerations)")
+            saveToKeychain(key: keychainGenerationsKey, value: remainingGenerations)
+            print("💾 Saved to Keychain: \(remainingGenerations)")
         }
     }
 
-    // MARK: - Load or reset — called ONCE at init
+    // MARK: - Load or Reset Generations
     private func loadOrResetGenerations() {
-
         let calendar = Calendar.current
         let now = Date()
-        let currentMonth     = calendar.component(.month, from: now)
-        let currentYear      = calendar.component(.year,  from: now)
+        let currentMonth = calendar.component(.month, from: now)
+        let currentYear = calendar.component(.year, from: now)
         let currentMonthYear = "\(currentYear)-\(currentMonth)"
-
-        let savedMonthYear  = UserDefaults.standard.string(forKey: udMonthYearKey) ?? ""
-        let isInitialized   = UserDefaults.standard.bool(forKey: udInitializedKey)
-
+        
+        let savedMonthYear = loadFromKeychain(key: keychainMonthYearKey) as? String ?? ""
+        let isInitialized = (loadFromKeychain(key: keychainInitializedKey) as? Bool) ?? false
+        
         if !isInitialized {
-            // ── Very first launch ever ──────────────────────────────────
-            print("🆕 First launch — initializing generations to \(maxGenerationsPerMonth)")
+            print("🆕 First launch — initializing to \(maxGenerationsPerMonth)")
             _remainingGenerations = Published(initialValue: maxGenerationsPerMonth)
-            UserDefaults.standard.set(maxGenerationsPerMonth, forKey: udGenerationsKey)
-            UserDefaults.standard.set(currentMonthYear,       forKey: udMonthYearKey)
-            UserDefaults.standard.set(true,                   forKey: udInitializedKey)
-            UserDefaults.standard.synchronize()
-
+            saveToKeychain(key: keychainGenerationsKey, value: maxGenerationsPerMonth)
+            saveToKeychain(key: keychainMonthYearKey, value: currentMonthYear)
+            saveToKeychain(key: keychainInitializedKey, value: true)
+            
         } else if savedMonthYear != currentMonthYear {
-            // ── New month — reset counter ───────────────────────────────
-            print("🔄 New month (\(currentMonthYear)) — resetting generations to \(maxGenerationsPerMonth)")
+            print("🔄 New month — resetting to \(maxGenerationsPerMonth)")
             _remainingGenerations = Published(initialValue: maxGenerationsPerMonth)
-            UserDefaults.standard.set(maxGenerationsPerMonth, forKey: udGenerationsKey)
-            UserDefaults.standard.set(currentMonthYear,       forKey: udMonthYearKey)
-            UserDefaults.standard.synchronize()
-
+            saveToKeychain(key: keychainGenerationsKey, value: maxGenerationsPerMonth)
+            saveToKeychain(key: keychainMonthYearKey, value: currentMonthYear)
+            
         } else {
-            // ── Same month — load EXACT saved value, even if it's 0 ────
-            let saved = UserDefaults.standard.integer(forKey: udGenerationsKey)
-            print("📦 Same month (\(currentMonthYear)) — loaded saved value: \(saved)")
+            let saved = (loadFromKeychain(key: keychainGenerationsKey) as? Int) ?? maxGenerationsPerMonth
+            print("📦 Same month — loaded: \(saved)")
             _remainingGenerations = Published(initialValue: saved)
-            // Do NOT touch UserDefaults here — just read it
         }
+    }
+
+    // MARK: - Keychain Helpers
+    private func saveToKeychain(key: String, value: Any) {
+        guard let data = try? NSKeyedArchiver.archivedData(withRootObject: value, requiringSecureCoding: false) else {
+            print("❌ Failed to archive \(key)")
+            return
+        }
+        
+        let query: [String: Any] = [
+            kSecClass as String: kSecClassGenericPassword,
+            kSecAttrAccount as String: key,
+            kSecValueData as String: data,
+            kSecAttrSynchronizable as String: true  // iCloud sync!
+        ]
+        
+        SecItemDelete(query as CFDictionary)
+        let status = SecItemAdd(query as CFDictionary, nil)
+        print(status == errSecSuccess ? "✅ Keychain saved: \(key)" : "❌ Keychain save failed: \(status)")
+    }
+
+    private func loadFromKeychain(key: String) -> Any? {
+        let query: [String: Any] = [
+            kSecClass as String: kSecClassGenericPassword,
+            kSecAttrAccount as String: key,
+            kSecReturnData as String: true,
+            kSecAttrSynchronizable as String: true,  // iCloud sync!
+            kSecMatchLimit as String: kSecMatchLimitOne
+        ]
+        
+        var result: AnyObject?
+        let status = SecItemCopyMatching(query as CFDictionary, &result)
+        
+        guard status == errSecSuccess, let data = result as? Data else {
+            return nil
+        }
+        
+        return try? NSKeyedUnarchiver.unarchiveTopLevelObjectWithData(data)
     }
 
     // MARK: - Q1: City
@@ -162,6 +188,7 @@ class AI_Questionnaire_Model: ObservableObject {
         TravelCompanion(title: "Friends Group",        description: "Social activities and group adventures"),
         TravelCompanion(title: "Family with Children", description: "Kid-friendly activities and family attractions"),
     ]
+    
     // MARK: - Q4: Budget
     @Published var selectedBudget: BudgetOption?
     let budgets = [
@@ -255,13 +282,11 @@ class AI_Questionnaire_Model: ObservableObject {
 
     // MARK: - Generate Plan
     func startGeneration() {
-        // Double-check before deducting
         guard remainingGenerations > 0 else {
             print("🚫 No generations remaining this month")
             return
         }
 
-        // Deduct immediately and save to disk
         remainingGenerations -= 1
         print("🔢 Generation used. Remaining: \(remainingGenerations)")
 
@@ -307,8 +332,6 @@ class AI_Questionnaire_Model: ObservableObject {
                     self.isGenerating           = false
                     self.generationFailed       = true
                     self.generationErrorMessage = error.localizedDescription
-                    // Only refund if it was a network/technical failure
-                    // NOT if it was a valid API call that just returned an error
                     if let urlError = error as? URLError {
                         print("🔁 Network error — refunding generation")
                         self.remainingGenerations += 1
