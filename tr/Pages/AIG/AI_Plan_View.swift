@@ -10,40 +10,55 @@ struct AI_Plan_View: View {
     @State private var isSaved: Bool = false
     @State private var navigateToJournal: Bool = false
     @Environment(\.modelContext) private var modelContext
+    @Environment(\.colorScheme) var colorScheme
     var onSaveToJournal: () -> Void
     var goToMain: (() -> Void)? = nil
+
     var body: some View {
         ZStack {
             Color("Background")
                 .ignoresSafeArea()
 
             VStack(spacing: 0) {
-                header
+                // Extended colored header (like Journal)
+                ZStack(alignment: .bottom) {
+                    Color("AIG BACK")
+                        .ignoresSafeArea(edges: .top)
+                        .frame(height: 135)
+                    
+                    VStack(alignment: .center, spacing: 12) {
+                        Text("\(viewModel.generatedTrip?.cityName ?? "City") Journey")
+                            .font(.system(size: 30, weight: .bold, design: .rounded))
+                            .foregroundColor(Color("Title"))
+                            .multilineTextAlignment(.center)
+
+                        Text("Save it to journal to edit it anytime!").bold()
+                            .font(.system(size: 16, weight: .regular, design: .rounded))
+                            .foregroundColor(Color("Light small text"))
+                            .multilineTextAlignment(.center)
+                    }
+                    .frame(maxWidth: .infinity)
                     .padding(.horizontal, 20)
-                    .padding(.top, 16)
+                    .padding(.bottom, 50)
+                }
 
+                // Days list
                 ScrollView(showsIndicators: false) {
-                    VStack(spacing: 0) {
-                        titleCard
-                            .padding(.horizontal, 20)
-                            .padding(.top, 24)
-
-                        VStack(spacing: 16) {
-                            if let trip = viewModel.generatedTrip {
-                                ForEach(trip.days) { day in
-                                    DayCardView(
-                                        day: day,
-                                        isExpanded: expandedDays.contains(day.dayNumber)
-                                    ) {
-                                        toggleDay(day.dayNumber)
-                                    }
+                    VStack(spacing: 16) {
+                        if let trip = viewModel.generatedTrip {
+                            ForEach(trip.days) { day in
+                                DayCardView(
+                                    day: day,
+                                    isExpanded: expandedDays.contains(day.dayNumber)
+                                ) {
+                                    toggleDay(day.dayNumber)
                                 }
                             }
                         }
-                        .padding(.horizontal, 20)
-                        .padding(.top, 20)
-                        .padding(.bottom, 120)
                     }
+                    .padding(.horizontal, 20)
+                    .padding(.top, 20)
+                    .padding(.bottom, 120)
                 }
             }
 
@@ -51,10 +66,32 @@ struct AI_Plan_View: View {
                 Spacer()
                 saveButton
                     .padding(.horizontal, 20)
-                    .padding(.bottom, 40)
+                    .padding(.bottom, 20)
             }
         }
         .navigationBarBackButtonHidden(true)
+        .navigationBarTitleDisplayMode(.inline)
+        .toolbarBackground(.hidden, for: .navigationBar)
+        .toolbar {
+            ToolbarItem(placement: .principal) {
+                Text("AI Plan").bold()
+                    .font(.system(size: 17, weight: .semibold, design: .rounded))
+                    .foregroundColor(Color("AI plan"))
+            }
+            
+            ToolbarItem(placement: .topBarLeading) {
+                Button {
+                    withAnimation {
+                        viewModel.resetToPrePage()
+                        showPrePage = false
+                    }
+                } label: {
+                    Text("Back")
+                        .font(.system(size: 17, design: .rounded))
+                        .foregroundColor(colorScheme == .dark ? .white : Color("Title"))
+                }
+            }
+        }
         .navigationDestination(isPresented: $navigateToJournal) {
             JournalView(onBack: {
                 navigateToJournal = false
@@ -63,47 +100,6 @@ struct AI_Plan_View: View {
                 goToMain?()
             })
         }
-    }
-
-    // MARK: - Header
-    private var header: some View {
-        HStack {
-            Button(action: {
-                withAnimation {
-                    viewModel.resetToPrePage()
-                    showPrePage = false
-                }
-            }) {
-                Text("Back")
-                    .font(.system(size: 16, weight: .regular, design: .rounded))
-                    .foregroundColor(Color("Title"))
-            }
-            Spacer()
-            Text("AI Plan")
-                .font(.system(size: 20, weight: .semibold, design: .rounded))
-                .foregroundColor(Color("Title"))
-            Spacer()
-            Text("Back").foregroundColor(.clear)
-        }
-    }
-
-    // MARK: - Title Card
-    private var titleCard: some View {
-        VStack(alignment: .center, spacing: 12) {
-            Text("\(viewModel.generatedTrip?.cityName ?? "City") Journey")
-                .font(.system(size: 30, weight: .bold, design: .rounded))
-                .foregroundColor(Color("Title"))
-                .multilineTextAlignment(.center)
-
-            Text("Save it to journal to edit it anytime!")
-                .font(.system(size: 16, weight: .regular, design: .rounded))
-                .foregroundColor(Color("Light small text"))
-                .multilineTextAlignment(.center)
-        }
-        .frame(maxWidth: .infinity)
-        .padding(.vertical, 32)
-        .background(Color("Card"))
-        .cornerRadius(24)
     }
 
     // MARK: - Save Button
@@ -115,8 +111,6 @@ struct AI_Plan_View: View {
             if let savedTrip = viewModel.saveToJournal(modelContext: modelContext) {
                 print("✅ Trip saved: \(savedTrip.name)")
                 onSaveToJournal()
-                var onSaveToJournal: () -> Void
-                var goToMain: (() -> Void)? = nil   // ← ADD
                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
                     navigateToJournal = true
                 }
@@ -135,10 +129,9 @@ struct AI_Plan_View: View {
                     .font(.system(size: 18, weight: .semibold, design: .rounded))
                     .foregroundColor(Color("select"))
             }
-            .foregroundColor(.select)
             .frame(maxWidth: .infinity)
             .frame(height: 56)
-            .background(isSaved ? Color.gray.opacity(0.5) : Color("Button click"))
+            .background(isSaved ? Color("Button click").opacity(0.5) : Color("Button click"))
             .cornerRadius(28)
             .animation(.easeInOut(duration: 0.2), value: isSaved)
         }
@@ -175,9 +168,10 @@ struct DayCardView: View {
                         .font(.system(size: 16, weight: .semibold))
                         .foregroundColor(Color("Title"))
                 }
-                .padding(20)
+                .padding(.horizontal, 24)
+                .padding(.vertical, 26)
                 .background(Color("Card"))
-                .cornerRadius(20)
+                .cornerRadius(35)
             }
             .buttonStyle(.plain)
 
@@ -213,7 +207,6 @@ struct ActivityCardView: View {
                     .foregroundColor(Color("Title"))
                     .frame(maxWidth: .infinity, alignment: .leading)
 
-                // Expandable description
                 VStack(alignment: .leading, spacing: 4) {
                     Text(activity.description)
                         .font(.system(size: 14, weight: .regular, design: .rounded))
@@ -221,7 +214,6 @@ struct ActivityCardView: View {
                         .lineLimit(isExpanded ? nil : descriptionLineLimit)
                         .frame(maxWidth: .infinity, alignment: .leading)
                     
-                    // Show more/less button if text is long
                     if activity.description.count > 100 {
                         Button(action: {
                             withAnimation(.easeInOut(duration: 0.2)) {
@@ -282,7 +274,6 @@ struct ActivityCardView: View {
         return "link"
     }
 }
-
 
 // MARK: - Flow Layout
 struct FlowLayout: Layout {

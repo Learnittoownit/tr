@@ -129,7 +129,7 @@ import Combine
                         Text("Creating your journey")
                             .font(.system(size: 32, weight: .bold, design: .rounded))
                             .foregroundColor(Color("title loading page"))
-                        Text("Our AI is crafting the perfect itinerary\nbased on your preferences").bold()
+                        Text("Our AI is crafting the perfect itinerary\nbased on your preferences!").bold()
                             .font(.system(size: 16, weight: .regular, design: .rounded))
                             .foregroundColor(Color("small text loading page"))
                             .multilineTextAlignment(.center)
@@ -662,8 +662,8 @@ import Combine
                     .font(.system(size: 16, weight: .medium, design: .rounded))
                     .foregroundColor(
                         colorScheme == .dark
-                        ? Color("Green")
-                        : Color("Light small text").opacity(0.55)
+                        ? Color("Light small text")
+                        : Color("Light small text")
                     )
                 }
                 .padding(.horizontal, 20)
