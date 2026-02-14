@@ -3,14 +3,14 @@ import Combine
 
 // MARK: - AI PrePage View
 struct AI_PrePage: View {
-    @StateObject private var viewModel = AI_Questionnaire_Model()
+    @EnvironmentObject private var viewModel: AI_Questionnaire_Model
     @State private var showQuestionnaire = false
     @Environment(\.dismiss) var dismiss
     @Environment(\.colorScheme) var colorScheme
     
-    // Add a back action to integrate with MainPage routing
+    
     var onBack: (() -> Void)?
-
+    var goToMain: (() -> Void)? = nil   // ← ADD
     // MARK: - Info Row Component
     struct InfoRow: View {
         let icon: String
@@ -26,32 +26,28 @@ struct AI_PrePage: View {
                 
                 Text(text)
                     .font(.system(size: 15, weight: .medium, design: .rounded))
-                    .foregroundColor(
-                        Color("Light small text")
-                    )
+                    .foregroundColor(Color("Light small text"))
             }
         }
     }
+
     var body: some View {
         ZStack {
-            // Background
             Color("Background")
                 .ignoresSafeArea()
                 
             if showQuestionnaire {
-                // Show Questionnaire Flow
-                AI_Questionnaire_View(viewModel: viewModel, showPrePage: $showQuestionnaire)
-                    .transition(.opacity)
-            } else {
-                // PrePage Content
+                AI_Questionnaire_View(
+                    viewModel: viewModel,
+                    showPrePage: $showQuestionnaire,
+                    goToMain: goToMain
+                )            } else {
                 VStack(spacing: 35) {
                     Spacer()
                     
-                    // Main Content
                     VStack(spacing: 25) {
-                        // Icon/Visual
+                        // Icon
                         ZStack {
-                            // Gradient Circle Background
                             Circle()
                                 .fill(
                                     LinearGradient(
@@ -65,16 +61,9 @@ struct AI_PrePage: View {
                                 )
                                 .frame(width: 180, height: 180)
                             
-                            // AI Sparkle Icon
-                            VStack(spacing: 15) {
-                                Image(systemName: "sparkles")
-                                    .font(.system(size: 60, weight: .medium))
-                                    .foregroundColor(Color("Green"))
-                                
-                                
-                                    .font(.system(size: 28, weight: .bold, design: .rounded))
-                                    .foregroundColor(Color("Title"))
-                            }
+                            Image(systemName: "sparkles")
+                                .font(.system(size: 60, weight: .medium))
+                                .foregroundColor(Color("Green"))
                         }
                         
                         // Title & Description
@@ -86,44 +75,30 @@ struct AI_PrePage: View {
                             
                             Text("Let our AI create the perfect itinerary just for you")
                                 .font(.system(size: 16, weight: .regular, design: .rounded))
-                                .foregroundColor(
-                                    
-                                    Color("Light small text")
-                                )
+                                .foregroundColor(Color("Light small text"))
                                 .multilineTextAlignment(.center)
                                 .lineSpacing(4)
                         }
                         
-                        // Generations Remaining Card
+                        // Generations Counter Card
                         VStack(spacing: 15) {
-                            // Counter Display
                             HStack(spacing: 18) {
-                                // Remaining number
                                 Text("\(viewModel.remainingGenerations)")
                                     .font(.system(size: 48, weight: .bold, design: .rounded))
                                     .foregroundColor(Color("Green"))
                                 
-                                // Separator
                                 Text("/")
                                     .font(.system(size: 32, weight: .medium, design: .rounded))
-                                    .foregroundColor(
-                                        Color("Light small text").opacity(0.5)
-                                    )
+                                    .foregroundColor(Color("Light small text").opacity(0.5))
                                 
-                                // Total number
                                 Text("5")
                                     .font(.system(size: 32, weight: .semibold, design: .rounded))
-                                    .foregroundColor(
-                                        
-                                        Color("Light small text").opacity(0.7)
-                                    )
+                                    .foregroundColor(Color("Light small text").opacity(0.7))
                             }
                             
                             Text("Generations remaining this month")
                                 .font(.system(size: 15, weight: .medium, design: .rounded))
-                                .foregroundColor(
-                                    Color("Light small text")
-                                )
+                                .foregroundColor(Color("Light small text"))
                         }
                         .padding(.vertical, 24)
                         .padding(.horizontal, 32)
@@ -135,24 +110,23 @@ struct AI_PrePage: View {
                                 .stroke(Color("Card").opacity(0.15), lineWidth: 2)
                         )
                         
-                        // Info Points (adjusted spacing here only)
+                        // Info Points
                         VStack(alignment: .leading, spacing: 18) {
-                            InfoRow(icon: "clock.fill", text: "Takes only 2 minutes")
+                            InfoRow(icon: "clock.fill",         text: "Takes only 2 minutes")
                             InfoRow(icon: "brain.head.profile", text: "Personalized recommendations")
-                            InfoRow(icon: "arrow.clockwise", text: "Resets monthly")
+                            InfoRow(icon: "arrow.clockwise",    text: "Resets monthly")
                         }
                         .padding(.horizontal, 40)
-                        .padding(.top, 22) // زودنا المسافة هنا
+                        .padding(.top, 22)
                     }
                     
                     Spacer()
                     
-                    
                     // Bottom Buttons
                     VStack(spacing: 10) {
+                        // Start Button
                         Button(action: {
                             if viewModel.remainingGenerations > 0 {
-                                // NEW: start fresh each time user starts the questionnaire
                                 viewModel.resetAllAnswers()
                                 withAnimation(.spring(response: 0.5, dampingFraction: 0.8)) {
                                     showQuestionnaire = true
@@ -161,30 +135,24 @@ struct AI_PrePage: View {
                         }) {
                             Text("Start AI Generator")
                                 .font(.system(size: 18, weight: .semibold, design: .rounded))
-                                .foregroundColor(
-                                    viewModel.remainingGenerations > 0
-                                    ? Color("Background")
-                                    : (colorScheme == .dark ? .white : Color("Title"))
-                                )
+                                .foregroundColor(Color("Background"))
                                 .frame(maxWidth: .infinity)
                                 .frame(height: 56)
                         }
                         .buttonStyle(
                             PressableNextButtonStyle(
                                 pressedColor: Color("Next button"),
-                                normalColor: viewModel.remainingGenerations > 0
-                                ? Color("Next button")
-                                : (colorScheme == .dark ? Color("Card") : Color("Background"))
+                                normalColor: Color("Next button")
                             )
                         )
+                        .opacity(viewModel.remainingGenerations > 0 ? 1.0 : 0.4)
                         .disabled(viewModel.remainingGenerations == 0)
+
                         // Back Button
                         Button(action: {
-                            // If provided by MainPage, use it to go back to main route
                             if let onBack {
                                 onBack()
                             } else {
-                                // Fallback to dismiss if presented in a NavigationStack
                                 Task { @MainActor in
                                     dismiss()
                                 }
@@ -204,16 +172,14 @@ struct AI_PrePage: View {
                 }
             }
         }
-        // Hide system back button for this screen
         .navigationBarBackButtonHidden(true)
     }
 }
-
 
 // MARK: - Preview
 struct AI_PrePage_Previews: PreviewProvider {
     static var previews: some View {
         AI_PrePage()
+            .environmentObject(AI_Questionnaire_Model())
     }
 }
-

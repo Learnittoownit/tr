@@ -1,15 +1,7 @@
-//
-//  MainPageView.swift
-//  tr
-//
-//  Created by Rama AlQahtani on 17/08/1447 AH.
-//
-
 import SwiftUI
 import Combine
 
 // MARK: - ViewModel
-
 final class MainPageViewModel: ObservableObject {
     @Published var swapped: Bool = false
 
@@ -24,8 +16,7 @@ final class MainPageViewModel: ObservableObject {
     }
 }
 
-// MARK: - Routing (بدون NavigationStack)
-
+// MARK: - Routing
 private enum MainRoute {
     case main
     case aiPrePage
@@ -33,12 +24,11 @@ private enum MainRoute {
 }
 
 // MARK: - View
-
 struct MainPage: View {
     @StateObject private var vm = MainPageViewModel()
+    @StateObject private var aiViewModel = AI_Questionnaire_Model() // ✅ HERE
     @Environment(\.colorScheme) var colorScheme
 
-    // ✅ ROUTE STATE بدل NavigationStack
     @State private var route: MainRoute = .main
     @State private var appeared = false
 
@@ -48,8 +38,12 @@ struct MainPage: View {
             case .main:
                 mainContent
             case .aiPrePage:
-                AI_PrePage(onBack: { route = .main })
-                    .transition(.identity)
+                AI_PrePage(
+                    onBack: { route = .main },
+                    goToMain: { route = .main }
+                )
+                .environmentObject(aiViewModel)
+                .transition(.identity)
             case .journal:
                 JournalView(onBack: { route = .main })
                     .transition(.identity)
@@ -58,33 +52,28 @@ struct MainPage: View {
         .animation(nil, value: route)
     }
 
-    // شاشة الرئيسية (الأزرار)
     private var mainContent: some View {
         ZStack {
             background
 
             VStack {
-                // Header
                 HStack {
                     header
                         .padding(.top, 90)
                         .padding(.leading, 80)
                         .opacity(appeared ? 1 : 0)
                         .offset(y: appeared ? 0 : -20)
-
                     Spacer()
                 }
 
                 Spacer()
 
-                // Bottom subtitle
                 subtitle
                     .padding(.bottom, 60)
                     .opacity(appeared ? 1 : 0)
                     .offset(y: appeared ? 0 : 20)
             }
 
-            // Buttons
             GeometryReader { geometry in
                 let leftX = geometry.size.width * 0.35
                 let rightX = geometry.size.width * 0.65
@@ -145,7 +134,6 @@ struct MainPage: View {
 }
 
 // MARK: - Button Component
-
 struct CircleActionButton: View {
     let title: String
     let icon: String
@@ -178,11 +166,7 @@ struct CircleActionButton: View {
                 Circle()
                     .fill(
                         LinearGradient(
-                            colors: [
-                                .white.opacity(0.5),
-                                .clear,
-                                .white.opacity(0.1)
-                            ],
+                            colors: [.white.opacity(0.5), .clear, .white.opacity(0.1)],
                             startPoint: .topLeading,
                             endPoint: .bottomTrailing
                         )
@@ -198,10 +182,7 @@ struct CircleActionButton: View {
                         Circle()
                             .fill(
                                 LinearGradient(
-                                    colors: [
-                                        .white.opacity(0.3),
-                                        .white.opacity(0.1)
-                                    ],
+                                    colors: [.white.opacity(0.3), .white.opacity(0.1)],
                                     startPoint: .topLeading,
                                     endPoint: .bottomTrailing
                                 )
@@ -227,7 +208,6 @@ struct CircleActionButton: View {
 }
 
 // MARK: - Press Style
-
 struct CirclePressStyle: ButtonStyle {
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
@@ -242,7 +222,6 @@ struct CirclePressStyle: ButtonStyle {
 }
 
 // MARK: - LiquidGlassText
-
 struct LiquidGlassText: View {
     let title: String
     @Environment(\.colorScheme) var colorScheme
@@ -273,7 +252,6 @@ struct LiquidGlassText: View {
 }
 
 // MARK: - UI Pieces
-
 private extension MainPage {
     var header: some View {
         HStack(spacing: 12) { }
@@ -296,30 +274,21 @@ private extension MainPage {
             Color("Background")
 
             RadialGradient(
-                colors: [
-                    Color("Title").opacity(0.25),
-                    .clear
-                ],
+                colors: [Color("Title").opacity(0.25), .clear],
                 center: .center,
                 startRadius: 50,
                 endRadius: 250
             )
 
             RadialGradient(
-                colors: [
-                    Color("Green").opacity(0.15),
-                    .clear
-                ],
+                colors: [Color("Green").opacity(0.15), .clear],
                 center: UnitPoint(x: 0.3, y: 0.4),
                 startRadius: 30,
                 endRadius: 300
             )
 
             RadialGradient(
-                colors: [
-                    Color("Background").opacity(0.2),
-                    .clear
-                ],
+                colors: [Color("Background").opacity(0.2), .clear],
                 center: UnitPoint(x: 0.7, y: 0.7),
                 startRadius: 20,
                 endRadius: 380
@@ -329,7 +298,6 @@ private extension MainPage {
 }
 
 // MARK: - Preview
-
 #Preview("Light Mode") {
     MainPage()
         .preferredColorScheme(.light)
@@ -339,4 +307,3 @@ private extension MainPage {
     MainPage()
         .preferredColorScheme(.dark)
 }
-

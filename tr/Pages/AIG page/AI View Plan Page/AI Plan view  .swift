@@ -2,38 +2,32 @@ import SwiftUI
 import Combine
 import SwiftData
 
-
 // MARK: - AI Plan View
 struct AI_Plan_View: View {
     @ObservedObject var viewModel: AI_Questionnaire_Model
     @Binding var showPrePage: Bool
-    @State private var expandedDays: Set<Int> = [1] // First day expanded by default
-    @Environment(\.dismiss) var dismiss
-    @Environment(\.modelContext) private var modelContext  // ✅ Add this!
-    var onSaveToJournal: () -> Void  // ✅ Add this line!
-
-    
+    @State private var expandedDays: Set<Int> = [1]
+    @State private var isSaved: Bool = false
+    @State private var navigateToJournal: Bool = false
+    @Environment(\.modelContext) private var modelContext
+    var onSaveToJournal: () -> Void
+    var goToMain: (() -> Void)? = nil
     var body: some View {
         ZStack {
-            // Background
             Color("Background")
                 .ignoresSafeArea()
-            
+
             VStack(spacing: 0) {
-                // Header
                 header
                     .padding(.horizontal, 20)
                     .padding(.top, 16)
-                
-                // Content
+
                 ScrollView(showsIndicators: false) {
                     VStack(spacing: 0) {
-                        // Title Card
                         titleCard
                             .padding(.horizontal, 20)
                             .padding(.top, 24)
-                        
-                        // Days
+
                         VStack(spacing: 16) {
                             if let trip = viewModel.generatedTrip {
                                 ForEach(trip.days) { day in
@@ -52,8 +46,7 @@ struct AI_Plan_View: View {
                     }
                 }
             }
-            
-            // Bottom Button
+
             VStack {
                 Spacer()
                 saveButton
@@ -61,12 +54,21 @@ struct AI_Plan_View: View {
                     .padding(.bottom, 40)
             }
         }
+        .navigationBarBackButtonHidden(true)
+        .navigationDestination(isPresented: $navigateToJournal) {
+            JournalView(onBack: {
+                navigateToJournal = false
+                viewModel.resetToPrePage()
+                showPrePage = false
+                goToMain?()
+            })
+        }
     }
-    
+
+    // MARK: - Header
     private var header: some View {
         HStack {
             Button(action: {
-                // ✅ FIXED: Go back to PrePage
                 withAnimation {
                     viewModel.resetToPrePage()
                     showPrePage = false
@@ -76,31 +78,25 @@ struct AI_Plan_View: View {
                     .font(.system(size: 16, weight: .regular, design: .rounded))
                     .foregroundColor(Color("Title"))
             }
-            
             Spacer()
-            
             Text("AI Plan")
                 .font(.system(size: 20, weight: .semibold, design: .rounded))
                 .foregroundColor(Color("Title"))
-            
             Spacer()
-            
-            // Placeholder for symmetry
-            Text("Back")
-                .font(.system(size: 16, weight: .regular, design: .rounded))
-                .foregroundColor(.clear)
+            Text("Back").foregroundColor(.clear)
         }
     }
-    
+
+    // MARK: - Title Card
     private var titleCard: some View {
         VStack(alignment: .center, spacing: 12) {
-            Text("\(viewModel.generatedTrip?.cityName ?? "City") journey")
+            Text("\(viewModel.generatedTrip?.cityName ?? "City") Journey")
                 .font(.system(size: 30, weight: .bold, design: .rounded))
                 .foregroundColor(Color("Title"))
                 .multilineTextAlignment(.center)
-            
-            Text("Save it to journal to have the privilege\nto edit it!")
-                 .font(.system(size: 16, weight: .regular, design: .rounded))
+
+            Text("Save it to journal to edit it anytime!")
+                .font(.system(size: 16, weight: .regular, design: .rounded))
                 .foregroundColor(Color("Light small text"))
                 .multilineTextAlignment(.center)
         }
@@ -109,28 +105,47 @@ struct AI_Plan_View: View {
         .background(Color("Card"))
         .cornerRadius(24)
     }
-    
+
+    // MARK: - Save Button
     private var saveButton: some View {
         Button(action: {
-            // ✅ Call the method directly on viewModel
+            guard !isSaved else { return }
+            isSaved = true
+
             if let savedTrip = viewModel.saveToJournal(modelContext: modelContext) {
                 print("✅ Trip saved: \(savedTrip.name)")
-                onSaveToJournal()  // ✅ Call callback!
-                dismiss()
+                onSaveToJournal()
+                var onSaveToJournal: () -> Void
+                var goToMain: (() -> Void)? = nil   // ← ADD
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                    navigateToJournal = true
+                }
             } else {
                 print("❌ Failed to save trip")
+                isSaved = false
             }
         }) {
-            Text("Save to journal")
-                .font(.system(size: 18, weight: .semibold, design: .rounded))
-                .foregroundColor(.white)
-                .frame(maxWidth: .infinity)
-                .frame(height: 56)
-                .background(Color("Button click"))
-                .cornerRadius(28)
+            HStack(spacing: 10) {
+                if isSaved {
+                    Image(systemName: "checkmark.circle.fill")
+                        .font(.system(size: 18, weight: .semibold))
+                        .foregroundColor(Color("select"))
+                }
+                Text(isSaved ? "Saved!" : "Save to Journal")
+                    .font(.system(size: 18, weight: .semibold, design: .rounded))
+                    .foregroundColor(Color("select"))
+            }
+            .foregroundColor(.select)
+            .frame(maxWidth: .infinity)
+            .frame(height: 56)
+            .background(isSaved ? Color.gray.opacity(0.5) : Color("Button click"))
+            .cornerRadius(28)
+            .animation(.easeInOut(duration: 0.2), value: isSaved)
         }
+        .disabled(isSaved)
         .shadow(color: Color.black.opacity(0.1), radius: 12, x: 0, y: 6)
     }
+
     private func toggleDay(_ dayNumber: Int) {
         withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
             if expandedDays.contains(dayNumber) {
@@ -147,29 +162,25 @@ struct DayCardView: View {
     let day: GeneratedDay
     let isExpanded: Bool
     let onToggle: () -> Void
-    
+
     var body: some View {
         VStack(spacing: 0) {
-            // Day Header
             Button(action: onToggle) {
                 HStack {
                     Text("Day \(day.dayNumber)")
                         .font(.system(size: 20, weight: .bold, design: .rounded))
                         .foregroundColor(Color("Title"))
-                    
                     Spacer()
-                    
                     Image(systemName: isExpanded ? "chevron.up" : "chevron.down")
                         .font(.system(size: 16, weight: .semibold))
                         .foregroundColor(Color("Title"))
                 }
                 .padding(20)
-                .background(Color.white)
+                .background(Color("Card"))
                 .cornerRadius(20)
             }
             .buttonStyle(.plain)
-            
-            // Activities (when expanded)
+
             if isExpanded {
                 VStack(spacing: 12) {
                     ForEach(day.activities) { activity in
@@ -186,112 +197,109 @@ struct DayCardView: View {
 // MARK: - Activity Card View
 struct ActivityCardView: View {
     let activity: GeneratedActivity
-    
+
     var body: some View {
         HStack(alignment: .top, spacing: 12) {
-            // Time
             Text(activity.time)
                 .font(.system(size: 16, weight: .bold, design: .rounded))
                 .foregroundColor(Color("Title"))
                 .frame(width: 75, alignment: .leading)
-            
-            // Content
-            VStack(alignment: .leading, spacing: 12) {
-                // Activity Name (✅ REMOVED EDIT BUTTON - can't edit until saved to journal)
+
+            VStack(alignment: .leading, spacing: 10) {
                 Text(activity.name)
                     .font(.system(size: 18, weight: .bold, design: .rounded))
                     .foregroundColor(Color("Title"))
-                    .frame(maxWidth: .infinity, alignment: .leading) // ✅ FIXED: Full width
-                
-                // Description
+                    .frame(maxWidth: .infinity, alignment: .leading)
+
                 Text(activity.description)
                     .font(.system(size: 14, weight: .regular, design: .rounded))
                     .foregroundColor(Color("Light small text"))
                     .lineLimit(3)
-                    .frame(maxWidth: .infinity, alignment: .leading) // ✅ FIXED: Full width
-                
-                // Links
+                    .frame(maxWidth: .infinity, alignment: .leading)
+
                 if !activity.links.isEmpty {
-                    VStack(alignment: .leading, spacing: 8) {
+                    FlowLayout(spacing: 8) {
                         ForEach(activity.links.indices, id: \.self) { index in
-                            Link(destination: URL(string: activity.links[index].url) ?? URL(string: "https://google.com")!) {
+                            let link = activity.links[index]
+                            Link(destination: URL(string: link.url) ?? URL(string: "https://google.com")!) {
                                 HStack(spacing: 4) {
-                                    Image(systemName: "link")
-                                        .font(.system(size: 11))
-                                    
-                                    Text(activity.links[index].displayText)
-                                        .font(.system(size: 12, weight: .medium, design: .rounded))
+                                    Image(systemName: iconFor(label: link.displayText))
+                                        .font(.system(size: 11, weight: .semibold))
+                                    Text(link.displayText)
+                                        .font(.system(size: 12, weight: .semibold, design: .rounded))
                                         .lineLimit(1)
                                 }
                                 .foregroundColor(Color("Green"))
+                                .padding(.horizontal, 10)
+                                .padding(.vertical, 6)
+                                .background(Color("Green").opacity(0.12))
+                                .cornerRadius(20)
                             }
                         }
                     }
-                    .frame(maxWidth: .infinity, alignment: .leading) // ✅ FIXED: Full width
+                    .frame(maxWidth: .infinity, alignment: .leading)
                 }
             }
-            .frame(maxWidth: .infinity, alignment: .leading) // ✅ FIXED: Content takes full width
+            .frame(maxWidth: .infinity, alignment: .leading)
         }
-        .frame(maxWidth: .infinity) // ✅ FIXED: Card takes full width
+        .frame(maxWidth: .infinity)
         .padding(16)
         .background(Color("Green").opacity(0.15))
         .cornerRadius(20)
     }
+
+    private func iconFor(label: String) -> String {
+        let l = label.lowercased()
+        if l.contains("instagram")                                          { return "camera.fill" }
+        if l.contains("book") || l.contains("reserve") || l.contains("table") { return "calendar.badge.plus" }
+        if l.contains("map")                                                { return "map.fill" }
+        if l.contains("website") || l.contains("official")                  { return "globe" }
+        if l.contains("ticket")                                             { return "ticket.fill" }
+        return "link"
+    }
 }
 
-// MARK: - Preview
-struct AI_Plan_View_Previews: PreviewProvider {
-    static var previews: some View {
-        let viewModel = AI_Questionnaire_Model()
-        
-        // Create mock data
-        viewModel.generatedTrip = GeneratedTrip(
-            cityName: "Riyadh",
-            days: [
-                GeneratedDay(
-                    dayNumber: 1,
-                    activities: [
-                        GeneratedActivity(
-                            time: "9:00 AM",
-                            name: "Billy Brunch",
-                            description: "Don't Forget to check on ....",
-                            links: [
-                                ActivityLink(url: "https://maps.google.com", displayText: "https://maps.app.goo.gl/rMtD3jZL6w2yjK9Q5B")
-                            ]
-                        ),
-                        GeneratedActivity(
-                            time: "1:00 PM",
-                            name: "Costa Brave",
-                            description: "Notes that was added by the user",
-                            links: [
-                                ActivityLink(url: "https://booking.com", displayText: "Link if it was added")
-                            ]
-                        )
-                    ],
-                    isExpanded: true
-                ),
-                GeneratedDay(
-                    dayNumber: 2,
-                    activities: [
-                        GeneratedActivity(
-                            time: "10:00 AM",
-                            name: "Museum Visit",
-                            description: "Explore local heritage",
-                            links: []
-                        )
-                    ],
-                    isExpanded: false
-                )
-            ]
-        )
-        viewModel.showGeneratedPlan = true
-        
-        return AI_Plan_View(
-            viewModel: viewModel,
-            showPrePage: .constant(false),
-            onSaveToJournal: {  // ✅ Add the callback!
-                print("Navigate to Journal - Preview")
+// MARK: - Flow Layout
+struct FlowLayout: Layout {
+    var spacing: CGFloat = 8
+
+    func sizeThatFits(proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) -> CGSize {
+        let rows = computeRows(proposal: proposal, subviews: subviews)
+        let height = rows.map { row in
+            row.map { $0.sizeThatFits(.unspecified).height }.max() ?? 0
+        }.reduce(0) { $0 + $1 + spacing } - spacing
+        return CGSize(width: proposal.width ?? 0, height: max(height, 0))
+    }
+
+    func placeSubviews(in bounds: CGRect, proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) {
+        let rows = computeRows(proposal: proposal, subviews: subviews)
+        var y = bounds.minY
+        for row in rows {
+            var x = bounds.minX
+            let rowHeight = row.map { $0.sizeThatFits(.unspecified).height }.max() ?? 0
+            for subview in row {
+                let size = subview.sizeThatFits(.unspecified)
+                subview.place(at: CGPoint(x: x, y: y), proposal: ProposedViewSize(size))
+                x += size.width + spacing
             }
-        )
+            y += rowHeight + spacing
+        }
+    }
+
+    private func computeRows(proposal: ProposedViewSize, subviews: Subviews) -> [[LayoutSubview]] {
+        var rows: [[LayoutSubview]] = [[]]
+        var rowWidth: CGFloat = 0
+        let maxWidth = proposal.width ?? 0
+
+        for subview in subviews {
+            let size = subview.sizeThatFits(.unspecified)
+            if rowWidth + size.width > maxWidth && !rows[rows.count - 1].isEmpty {
+                rows.append([])
+                rowWidth = 0
+            }
+            rows[rows.count - 1].append(subview)
+            rowWidth += size.width + spacing
+        }
+        return rows
     }
 }

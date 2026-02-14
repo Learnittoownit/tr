@@ -1,36 +1,226 @@
 import Foundation
 
+// MARK: - OpenAI Service
 class OpenAIService {
 
-    private let apiKey = "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" // حطي الـ API Key حقك
+    private let apiKey = "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"
+    private let endpoint = "https://api.openai.com/v1/chat/completions"
 
+    // MARK: - Main entry point
     func generatePlan(prompt: String) async throws -> String {
 
-        let url = URL(string: "https://api.openai.com/v1/chat/completions")!
+        let systemPrompt = """
+        You are an expert Saudi Arabia travel curator who knows every hidden gem, trendy café, viral attraction, and top-rated experience in Riyadh, Jeddah, and Abha.
+
+        Your job is to generate a personalized, day-by-day travel itinerary based on the user's preferences.
+
+        CRITICAL OUTPUT RULE:
+        - Return ONLY a single valid JSON object
+        - No markdown, no code fences, no explanation text, nothing before or after the JSON
+        - The JSON must be perfectly parseable
+
+        EXACT JSON STRUCTURE:
+        {
+          "cityName": "Riyadh",
+          "days": [
+            {
+              "dayNumber": 1,
+              "activities": [
+                {
+                  "time": "9:00 AM",
+                  "name": "Place Name",
+                  "description": "Why this place is amazing. Max 2 sentences.",
+                  "mapQuery": "Place Name, City, Saudi Arabia",
+                  "links": [
+                    { "url": "https://www.instagram.com/placename", "label": "Instagram" },
+                    { "url": "https://www.google.com/maps/search/?api=1&query=Place+Name+City", "label": "Google Maps" }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+
+        LINK RULES:
+        - Every activity MUST have at least 1 link, ideally 2-3
+        - Restaurants & cafés: provide their Instagram (e.g. https://www.instagram.com/zumariyadh) + booking link if they take reservations
+        - Hotels & spas: provide their official website booking link
+        - Attractions, parks, museums: provide official website if they have one + Google Maps
+        - Malls & shopping: provide official website or Instagram
+        - Always include a Google Maps link for EVERY activity as the last link
+        - Label each link clearly: "Instagram", "Google Maps", "Book a Table", "Official Website", "Reserve", "Tickets"
+        - Only use real URLs you are confident exist — if unsure of Instagram handle, use Google Maps only
+        - Never invent URLs
+
+        QUALITY RULES:
+        1. REAL PLACES ONLY — no invented names, no generic placeholders
+        2. TRENDY & HIGH-RATED — prioritize places that are:
+           - Currently viral on Saudi social media (Instagram, Snapchat, TikTok)
+           - Have 4.5+ stars on Google Maps
+           - Featured in travel blogs or Saudi tourism guides
+           - Popular among locals AND tourists
+           - Use your FULL knowledge of each city — do NOT limit yourself to any specific list
+           - Think beyond the obvious landmarks: include hidden gems, new openings, 
+             neighborhood favorites, rooftop spots, scenic drives, local markets, 
+             art galleries, cultural festivals, scenic parks, beachside spots, 
+             mountain trails, heritage districts, concept stores, specialty coffee shops,
+             and any place that would genuinely excite a traveler
+           - For Riyadh: explore all districts — Diriyah, KAFD, Al Olaya, Hittin, 
+             Al Malqa, Al Aqiq, Diplomatic Quarter, Al Bujairi, Boulevard, and beyond
+           - For Jeddah: explore Al-Balad, Corniche, Al Rawdah, Al Zahra, Al Andalus, 
+             Al Hamra, waterfront, and beyond
+           - For Abha: explore the mountains, heritage villages, valleys, parks, 
+             local restaurants, art spaces, and beyond
+           - Never repeat the same type of place twice in a row
+        3. ZERO REPETITION — every activity across ALL days must be a unique place
+        4. MATCH PACE — Relaxed: 2-3/day, Moderate: 4-5/day, Packed: 6/day
+        5. MATCH BUDGET — Budget: free/cheap spots, Mid-Range: nice venues, Luxury: premium/fine dining
+        6. MATCH COMPANION — Solo: independent spots, Couple: romantic venues, Family: kid-friendly, Friends: social hubs
+        7. MATCH INTERESTS — Cultural: heritage/museums, Adventure: nature/hiking, Relaxation: spas/parks, Shopping: malls/boutiques, Food: top restaurants/cafés
+        8. SMART TIMING — outdoors in morning, lunch at noon, dinner in evening
+        9. EXCITING DESCRIPTIONS — write like a friend who loves this place, max 2 punchy sentences
+        10. PRECISE MAP QUERIES — full name + city + Saudi Arabia
+        """
 
         let body: [String: Any] = [
-            "model": "gpt-5-mini",
+            "model": "gpt-4o-mini",
+            "temperature": 0.8,
+            "max_tokens": 4000,
             "messages": [
+                ["role": "system", "content": systemPrompt],
                 ["role": "user", "content": prompt]
-            ],
-            "temperature": 0.7
+            ]
         ]
 
-        let jsonData = try JSONSerialization.data(withJSONObject: body)
+        guard let url = URL(string: endpoint) else {
+            throw OpenAIError.invalidURL
+        }
 
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
-        request.setValue("Bearer \(apiKey)", forHTTPHeaderField: "Authorization")
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        request.httpBody = jsonData
+        request.setValue("Bearer \(apiKey)", forHTTPHeaderField: "Authorization")
+        request.httpBody = try JSONSerialization.data(withJSONObject: body)
 
-        let (data, _) = try await URLSession.shared.data(for: request)
+        let (data, response) = try await URLSession.shared.data(for: request)
 
-        let response = try JSONSerialization.jsonObject(with: data) as? [String: Any]
-        let choices = response?["choices"] as? [[String: Any]]
-        let message = choices?.first?["message"] as? [String: Any]
+        if let httpResponse = response as? HTTPURLResponse {
+            guard (200...299).contains(httpResponse.statusCode) else {
+                let errorBody = String(data: data, encoding: .utf8) ?? "Unknown error"
+                print("❌ OpenAI HTTP \(httpResponse.statusCode): \(errorBody)")
+                throw OpenAIError.httpError(httpResponse.statusCode)
+            }
+        }
 
-        return message?["content"] as? String ?? "No response"
+        guard
+            let json = try JSONSerialization.jsonObject(with: data) as? [String: Any],
+            let choices = json["choices"] as? [[String: Any]],
+            let firstChoice = choices.first,
+            let message = firstChoice["message"] as? [String: Any],
+            let content = message["content"] as? String
+        else {
+            throw OpenAIError.invalidResponse
+        }
+
+        print("✅ Raw AI response:\n\(content)")
+        return content
+    }
+
+    // MARK: - Parse JSON into GeneratedTrip
+    func parseGeneratedTrip(from jsonString: String) throws -> GeneratedTrip {
+
+        var cleaned = jsonString
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+
+        if cleaned.hasPrefix("```") {
+            let lines = cleaned.components(separatedBy: "\n")
+            cleaned = lines.dropFirst().dropLast().joined(separator: "\n")
+        }
+
+        cleaned = cleaned.trimmingCharacters(in: .whitespacesAndNewlines)
+
+        guard let data = cleaned.data(using: .utf8) else {
+            throw OpenAIError.parsingFailed("Could not convert response to Data")
+        }
+
+        guard
+            let root = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
+            let cityName = root["cityName"] as? String,
+            let daysArray = root["days"] as? [[String: Any]]
+        else {
+            print("❌ Failed to parse:\n\(cleaned)")
+            throw OpenAIError.parsingFailed("Missing cityName or days in JSON")
+        }
+
+        var generatedDays: [GeneratedDay] = []
+
+        for (index, dayDict) in daysArray.enumerated() {
+            let dayNumber       = dayDict["dayNumber"] as? Int ?? (index + 1)
+            let activitiesArray = dayDict["activities"] as? [[String: Any]] ?? []
+
+            var generatedActivities: [GeneratedActivity] = []
+
+            for actDict in activitiesArray {
+                let time        = actDict["time"]        as? String ?? "9:00 AM"
+                let name        = actDict["name"]        as? String ?? "Activity"
+                let description = actDict["description"] as? String ?? ""
+                let mapQuery    = actDict["mapQuery"]    as? String ?? "\(name), Saudi Arabia"
+
+                // Parse rich links array from AI
+                var activityLinks: [ActivityLink] = []
+
+                if let linksArray = actDict["links"] as? [[String: Any]] {
+                    for linkDict in linksArray {
+                        if let url   = linkDict["url"]   as? String,
+                           let label = linkDict["label"] as? String,
+                           !url.isEmpty {
+                            activityLinks.append(ActivityLink(url: url, displayText: label))
+                        }
+                    }
+                }
+
+                // Fallback: build Google Maps link if AI gave nothing
+                if activityLinks.isEmpty {
+                    let encoded = mapQuery
+                        .addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? ""
+                    activityLinks.append(ActivityLink(
+                        url: "https://www.google.com/maps/search/?api=1&query=\(encoded)",
+                        displayText: "Google Maps"
+                    ))
+                }
+
+                generatedActivities.append(GeneratedActivity(
+                    time: time,
+                    name: name,
+                    description: description,
+                    links: activityLinks
+                ))
+            }
+
+            generatedDays.append(GeneratedDay(
+                dayNumber: dayNumber,
+                activities: generatedActivities,
+                isExpanded: index == 0
+            ))
+        }
+
+        return GeneratedTrip(cityName: cityName, days: generatedDays)
     }
 }
 
+// MARK: - Error Types
+enum OpenAIError: LocalizedError {
+    case invalidURL
+    case httpError(Int)
+    case invalidResponse
+    case parsingFailed(String)
+
+    var errorDescription: String? {
+        switch self {
+        case .invalidURL:             return "Invalid API URL."
+        case .httpError(let code):    return "HTTP error \(code) from OpenAI."
+        case .invalidResponse:        return "Could not parse OpenAI response envelope."
+        case .parsingFailed(let msg): return "JSON parsing failed: \(msg)"
+        }
+    }
+}
