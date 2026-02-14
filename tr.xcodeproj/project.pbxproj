@@ -18,6 +18,7 @@
 			membershipExceptions = (
 				App/trApp.swift,
 				Assets.xcassets,
+				"Modles and prompts/APIKeyManager.swift",
 				"Modles and prompts/OpenAIService.swift",
 				"Modles and prompts/PressableNextButtonStyle.swift",
 				Pages/AIG/AI_Plan_View.swift,

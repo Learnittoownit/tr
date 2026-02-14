@@ -3,37 +3,29 @@ import Foundation
 // MARK: - OpenAI Service
 class OpenAIService {
 
-    private let apiKey = "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"
+    private let apiKey = APIKeyManager.getOpenAIKey()
     private let endpoint = "https://api.openai.com/v1/chat/completions"
 
     private func selectModel(for prompt: String) -> String {
-        // Parse the prompt to detect complexity
         let isLongTrip = prompt.contains("7 day") || prompt.contains("6 day") || prompt.contains("5 day")
         let isPacked = prompt.contains("Packed")
         let hasMultipleInterests = prompt.components(separatedBy: ",").count >= 3
         
-        // Use the powerful model for complex requests
         if (isLongTrip && isPacked) || (isLongTrip && hasMultipleInterests) {
-            return "gpt-4o" // More powerful, better quality for complex trips
+            return "gpt-4o"
         } else {
-            return "gpt-4o-mini" // Fast and cheap for simple trips
+            return "gpt-4o-mini"
         }
     }
 
-    // MARK: - Main entry point
     func generatePlan(prompt: String) async throws -> String {
 
         let systemPrompt = """
-        You are an expert Saudi Arabia travel curator who knows every hidden gem, trendy café, viral attraction, and top-rated experience in Riyadh, Jeddah, and Abha.
+        You are an expert Saudi Arabia travel curator. Generate personalized itineraries with SMART, CONTEXTUAL links.
 
-        Your job is to generate a personalized, day-by-day travel itinerary based on the user's preferences.
+        CRITICAL: Return ONLY valid JSON. No markdown, no explanation.
 
-        CRITICAL OUTPUT RULE:
-        - Return ONLY a single valid JSON object
-        - No markdown, no code fences, no explanation text, nothing before or after the JSON
-        - The JSON must be perfectly parseable
-
-        EXACT JSON STRUCTURE:
+        JSON FORMAT:
         {
           "cityName": "Riyadh",
           "days": [
@@ -43,11 +35,12 @@ class OpenAIService {
                 {
                   "time": "9:00 AM",
                   "name": "Place Name",
-                  "description": "Why this place is amazing. Max 2 sentences.",
+                  "description": "Amazing description. Mention if reservations recommended.",
                   "mapQuery": "Place Name, City, Saudi Arabia",
                   "links": [
-                    { "url": "https://www.instagram.com/placename", "label": "Instagram" },
-                    { "url": "https://www.google.com/maps/search/?api=1&query=Place+Name+City", "label": "Google Maps" }
+                    { "url": "https://instagram.com/place", "label": "Instagram" },
+                    { "url": "https://booking.com", "label": "Book Table" },
+                    { "url": "https://maps.google.com", "label": "Google Maps" }
                   ]
                 }
               ]
@@ -55,75 +48,98 @@ class OpenAIService {
           ]
         }
 
-        LINK RULES — ABSOLUTE ACCURACY REQUIRED:
-        - Every link you provide MUST be real, verified, and currently active
-        - NEVER invent, guess, or create placeholder URLs
-        - Only include a link if you are 100% certain it exists and works today
-        - Acceptable link types (ONLY if verified):
-          * Google Maps (always safe, always works)
-          * Instagram accounts (ONLY if you know the exact handle exists)
-          * Official websites (ONLY if you've seen them mentioned in reliable sources)
-          * Booking platforms (ONLY verified restaurant reservation systems)
-          * WhatsApp business numbers (ONLY if publicly listed)
-          * TikTok accounts (ONLY verified business accounts)
-          
-        - Link priority order:
-          1. Google Maps (REQUIRED for every activity)
-          2. Instagram (only if 100% certain the handle is correct)
-          3. Official website (only if you know it exists)
-          4. Booking/contact (only if publicly available)
+        🎯 SMART LINK RULES - Only Include Relevant Links:
 
-        - CRITICAL RULES:
-          * If you're not absolutely certain a link works, DON'T include it
-          * One accurate link is better than three broken links
-          * For restaurants/cafés: search "restaurant name + Riyadh + Instagram" mentally — if uncertain, skip it
-          * For attractions: if no official site, just use Google Maps
-          * NEVER create example URLs like "example.com" or "placeholder.sa"
-          * Test your confidence: Would you bet money this link works? If no, don't include it
+        📍 ALWAYS INCLUDE:
+        - Google Maps (every activity needs this)
 
-        - Format each link clearly:
-          * "Google Maps" - always include
-          * "Instagram @username" - only if certain
-          * "Official Website" - only if certain  
-          * "Book via WhatsApp" - only if you know the number
-          * "Reserve Table" - only if booking system exists
+        🍽️ FOR RESTAURANTS & CAFÉS:
+        - Instagram (if the place has social media presence)
+        - Booking link (HungerStation, Jahez, restaurant website, or reservation system)
+        - In description: Mention "Reservations recommended" or "Walk-ins welcome"
+        Target: Instagram + Booking + Google Maps = 3 links
 
-        VERIFICATION STANDARD: Imagine you're being graded on link accuracy. Every broken link = immediate failure. Only include links you would stake your reputation on.
-        QUALITY RULES:
-        1. REAL PLACES ONLY — no invented names, no generic placeholders
-        2. TRENDY & HIGH-RATED — prioritize places that are:
-           - Currently viral on Saudi social media (Instagram, Snapchat, TikTok)
-           - Have 4.5+ stars on Google Maps
-           - Featured in travel blogs or Saudi tourism guides
-           - Popular among locals AND tourists
-           - Use your FULL knowledge of each city — do NOT limit yourself to any specific list
-           - Think beyond the obvious landmarks: include hidden gems, new openings, 
-             neighborhood favorites, rooftop spots, scenic drives, local markets, 
-             art galleries, cultural festivals, scenic parks, beachside spots, 
-             mountain trails, heritage districts, concept stores, specialty coffee shops,
-             and any place that would genuinely excite a traveler
-           - For Riyadh: explore all districts — Diriyah, KAFD, Al Olaya, Hittin, 
-             Al Malqa, Al Aqiq, Diplomatic Quarter, Al Bujairi, Boulevard, and beyond
-           - For Jeddah: explore Al-Balad, Corniche, Al Rawdah, Al Zahra, Al Andalus, 
-             Al Hamra, waterfront, and beyond
-           - For Abha: explore the mountains, heritage villages, valleys, parks, 
-             local restaurants, art spaces, and beyond
-           - Never repeat the same type of place twice in a row
-        3. ZERO REPETITION — every activity across ALL days must be a unique place
-        4. MATCH PACE — Relaxed: 2-3/day, Moderate: 4-5/day, Packed: 6/day
-        5. MATCH BUDGET — Budget: free/cheap spots, Mid-Range: nice venues, Luxury: premium/fine dining
-        6. MATCH COMPANION — Solo: independent spots, Couple: romantic venues, Family: kid-friendly, Friends: social hubs
-        7. MATCH INTERESTS — Cultural: heritage/museums, Adventure: nature/hiking, Relaxation: spas/parks, Shopping: malls/boutiques, Food: top restaurants/cafés
-        8. SMART TIMING — outdoors in morning, lunch at noon, dinner in evening
-        9. EXCITING DESCRIPTIONS — write like a friend who loves this place, max 2 punchy sentences
-        10. PRECISE MAP QUERIES — full name + city + Saudi Arabia
+        🏨 FOR HOTELS & RESORTS:
+        - Official website (booking.com, hotel website)
+        - Instagram (if they have one)
+        - NO booking link if it's just a visit/tour (not staying overnight)
+        Target: 2-3 links
+
+        🏛️ FOR MUSEUMS & ATTRACTIONS:
+        - Official website (if tickets can be purchased online)
+        - Instagram (if they have active social media)
+        - NO booking link if it's free entry or tickets at door
+        - In description: Mention "Book tickets online" or "Free entry"
+        Target: 1-2 links (+ Google Maps)
+
+        🛍️ FOR SHOPPING MALLS & MARKETS:
+        - Instagram (if mall has official account)
+        - NO booking links (you don't book malls!)
+        Target: 1-2 links (+ Google Maps)
+
+        🌳 FOR PARKS & OUTDOOR SPACES:
+        - Instagram (if it's a famous park with social media)
+        - NO booking/website needed
+        Target: 1-2 links (+ Google Maps)
+
+        ⚡ KEY PRINCIPLES:
+        1. BE CONTEXTUAL - Don't add booking links for places you can't book
+        2. BE USEFUL - Only Instagram if the place actively uses it
+        3. BE ACCURATE - Better to skip a link than provide a wrong one
+        4. IN DESCRIPTION - Always mention if reservations needed/recommended
+        
+        DESCRIPTION REQUIREMENTS:
+        - If restaurant needs reservation: "Reservations recommended for dinner" or "Book ahead on weekends"
+        - If walk-ins accepted: "Walk-ins welcome" or "No reservation needed"
+        - If tickets required: "Purchase tickets online to skip the queue"
+        - If free entry: "Free admission" or "Open to public"
+
+        EXAMPLE OUTPUTS:
+
+        ✅ GOOD - Restaurant:
+        {
+          "name": "Takya Restaurant",
+          "description": "Traditional Saudi cuisine with modern twist. Reservations recommended for dinner.",
+          "links": [
+            {"url": "https://instagram.com/takya", "label": "Instagram"},
+            {"url": "https://hungerstation.com/takya", "label": "Book Table"},
+            {"url": "https://maps.google.com/...", "label": "Google Maps"}
+          ]
+        }
+
+        ✅ GOOD - Park:
+        {
+          "name": "King Abdullah Park",
+          "description": "Beautiful green space perfect for picnics. Free entry, open daily.",
+          "links": [
+            {"url": "https://instagram.com/kingabdullahpark", "label": "Instagram"},
+            {"url": "https://maps.google.com/...", "label": "Google Maps"}
+          ]
+        }
+
+        ❌ BAD - Park with booking link:
+        {
+          "name": "Park",
+          "links": [
+            {"url": "booking.com/park", "label": "Book Visit"} ← WRONG! You don't book parks!
+          ]
+        }
+
+        PLACE SELECTION:
+        - Real, popular, highly-rated places (4.5+ stars)
+        - Viral on social media when relevant
+        - Match pace: Relaxed (2-3/day), Moderate (4-5/day), Packed (6/day)
+        - Match budget and interests
+        - Zero repetition
+        - Mix hidden gems with popular spots
         """
 
         let selectedModel = selectModel(for: prompt)
         print("🤖 Using model: \(selectedModel)")
 
         let body: [String: Any] = [
-            "model": selectedModel,            "temperature": 0.8,
+            "model": selectedModel,
+            "temperature": 0.8,
             "max_tokens": 4000,
             "messages": [
                 ["role": "system", "content": systemPrompt],
@@ -165,11 +181,8 @@ class OpenAIService {
         return content
     }
 
-    // MARK: - Parse JSON into GeneratedTrip
     func parseGeneratedTrip(from jsonString: String) throws -> GeneratedTrip {
-
-        var cleaned = jsonString
-            .trimmingCharacters(in: .whitespacesAndNewlines)
+        var cleaned = jsonString.trimmingCharacters(in: .whitespacesAndNewlines)
 
         if cleaned.hasPrefix("```") {
             let lines = cleaned.components(separatedBy: "\n")
@@ -205,7 +218,6 @@ class OpenAIService {
                 let description = actDict["description"] as? String ?? ""
                 let mapQuery    = actDict["mapQuery"]    as? String ?? "\(name), Saudi Arabia"
 
-                // Parse rich links array from AI
                 var activityLinks: [ActivityLink] = []
 
                 if let linksArray = actDict["links"] as? [[String: Any]] {
@@ -218,10 +230,8 @@ class OpenAIService {
                     }
                 }
 
-                // Fallback: build Google Maps link if AI gave nothing
                 if activityLinks.isEmpty {
-                    let encoded = mapQuery
-                        .addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? ""
+                    let encoded = mapQuery.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? ""
                     activityLinks.append(ActivityLink(
                         url: "https://www.google.com/maps/search/?api=1&query=\(encoded)",
                         displayText: "Google Maps"
@@ -247,7 +257,6 @@ class OpenAIService {
     }
 }
 
-// MARK: - Error Types
 enum OpenAIError: LocalizedError {
     case invalidURL
     case httpError(Int)
@@ -262,5 +271,4 @@ enum OpenAIError: LocalizedError {
         case .parsingFailed(let msg): return "JSON parsing failed: \(msg)"
         }
     }
-    
 }
