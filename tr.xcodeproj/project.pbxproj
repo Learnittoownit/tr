@@ -7,9 +7,9 @@
 	objects = {
 
 /* Begin PBXFileReference section */
-		46B648312F404E3D00C6C2FB /* tr copy.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; name = "tr copy.app"; path = "/Users/heavenlyrq/Desktop/tr/build/Debug-iphoneos/tr copy.app"; sourceTree = "<absolute>"; };
 		46B648332F404E5600C6C2FB /* tr-copy-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = "tr-copy-Info.plist"; sourceTree = "<group>"; };
 		46B648692F40F10F00C6C2FB /* tr.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = tr.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		69DE38C22F41112A00C4AB38 /* tr copy.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "tr copy.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
@@ -77,6 +77,7 @@
 				46B648332F404E5600C6C2FB /* tr-copy-Info.plist */,
 				464924252F33630D0060CF75 /* tr */,
 				46B648692F40F10F00C6C2FB /* tr.app */,
+				69DE38C22F41112A00C4AB38 /* tr copy.app */,
 			);
 			sourceTree = "<group>";
 		};
@@ -124,7 +125,7 @@
 			packageProductDependencies = (
 			);
 			productName = tr;
-			productReference = 46B648312F404E3D00C6C2FB /* tr copy.app */;
+			productReference = 69DE38C22F41112A00C4AB38 /* tr copy.app */;
 			productType = "com.apple.product-type.application";
 		};
 /* End PBXNativeTarget section */
@@ -324,7 +325,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = D53BL9362A;
+				DEVELOPMENT_TEAM = 8NC8PDTD88;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
@@ -338,7 +339,7 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = Come.Ruru.tr;
+				PRODUCT_BUNDLE_IDENTIFIER = com.20.masra;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_APPROACHABLE_CONCURRENCY = YES;
@@ -357,7 +358,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = D53BL9362A;
+				DEVELOPMENT_TEAM = 8NC8PDTD88;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
@@ -371,7 +372,7 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = Come.Ruru.tr;
+				PRODUCT_BUNDLE_IDENTIFIER = com.20.masra;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_APPROACHABLE_CONCURRENCY = YES;
