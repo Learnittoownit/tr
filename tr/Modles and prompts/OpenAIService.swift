@@ -7,15 +7,7 @@ class OpenAIService {
     private let endpoint = "https://api.openai.com/v1/chat/completions"
 
     private func selectModel(for prompt: String) -> String {
-        let isLongTrip = prompt.contains("7 day") || prompt.contains("6 day") || prompt.contains("5 day")
-        let isPacked = prompt.contains("Packed")
-        let hasMultipleInterests = prompt.components(separatedBy: ",").count >= 3
-        
-        if (isLongTrip && isPacked) || (isLongTrip && hasMultipleInterests) {
-            return "gpt-4o"
-        } else {
-            return "gpt-4o-mini"
-        }
+        return "gpt-4o"
     }
 
     func generatePlan(prompt: String) async throws -> String {
