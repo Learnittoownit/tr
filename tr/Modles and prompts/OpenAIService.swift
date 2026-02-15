@@ -128,7 +128,7 @@ class OpenAIService {
 
         let body: [String: Any] = [
             "model": selectedModel,
-            "temperature": 0.8,
+            "temperature": 0.2,
             "max_tokens": 4000,
             "messages": [
                 ["role": "system", "content": systemPrompt],
