@@ -5,7 +5,7 @@ class APIKeyManager {
     // Obfuscated key - split into parts and encrypted
 
         static func getOpenAIKey() -> String {
-            return "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"
+            return "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"
         }
     }
 
