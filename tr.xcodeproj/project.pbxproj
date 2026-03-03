@@ -9,45 +9,11 @@
 /* Begin PBXFileReference section */
 		46B648332F404E5600C6C2FB /* tr-copy-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = "tr-copy-Info.plist"; sourceTree = "<group>"; };
 		46B648692F40F10F00C6C2FB /* tr.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = tr.app; sourceTree = BUILT_PRODUCTS_DIR; };
-		69DE38C22F41112A00C4AB38 /* tr copy.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "tr copy.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
-
-/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
-		46B648322F404E3D00C6C2FB /* Exceptions for "tr" folder in "tr copy" target */ = {
-			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
-			membershipExceptions = (
-				App/trApp.swift,
-				Assets.xcassets,
-				"Modles and prompts/OpenAIService.swift",
-				"Modles and prompts/PressableNextButtonStyle.swift",
-				Pages/AIG/AI_Plan_View.swift,
-				Pages/AIG/AI_PrePage.swift,
-				Pages/AIG/AI_Questionnaire_Model.swift,
-				Pages/AIG/AI_Questionnaire_View.swift,
-				Pages/Journal/Database/DatabaseConfig.swift,
-				Pages/Journal/Models/Activity.swift,
-				Pages/Journal/Models/Day.swift,
-				Pages/Journal/Models/Trip.swift,
-				Pages/Journal/TripJournalApp.swift,
-				Pages/Journal/ViewModels/JournalViewModel.swift,
-				Pages/Journal/ViewModels/TripDetailViewModel.swift,
-				Pages/Journal/Views/AddActivitySheet.swift,
-				Pages/Journal/Views/CreateTripSheet.swift,
-				Pages/Journal/Views/EditActivitySheet.swift,
-				Pages/Journal/Views/JournalView.swift,
-				Pages/Journal/Views/TripDetailView.swift,
-				"Pages/Main Page/MainPageView.swift",
-			);
-			target = 46B6482A2F404E3D00C6C2FB /* tr copy */;
-		};
-/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		464924252F33630D0060CF75 /* tr */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
-			exceptions = (
-				46B648322F404E3D00C6C2FB /* Exceptions for "tr" folder in "tr copy" target */,
-			);
 			path = tr;
 			sourceTree = "<group>";
 		};
@@ -55,13 +21,6 @@
 
 /* Begin PBXFrameworksBuildPhase section */
 		464924202F33630D0060CF75 /* Frameworks */ = {
-			isa = PBXFrameworksBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		46B6482C2F404E3D00C6C2FB /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -77,7 +36,6 @@
 				46B648332F404E5600C6C2FB /* tr-copy-Info.plist */,
 				464924252F33630D0060CF75 /* tr */,
 				46B648692F40F10F00C6C2FB /* tr.app */,
-				69DE38C22F41112A00C4AB38 /* tr copy.app */,
 			);
 			sourceTree = "<group>";
 		};
@@ -106,28 +64,6 @@
 			productReference = 46B648692F40F10F00C6C2FB /* tr.app */;
 			productType = "com.apple.product-type.application";
 		};
-		46B6482A2F404E3D00C6C2FB /* tr copy */ = {
-			isa = PBXNativeTarget;
-			buildConfigurationList = 46B6482E2F404E3D00C6C2FB /* Build configuration list for PBXNativeTarget "tr copy" */;
-			buildPhases = (
-				46B6482B2F404E3D00C6C2FB /* Sources */,
-				46B6482C2F404E3D00C6C2FB /* Frameworks */,
-				46B6482D2F404E3D00C6C2FB /* Resources */,
-			);
-			buildRules = (
-			);
-			dependencies = (
-			);
-			fileSystemSynchronizedGroups = (
-				464924252F33630D0060CF75 /* tr */,
-			);
-			name = "tr copy";
-			packageProductDependencies = (
-			);
-			productName = tr;
-			productReference = 69DE38C22F41112A00C4AB38 /* tr copy.app */;
-			productType = "com.apple.product-type.application";
-		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -148,7 +84,6 @@
 			hasScannedForEncodings = 0;
 			knownRegions = (
 				en,
-				Base,
 				ar,
 			);
 			mainGroup = 4649241A2F33630D0060CF75;
@@ -159,7 +94,6 @@
 			projectRoot = "";
 			targets = (
 				464924222F33630D0060CF75 /* tr */,
-				46B6482A2F404E3D00C6C2FB /* tr copy */,
 			);
 		};
 /* End PBXProject section */
@@ -172,24 +106,10 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		46B6482D2F404E3D00C6C2FB /* Resources */ = {
-			isa = PBXResourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
 		4649241F2F33630D0060CF75 /* Sources */ = {
-			isa = PBXSourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		46B6482B2F404E3D00C6C2FB /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -251,7 +171,8 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 26.2;
+				"INFOPLIST_FILE[sdk=*]" = "";
+				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
@@ -308,7 +229,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 26.2;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
@@ -329,6 +250,7 @@
 				DEVELOPMENT_TEAM = D53BL9362A;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -364,6 +286,7 @@
 				DEVELOPMENT_TEAM = D53BL9362A;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -378,74 +301,6 @@
 				PRODUCT_BUNDLE_IDENTIFIER = com.rama.tr;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
-				STRING_CATALOG_GENERATE_SYMBOLS = YES;
-				SWIFT_APPROACHABLE_CONCURRENCY = YES;
-				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
-				SWIFT_EMIT_LOC_STRINGS = YES;
-				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
-				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = "1,2";
-			};
-			name = Release;
-		};
-		46B6482F2F404E3D00C6C2FB /* Debug */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
-				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = 33ZUZB6ZH8;
-				ENABLE_PREVIEWS = YES;
-				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_FILE = "tr-copy-Info.plist";
-				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
-				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
-				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
-				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
-				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
-				IPHONEOS_DEPLOYMENT_TARGET = 26;
-				LD_RUNPATH_SEARCH_PATHS = (
-					"$(inherited)",
-					"@executable_path/Frameworks",
-				);
-				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = Come.Ruru.tr;
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				STRING_CATALOG_GENERATE_SYMBOLS = YES;
-				SWIFT_APPROACHABLE_CONCURRENCY = YES;
-				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
-				SWIFT_EMIT_LOC_STRINGS = YES;
-				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
-				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = "1,2";
-			};
-			name = Debug;
-		};
-		46B648302F404E3D00C6C2FB /* Release */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
-				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = 33ZUZB6ZH8;
-				ENABLE_PREVIEWS = YES;
-				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_FILE = "tr-copy-Info.plist";
-				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
-				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
-				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
-				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
-				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
-				IPHONEOS_DEPLOYMENT_TARGET = 26;
-				LD_RUNPATH_SEARCH_PATHS = (
-					"$(inherited)",
-					"@executable_path/Frameworks",
-				);
-				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = Come.Ruru.tr;
-				PRODUCT_NAME = "$(TARGET_NAME)";
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_APPROACHABLE_CONCURRENCY = YES;
 				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
@@ -473,15 +328,6 @@
 			buildConfigurations = (
 				4649242F2F33630E0060CF75 /* Debug */,
 				464924302F33630E0060CF75 /* Release */,
-			);
-			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Release;
-		};
-		46B6482E2F404E3D00C6C2FB /* Build configuration list for PBXNativeTarget "tr copy" */ = {
-			isa = XCConfigurationList;
-			buildConfigurations = (
-				46B6482F2F404E3D00C6C2FB /* Debug */,
-				46B648302F404E3D00C6C2FB /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

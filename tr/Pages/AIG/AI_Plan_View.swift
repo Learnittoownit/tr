@@ -207,6 +207,17 @@ struct ActivityCardView: View {
                     .foregroundColor(Color("Title"))
                     .frame(maxWidth: .infinity, alignment: .leading)
 
+                // ── Kids badge ────────────────────────────────────────────
+                if activity.kidsStatus == .notAllowed {
+                    Text("Not suitable for kids")
+                        .font(.system(size: 12, weight: .semibold, design: .rounded))
+                        .foregroundColor(Color(hex: "#6F2A26"))
+                        .padding(.horizontal, 10)
+                        .padding(.vertical, 5)
+                        .background(Color(hex: "#F4E3E1"))
+                        .cornerRadius(20)
+                }
+
                 VStack(alignment: .leading, spacing: 4) {
                     Text(activity.description)
                         .font(.system(size: 14, weight: .regular, design: .rounded))

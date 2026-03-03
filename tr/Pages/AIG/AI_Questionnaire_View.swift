@@ -124,9 +124,9 @@ struct AI_Questionnaire_View: View {
                         Text("Creating your journey")
                             .font(.system(size: 28, weight: .bold, design: .rounded))
                             .foregroundColor(Color("title loading page"))
-                        Text("Our AI is crafting the perfect itinerary\nbased on your preferences!").bold()
+                        Text("Our AI is crafting the perfect itinerary\nbased on your preferences!")
                             .font(.system(size: 16, weight: .regular, design: .rounded))
-                            .foregroundColor(Color("small text loading page")).bold()
+                            .foregroundColor(Color("small text loading page"))
                             .multilineTextAlignment(.center)
                             .lineSpacing(4)
                     }
@@ -169,7 +169,6 @@ struct AI_Questionnaire_View: View {
         }
     }
 
-    // MARK: - Progress Bar
     struct ProgressBar: View {
         let currentStep: Int
         let totalSteps: Int
@@ -311,13 +310,13 @@ struct AI_Questionnaire_View: View {
         var body: some View {
             VStack(spacing: 20) {
                 VStack(spacing: 10) {
-                    Text("How well do you know \(cityName) city?")
+                    Text("How well do you know \(cityName)?")
                         .font(.system(size: 30, weight: .bold, design: .rounded))
                         .foregroundColor(Color("Title"))
                         .multilineTextAlignment(.center)
 
                     Text("Your experience shapes your itinerary").bold()
-                        .font(.system(size: 18, weight: .regular, design: .rounded))
+                        .font(.system(size: 16, weight: .regular, design: .rounded))
                         .foregroundColor(Color("Light small text"))
                         .multilineTextAlignment(.center)
                 }
@@ -488,7 +487,7 @@ struct AI_Questionnaire_View: View {
         }
     }
 
-    // MARK: - Question 4: Travel Companions (was Q3)
+    // MARK: - Question 4: Travel Companions
     struct Question4_TravelCompanions: View {
         @ObservedObject var viewModel: AI_Questionnaire_Model
 
@@ -534,31 +533,20 @@ struct AI_Questionnaire_View: View {
                 VStack(alignment: .leading, spacing: 6) {
                     Text(companion.title)
                         .font(.system(size: 20, weight: .bold, design: .rounded))
-                        .foregroundColor(
-                            isSelected ? Color("select") : Color("Options")
-                        )
+                        .foregroundColor(isSelected ? Color("select") : Color("Options"))
 
                     Text(companion.description)
                         .font(.system(size: 14, weight: .regular, design: .rounded))
-                        .foregroundColor(
-                            isSelected
-                            ? Color("Select dis")
-                            : Color("Light small text")
-                        )
+                        .foregroundColor(isSelected ? Color("Select dis") : Color("Light small text"))
                         .lineLimit(2)
                 }
                 .padding(.horizontal, 18)
                 .padding(.vertical, 16)
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .frame(height: 100)
-                .background(
-                    isSelected ? Color("Button click") : Color("Card")
-                )
+                .background(isSelected ? Color("Button click") : Color("Card"))
                 .clipShape(RoundedRectangle(cornerRadius: 22))
-                .overlay(
-                    RoundedRectangle(cornerRadius: 22)
-                        .stroke(Color.black.opacity(0.04), lineWidth: 1)
-                )
+                .overlay(RoundedRectangle(cornerRadius: 22).stroke(Color.black.opacity(0.04), lineWidth: 1))
                 .shadow(color: .black.opacity(0.04), radius: 8, y: 5)
             }
             .buttonStyle(.plain)
@@ -566,7 +554,7 @@ struct AI_Questionnaire_View: View {
         }
     }
 
-    // MARK: - Question 5: Budget (was Q4)
+    // MARK: - Question 5: Budget
     struct Question5_Budget: View {
         @ObservedObject var viewModel: AI_Questionnaire_Model
 
@@ -640,7 +628,7 @@ struct AI_Questionnaire_View: View {
         }
     }
 
-    // MARK: - Question 6: Days (was Q5)
+    // MARK: - Question 6: Days
     struct Question6_Days: View {
         @ObservedObject var viewModel: AI_Questionnaire_Model
         @Environment(\.colorScheme) var colorScheme
@@ -820,7 +808,7 @@ struct AI_Questionnaire_View: View {
         }
     }
 
-    // MARK: - Question 7: Travel Pace (was Q6)
+    // MARK: - Question 7: Travel Pace
     struct Question7_TravelPace: View {
         @ObservedObject var viewModel: AI_Questionnaire_Model
         @Environment(\.colorScheme) var colorScheme

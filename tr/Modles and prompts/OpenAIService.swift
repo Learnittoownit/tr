@@ -35,9 +35,9 @@ class OpenAIService {
             "Cafés & Coffee": [
                 "Budget-Friendly": [
                     "9th Street Coffee Roasters",
-                    "Andarena",
-                    "Barn's",
-                    "Half Million",
+                    "Andarena Cafe",
+                    "Barn's Cafe",
+                    "Half Million Coffee",
                     "Camel Step Coffee Roasters"
                 ],
                 "Mid-Range": [
@@ -48,10 +48,10 @@ class OpenAIService {
                     "Elixir Bunn Coffee Roasters"
                 ],
                 "Luxury": [
-                    "Urth Cafe",
-                    "EL&N London",
-                    "Angelina Paris",
-                    "Ralph's Coffee"
+                    "Urth Caffe Riyadh",
+                    "EL&N London Riyadh",
+                    "Angelina Paris Riyadh",
+                    "Ralph's Coffee Riyadh"
                 ]
             ],
 
@@ -85,7 +85,7 @@ class OpenAIService {
                 "Mid-Range": [
                     "Riyadh Park Mall",
                     "Riyadh Gallery Mall",
-                    "Nakheel Mall",
+                    "Nakheel Mall Riyadh",
                     "Panorama Mall"
                 ],
                 "Luxury": [
@@ -103,14 +103,14 @@ class OpenAIService {
                 "Budget-Friendly": [
                     "Vibes Cafe",
                     "Talent Cafe",
-                    "Camel Step",
+                    "Camel Step Coffee Roasters",
                     "Kyan Cafe",
                     "Dose Cafe",
                     "GoodHood Cafe"
                 ],
                 "Mid-Range": [
                     "BREW92",
-                    "Cup & Couch",
+                    "Cup & Couch Cafe and Roastery",
                     "Hemi Cafe & Roastery",
                     "CLE Cafe",
                     "Urban Roastery",
@@ -119,7 +119,7 @@ class OpenAIService {
                 ],
                 "Luxury": [
                     "L'ETO Cafe",
-                    "Urth Cafe",
+                    "Urth Caffe",
                     "Overdose Cafe",
                     "Beauti Artisanal Cafe",
                     "Meraki Artisan Cafe",
@@ -348,14 +348,18 @@ class OpenAIService {
         ══════════════════════════════════════════
         DESCRIPTION QUALITY — NON-NEGOTIABLE
         ══════════════════════════════════════════
-         Write like a knowledgeable local friend — specific, confident, real
-         For cafés: mention the specialty drink, aesthetic, or what makes people go back
-         For restaurants: mention the cuisine type, signature dish, or the crowd/vibe
-         For shopping: mention what kind of shopping experience or what it's known for
-         For experiences: mention what you see, feel, or do there
-         NEVER write: "a great place to relax", "known for good food", "a must-visit spot"
-         NEVER use filler like "perfect for", "you'll love", "a wonderful experience"
-         NEVER make up details you don't know — if you're unsure, describe the category-level vibe accurately
+        - Write like a knowledgeable local friend — specific, confident, real
+        - For cafés: mention the specialty drink, aesthetic, or what makes people go back
+        - For restaurants: mention the cuisine type, signature dish, or the crowd/vibe
+        - For shopping: mention what kind of shopping experience or what it's known for
+        - For experiences: mention what you see, feel, or do there
+        - NEVER write: "a great place to relax", "known for good food", "a must-visit spot"
+        - NEVER use filler like "perfect for", "you'll love", "a wonderful experience"
+        - NEVER make up details you don't know — if you're unsure, describe the category-level vibe accurately
+
+        ── KIDS FLAG RULE ──
+        If a place is NOT suitable for children (e.g. bars, hookah lounges, nightlife, adult-only venues), append exactly this tag on a new line at the end of the description → [KIDS_NOT_ALLOWED]
+        For all other places, do not add any tag.
 
         ══════════════════════════════════════════
         GEOGRAPHIC CLUSTERING — MANDATORY
@@ -364,9 +368,9 @@ class OpenAIService {
         - Users must be able to move between activities in under 10 minutes by car
         - Think of each day as owning one zone — pick the zone first, then fill it
         - A nearby average place beats a great place across the city
-         NEVER mix activities from distant districts on the same day
-         NEVER build a day that requires crossing the city
-         One neighborhood per day, explored properly
+        - NEVER mix activities from distant districts on the same day
+        - NEVER build a day that requires crossing the city
+        - One neighborhood per day, explored properly
         """
 
         // ── Companion context ─────────────────────────────────────────────────
@@ -392,7 +396,7 @@ class OpenAIService {
         ══════════════════════════════════════════
         These are verified, real, hand-picked places for: \(curatedInterestNames.joined(separator: ", "))
         \(curatedList)
-         These are place NAMES only — no address included.
+        These are place NAMES only — no address included.
         You must look up each place's real district in \(city) and use it in mapQuery.
         Only use places from this list that you can confirm exist and are currently operating in \(city).
         """ : ""
@@ -423,12 +427,12 @@ class OpenAIService {
             ══════════════════════════════════════════
             This person has never been to \(city). Give them a well-rounded, rewarding experience.
 
-             For Cafés / Dining / Shopping: use 2–3 places from the curated list per interest as day anchors. Fill the rest of each day's zone with AI-generated nearby places in the same neighborhood.
-             For all other interests: generate from your knowledge — go for iconic, accessible, celebrated spots a first-timer would love.
-            Plan each day by zone first: pick the geographic area, then select both curated and AI places within it.
-             All places must be real, currently open, and right for someone new to the city.
-             No obscure or insider-only spots.
-             No repetition across days.
+            - For Cafés / Dining / Shopping: use 2–3 places from the curated list per interest as day anchors. Fill the rest of each day's zone with AI-generated nearby places in the same neighborhood.
+            - For all other interests: generate from your knowledge — go for iconic, accessible, celebrated spots a first-timer would love.
+            - Plan each day by zone first: pick the geographic area, then select both curated and AI places within it.
+            - All places must be real, currently open, and right for someone new to the city.
+            - No obscure or insider-only spots.
+            - No repetition across days.
             """
 
         case .visitedBefore:
@@ -442,12 +446,12 @@ class OpenAIService {
             ══════════════════════════════════════════
             They know the basics. Give them familiar quality mixed with newer discoveries.
 
-             For Cafés / Dining / Shopping: use 1–2 curated places per interest (prefer the lesser-known ones on the list). Generate the rest from your knowledge — trending spots, places opened 2023–2025, beloved by locals but under the radar.
-             For all other interests: generate from your knowledge — go a step beyond the tourist trail.
-             Plan each day by zone. Use curated places as anchors; fill the zone with AI-discovered nearby spots.
-             All places must be real, currently popular, and operating.
-             Skip the obvious landmarks they've already seen.
-             No repetition across days.
+            - For Cafés / Dining / Shopping: use 1–2 curated places per interest (prefer the lesser-known ones on the list). Generate the rest from your knowledge — trending spots, places opened 2023–2025, beloved by locals but under the radar.
+            - For all other interests: generate from your knowledge — go a step beyond the tourist trail.
+            - Plan each day by zone. Use curated places as anchors; fill the zone with AI-discovered nearby spots.
+            - All places must be real, currently popular, and operating.
+            - Skip the obvious landmarks they've already seen.
+            - No repetition across days.
             """
 
         case .local:
@@ -461,19 +465,19 @@ class OpenAIService {
             ══════════════════════════════════════════
             They live here. Give them almost entirely fresh, unexpected discoveries.
 
-             Generate ~90% of the itinerary from your own knowledge — the curated list is nearly irrelevant here.
-             Focus on: places opened 2024–2025, word-of-mouth spots, emerging neighborhoods, new concepts, pop-ups, art spaces.
-             From the curated list, use at most 1–2 places — only if they are genuinely niche or recently opened. Skip anything mainstream.
-             For all interests, ask: "What would a culturally curious 25-year-old Saudi living in \(city) be excited to discover this weekend?"
-             One neighborhood per day — go deep into the zone.
-             No tourist landmarks, chain venues, or anything well-known for 3+ years.
-             No repetition across days.
+            - Generate 90% of the itinerary from your own knowledge — the curated list is nearly irrelevant here.
+            - Focus on: places opened 2024–2025, word-of-mouth spots, emerging neighborhoods, new concepts, pop-ups, art spaces.
+            - From the curated list, use at most 1–2 places — only if they are genuinely niche or recently opened. Skip anything mainstream.
+            - For all interests, ask: "What would a culturally curious 25-year-old Saudi living in \(city) be excited to discover this weekend?"
+            - One neighborhood per day — go deep into the zone.
+            - No tourist landmarks, chain venues, or anything well-known for 3+ years.
+            - No repetition across days.
             """
         }
     }
 
     // ─────────────────────────────────────────────────────────────────────────
-    // MARK: - Generate Plan
+    // MARK: - Pass 1: Generate Plan
     // ─────────────────────────────────────────────────────────────────────────
 
     func generatePlan(
@@ -494,15 +498,11 @@ class OpenAIService {
             companions: companions
         )
 
-        print("🎯 Familiarity tier: \(tier)")
-        print("🏙️ City: \(city)")
-        print("🎨 Interests: \(interests)")
-        print("💰 Budget: \(budget)")
-        print("👥 Companions: \(companions)")
+        print(">> Pass 1: Generating plan for \(city) | \(familiarity) | \(budget)")
 
         let body: [String: Any] = [
             "model": "gpt-4o",
-            "temperature": 0.2,
+            "temperature": 0.4,
             "max_tokens": 4000,
             "messages": [
                 ["role": "system", "content": systemPrompt],
@@ -510,6 +510,67 @@ class OpenAIService {
             ]
         ]
 
+        return try await callOpenAI(body: body)
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // MARK: - Pass 2: Geo Filter
+    // Takes the raw JSON from Pass 1 and re-clusters each day geographically.
+    // Replaces any activity that is far from its day's zone with a closer one.
+    // ─────────────────────────────────────────────────────────────────────────
+
+    func geoFilterPass(rawJSON: String, city: String, budget: String) async throws -> String {
+
+        print(">> Pass 2: Running geo-filter for \(city)")
+
+        let systemPrompt = """
+        You are a geographic travel itinerary validator for \(city), Saudi Arabia.
+
+        You will receive a travel itinerary in JSON format. Your only job is to check and fix the geographic clustering of each day.
+
+        WHAT TO DO:
+        For each day in the itinerary:
+        1. Identify the dominant neighborhood or zone based on where most activities are located.
+        2. Check every activity on that day. If any activity is in a different part of \(city) and would require more than 10–15 minutes by car to reach from the day's zone, replace it.
+        3. When replacing, choose a real, currently operating alternative in the SAME zone that matches the same interest type and budget level (\(budget)).
+        4. Keep the same time slot, interest type, and overall structure — only change the place if it breaks the geographic rule.
+        5. If all activities on a day are already geographically clustered, return that day exactly as-is.
+
+        REPLACEMENT RULES:
+        - The replacement must be a real place in \(city) that you can verify exists.
+        - It must be in the same neighborhood or zone as the other activities on that day.
+        - It must match the same category (café, restaurant, attraction, etc.) and budget level.
+        - Update name, description, mapQuery, and links accordingly.
+        - Keep the [KIDS_NOT_ALLOWED] tag in the description if the replacement is also not suitable for children.
+
+        OUTPUT:
+        Return the complete corrected itinerary as valid JSON only. Same structure as input. No explanation, no markdown, no text outside the JSON.
+        """
+
+        let userMessage = """
+        Here is the generated itinerary. Please validate and fix geographic clustering for each day:
+
+        \(rawJSON)
+        """
+
+        let body: [String: Any] = [
+            "model": "gpt-4o",
+            "temperature": 0.1,
+            "max_tokens": 4000,
+            "messages": [
+                ["role": "system", "content": systemPrompt],
+                ["role": "user", "content": userMessage]
+            ]
+        ]
+
+        return try await callOpenAI(body: body)
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // MARK: - Shared API Call
+    // ─────────────────────────────────────────────────────────────────────────
+
+    private func callOpenAI(body: [String: Any]) async throws -> String {
         guard let url = URL(string: endpoint) else { throw OpenAIError.invalidURL }
 
         var request = URLRequest(url: url)
@@ -523,7 +584,7 @@ class OpenAIService {
         if let httpResponse = response as? HTTPURLResponse {
             guard (200...299).contains(httpResponse.statusCode) else {
                 let errorBody = String(data: data, encoding: .utf8) ?? "Unknown error"
-                print("❌ OpenAI HTTP \(httpResponse.statusCode): \(errorBody)")
+                print("HTTP error \(httpResponse.statusCode): \(errorBody)")
                 throw OpenAIError.httpError(httpResponse.statusCode)
             }
         }
@@ -538,7 +599,7 @@ class OpenAIService {
             throw OpenAIError.invalidResponse
         }
 
-        print("✅ Raw AI response:\n\(content)")
+        print("Response received (\(content.count) chars)")
         return content
     }
 
@@ -579,8 +640,22 @@ class OpenAIService {
             for actDict in activitiesArray {
                 let time        = actDict["time"]        as? String ?? "9:00 AM"
                 let name        = actDict["name"]        as? String ?? "Activity"
-                let description = actDict["description"] as? String ?? ""
+                let rawDesc     = actDict["description"] as? String ?? ""
                 let mapQuery    = actDict["mapQuery"]    as? String ?? "\(name), Saudi Arabia"
+
+                // Parse and strip the kids tag from the description
+                let kidsStatus: GeneratedActivity.KidsStatus
+                let cleanDescription: String
+
+                if rawDesc.contains("[KIDS_NOT_ALLOWED]") {
+                    kidsStatus = .notAllowed
+                    cleanDescription = rawDesc
+                        .replacingOccurrences(of: "[KIDS_NOT_ALLOWED]", with: "")
+                        .trimmingCharacters(in: .whitespacesAndNewlines)
+                } else {
+                    kidsStatus = .welcome
+                    cleanDescription = rawDesc.trimmingCharacters(in: .whitespacesAndNewlines)
+                }
 
                 var activityLinks: [ActivityLink] = []
 
@@ -605,8 +680,9 @@ class OpenAIService {
                 generatedActivities.append(GeneratedActivity(
                     time: time,
                     name: name,
-                    description: description,
-                    links: activityLinks
+                    description: cleanDescription,
+                    links: activityLinks,
+                    kidsStatus: kidsStatus
                 ))
             }
 

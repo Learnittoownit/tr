@@ -54,6 +54,12 @@ struct GeneratedActivity: Identifiable {
     let name: String
     let description: String
     let links: [ActivityLink]
+    let kidsStatus: KidsStatus
+
+    enum KidsStatus {
+        case notAllowed   // [KIDS_NOT_ALLOWED]
+        case welcome      // [KIDS_WELCOME]
+    }
 }
 
 struct GeneratedDay: Identifiable {
@@ -88,7 +94,7 @@ class AI_Questionnaire_Model: ObservableObject {
     @Published var generationErrorMessage: String = ""
 
     // MARK: - PROTECTED Counter with iCloud Keychain
-    private let keychainGenerationsKey = "ai_remaining_v3"
+    private let keychainGenerationsKey = "ai_remaining_v4"
     private let keychainMonthYearKey = "ai_month_year_v3"
     private let keychainInitializedKey = "ai_initialized_v3"
     private let maxGenerationsPerMonth = 5
@@ -327,8 +333,7 @@ class AI_Questionnaire_Model: ObservableObject {
 
         Task {
             do {
-                await animateTo(progress: 0.20, step: "Analyzing your preferences...", duration: 0.6)
-                await animateTo(progress: 0.45, step: "Crafting your itinerary...",    duration: 0.8)
+                await animateTo(progress: 0.15, step: "Analyzing your preferences...", duration: 0.6)
 
                 let prompt      = generateGPTPrompt()
                 let familiarity = selectedFamiliarity?.title ?? "It's my first visit"
@@ -338,9 +343,10 @@ class AI_Questionnaire_Model: ObservableObject {
                 let companions  = selectedCompanion?.title ?? ""
                 let service     = OpenAIService()
 
-                print("🚀 Sending to OpenAI:\n\(prompt)\n")
+                // ── Pass 1: Generate the plan ─────────────────────────────
+                await animateTo(progress: 0.40, step: "Crafting your itinerary...", duration: 0.8)
 
-                let aiText = try await service.generatePlan(
+                let rawPlan = try await service.generatePlan(
                     prompt: prompt,
                     familiarity: familiarity,
                     city: city,
@@ -349,13 +355,25 @@ class AI_Questionnaire_Model: ObservableObject {
                     companions: companions
                 )
 
-                print("✅ AI response received")
+                print("Pass 1 complete")
 
-                await animateTo(progress: 0.75, step: "Personalizing your plan...", duration: 0.6)
+                // ── Pass 2: Geo-filter — cluster each day by zone ─────────
+                await animateTo(progress: 0.70, step: "Optimizing locations for you...", duration: 0.6)
 
-                let trip = try service.parseGeneratedTrip(from: aiText)
+                let filteredPlan = try await service.geoFilterPass(
+                    rawJSON: rawPlan,
+                    city: city,
+                    budget: budget
+                )
 
-                await animateTo(progress: 1.0, step: "Almost ready!", duration: 0.5)
+                print("Pass 2 complete")
+
+                // ── Parse final result ────────────────────────────────────
+                await animateTo(progress: 0.90, step: "Putting the finishing touches...", duration: 0.5)
+
+                let trip = try service.parseGeneratedTrip(from: filteredPlan)
+
+                await animateTo(progress: 1.0, step: "Your plan is ready!", duration: 0.4)
                 try? await Task.sleep(nanoseconds: 500_000_000)
 
                 await MainActor.run {
