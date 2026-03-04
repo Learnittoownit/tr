@@ -282,5 +282,4 @@ extension Color {
 // MARK: - Preview
 #Preview {
     AddActivitySheet(day: Day(date: Date(), dayNumber: 2), viewModel: nil)
-    
 }

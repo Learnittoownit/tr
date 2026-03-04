@@ -23,8 +23,6 @@ struct TripDetailView: View {
     @State private var selectedDay: Day?
     @State private var selectedActivity: Activity?
     @State private var showingColorPicker = false
-
-    // Task 9
     @State private var showExtendTrip     = false
     @State private var dayToDelete: Day?  = nil
     @State private var showDeleteDayAlert = false
@@ -33,7 +31,6 @@ struct TripDetailView: View {
     @State private var tripName      = ""
     @State private var selectedColor = ""
     @State private var isEditingName = false
-    @State private var hasChanges    = false
     
     // MARK: - Body
     var body: some View {
@@ -56,7 +53,7 @@ struct TripDetailView: View {
                                 .foregroundStyle(Color(hex: "#3A2F27"))
                                 .onSubmit {
                                     isEditingName = false
-                                    if tripName != trip.name { hasChanges = true }
+                                    autoSave()
                                 }
                         } else {
                             Text(tripName)
@@ -69,7 +66,7 @@ struct TripDetailView: View {
                         }
                         
                         HStack {
-                            // Task 9: Tappable date range → opens ExtendTripSheet
+                            // Tappable date range → extend trip
                             Button {
                                 showExtendTrip = true
                             } label: {
@@ -124,10 +121,8 @@ struct TripDetailView: View {
                                     onEditActivity: { activity in selectedActivity = activity },
                                     onDeleteActivity: { activity in
                                         viewModel.deleteActivity(activity)
-                                        hasChanges = true
                                     },
                                     onDeleteDay: {
-                                        // Task 9: long press or context menu on day card
                                         dayToDelete = day
                                         showDeleteDayAlert = true
                                     }
@@ -145,49 +140,41 @@ struct TripDetailView: View {
         .navigationBarBackButtonHidden(true)
         .toolbar {
             ToolbarItem(placement: .navigationBarLeading) {
-                Button { dismiss() } label: {
+                Button {
+                    // Auto-save on back
+                    autoSave()
+                    dismiss()
+                } label: {
                     Text("Back")
                         .font(.system(size: 17, design: .rounded))
                         .foregroundStyle(colorScheme == .dark ? .white : Color(hex: "#3A2F27"))
                 }
             }
-            ToolbarItem(placement: .navigationBarTrailing) {
-                Button { saveChanges() } label: {
-                    Text("Save")
-                        .font(.system(size: 17, weight: .semibold, design: .rounded))
-                        .foregroundStyle(colorScheme == .dark ? .white : (hasChanges ? Color(hex: "#3A2F27") : .gray))
-                }
-                .disabled(!hasChanges)
-            }
+            // No Save button — everything is auto-saved
         }
         .sheet(item: $selectedDay) { day in
             if let viewModel = viewModel {
                 AddActivitySheet(day: day, viewModel: viewModel)
-                    .onDisappear { hasChanges = true }
             }
         }
         .sheet(item: $selectedActivity) { activity in
             if let viewModel = viewModel {
                 EditActivitySheet(activity: activity, viewModel: viewModel)
-                    .onDisappear { hasChanges = true }
             }
         }
         .sheet(isPresented: $showingColorPicker, onDismiss: {
-            if selectedColor != trip.colorTheme { hasChanges = true }
+            autoSave()
         }) {
             TripColorPickerSheet(selectedColor: $selectedColor)
         }
-        // Task 9: Extend trip sheet
         .sheet(isPresented: $showExtendTrip) {
             ExtendTripSheet(
                 currentStartDate: trip.startDate,
                 currentEndDate: trip.endDate
             ) { newEndDate in
                 viewModel?.extendTrip(to: newEndDate)
-                hasChanges = true
             }
         }
-        // Task 9: Delete day confirmation
         .confirmationDialog(
             dayToDelete != nil ? "Delete Day \(dayToDelete!.dayNumber)?" : "Delete Day?",
             isPresented: $showDeleteDayAlert,
@@ -196,7 +183,6 @@ struct TripDetailView: View {
             Button("Delete Day", role: .destructive) {
                 if let day = dayToDelete {
                     viewModel?.deleteDay(day)
-                    hasChanges = true
                 }
                 dayToDelete = nil
             }
@@ -213,17 +199,16 @@ struct TripDetailView: View {
         }
     }
     
-    private func saveChanges() {
+    // MARK: - Auto Save
+    private func autoSave() {
         trip.name       = tripName
         trip.colorTheme = selectedColor
         trip.updatedAt  = Date()
         do {
             try modelContext.save()
-            hasChanges = false
-            print("✅ Trip saved")
-            dismiss()
+            print("✅ Auto-saved")
         } catch {
-            print("❌ Error saving trip: \(error)")
+            print("❌ Auto-save failed: \(error)")
         }
     }
 }
@@ -236,13 +221,12 @@ struct DayRow: View {
     let onAddActivity: () -> Void
     let onEditActivity: (Activity) -> Void
     let onDeleteActivity: (Activity) -> Void
-    let onDeleteDay: () -> Void               // Task 9
+    let onDeleteDay: () -> Void
 
     @ScaledMetric private var dayPadding: CGFloat = 24
     
     var body: some View {
         VStack(spacing: 0) {
-            // Day Header
             Button { onToggle() } label: {
                 HStack {
                     VStack(alignment: .leading, spacing: 4) {
@@ -270,7 +254,6 @@ struct DayRow: View {
                 .shadow(color: .black.opacity(0.05), radius: 4, x: 0, y: 2)
             }
             .buttonStyle(PlainButtonStyle())
-            // Task 9: long press or context menu to delete day
             .contextMenu {
                 Button(role: .destructive) {
                     onDeleteDay()
@@ -281,7 +264,6 @@ struct DayRow: View {
             .accessibilityLabel("Day \(day.dayNumber), \(day.dateString)")
             .accessibilityHint(isExpanded ? "Tap to collapse" : "Tap to expand and hold to delete")
             
-            // Expanded Content
             if isExpanded {
                 VStack(spacing: 12) {
                     ForEach(day.sortedActivities) { activity in
@@ -301,8 +283,7 @@ struct DayRow: View {
                     
                     Button { onAddActivity() } label: {
                         HStack {
-                            Image(systemName: "plus.circle.fill")
-                                .font(.system(size: 16))
+                            Image(systemName: "plus.circle.fill").font(.system(size: 16))
                             Text("Add Activity")
                                 .font(.system(size: 15, weight: .medium, design: .rounded))
                                 .dynamicTypeSize(.medium ... .accessibility1)

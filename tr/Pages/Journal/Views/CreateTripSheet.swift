@@ -361,4 +361,3 @@ struct ColorPickerSheet: View {
     let viewModel = JournalViewModel(modelContext: container.mainContext)
     return CreateTripSheet(viewModel: viewModel).modelContainer(container)
 }
-

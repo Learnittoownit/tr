@@ -9,8 +9,7 @@ struct JournalView: View {
     
     // MARK: - Environment
     @Environment(\.modelContext) private var modelContext
-    // لم نعد نستخدم dismiss للرجوع للمين بيج ضمن MainPage
-    @Environment(\.dismiss) private var dismiss   // يبقى كـ fallback لو انعرض داخل NavigationStack في مكان آخر
+    @Environment(\.dismiss) private var dismiss
     @Environment(\.colorScheme) private var colorScheme
     
     // MARK: - Routing back to MainPage
@@ -20,7 +19,13 @@ struct JournalView: View {
     @State private var viewModel: JournalViewModel?
     @State private var searchText = ""
     @State private var showingCreateTrip = false
-    
+    @State private var isSelecting = false
+    @State private var selectedTrips: Set<PersistentIdentifier> = []
+    @State private var showDeleteConfirmation = false
+
+    // Task 7: holds the newly created trip to trigger navigation
+    @State private var createdTrip: Trip? = nil
+
     // MARK: - Scaled Metrics
     @ScaledMetric private var cardPadding: CGFloat = 16
     @ScaledMetric private var spacing: CGFloat = 16
@@ -29,12 +34,9 @@ struct JournalView: View {
     var body: some View {
         NavigationStack {
             ZStack {
-                // Background
-                Color("Background")
-                    .ignoresSafeArea()
+                Color("Background").ignoresSafeArea()
                 
                 VStack(spacing: 0) {
-                    // Content
                     if let viewModel = viewModel {
                         if viewModel.filteredTrips.isEmpty {
                             emptyState
@@ -44,7 +46,6 @@ struct JournalView: View {
                     }
                 }
                 
-                // Bottom Glassy Search Bar
                 VStack {
                     Spacer()
                     glassySearchBar
@@ -54,30 +55,76 @@ struct JournalView: View {
             }
             .navigationTitle("Trips")
             .navigationBarTitleDisplayMode(.large)
-            .navigationBarBackButtonHidden(true)   // ✅ إخفاء السهم الافتراضي
+            .navigationBarBackButtonHidden(true)
             .toolbar {
-                // ✅ زر Back النصّي الوحيد
                 ToolbarItem(placement: .navigationBarLeading) {
-                    Button {
-                        if let onBack {
-                            onBack() // يرجع للمين بيج ضمن MainPage
-                        } else {
-                            // fallback لو انعرض داخل NavigationStack حقيقي
-                            dismiss()
+                    if isSelecting {
+                        Button("Cancel") {
+                            isSelecting = false
+                            selectedTrips.removeAll()
                         }
-                    } label: {
-                        Text("Back")
+                        .foregroundStyle(colorScheme == .dark ? Color.white : Color(hex: "#3A2F27"))
+                    } else {
+                        Button {
+                            if let onBack { onBack() } else { dismiss() }
+                        } label: {
+                            Text("Back")
+                                .font(.system(size: 17, design: .rounded))
+                                .foregroundStyle(colorScheme == .dark ? Color.white : Color(hex: "#3A2F27"))
+                        }
+                    }
+                }
+                
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    if isSelecting {
+                        Button {
+                            if !selectedTrips.isEmpty { showDeleteConfirmation = true }
+                        } label: {
+                            Text("Delete (\(selectedTrips.count))")
+                                .font(.system(size: 17, weight: .semibold, design: .rounded))
+                                .foregroundStyle(selectedTrips.isEmpty ? .gray : .red)
+                        }
+                        .disabled(selectedTrips.isEmpty)
+                    } else {
+                        Button("Select") { isSelecting = true }
                             .font(.system(size: 17, design: .rounded))
-                            .dynamicTypeSize(.large ... .xxxLarge)
                             .foregroundStyle(colorScheme == .dark ? Color.white : Color(hex: "#3A2F27"))
                     }
                 }
             }
+            .confirmationDialog(
+                "Delete \(selectedTrips.count) trip\(selectedTrips.count == 1 ? "" : "s")?",
+                isPresented: $showDeleteConfirmation,
+                titleVisibility: .visible
+            ) {
+                Button("Delete", role: .destructive) {
+                    if let vm = viewModel {
+                        for id in selectedTrips {
+                            if let trip = vm.trips.first(where: { $0.persistentModelID == id }) {
+                                vm.deleteTrip(trip)
+                            }
+                        }
+                    }
+                    selectedTrips.removeAll()
+                    isSelecting = false
+                }
+                Button("Cancel", role: .cancel) { }
+            } message: {
+                Text("This action cannot be undone.")
+            }
+            // Task 7: navigate to TripDetailView as soon as createdTrip is set
+            .navigationDestination(item: $createdTrip) { trip in
+                TripDetailView(trip: trip)
+            }
             .sheet(isPresented: $showingCreateTrip) {
                 if let viewModel = viewModel {
-                    CreateTripSheet(viewModel: viewModel)  // ✅ Pass the viewModel!
+                    // Task 7: pass the callback — dismiss sheet then push TripDetailView
+                    CreateTripSheet(viewModel: viewModel) { newTrip in
+                        createdTrip = newTrip
+                    }
                 }
-            }        }
+            }
+        }
         .onAppear {
             if viewModel == nil {
                 viewModel = JournalViewModel(modelContext: modelContext)
@@ -85,20 +132,16 @@ struct JournalView: View {
             viewModel?.fetchTrips()
         }
         .onChange(of: showingCreateTrip) { _, isShowing in
-            if !isShowing {
-                viewModel?.fetchTrips()
-            }
+            if !isShowing { viewModel?.fetchTrips() }
         }
         .onChange(of: searchText) { _, newValue in
             viewModel?.searchQuery = newValue
         }
-        
     }
     
-    // MARK: - Glassy Bottom Search Bar (iOS Style)
+    // MARK: - Glassy Bottom Search Bar
     private var glassySearchBar: some View {
         HStack(spacing: 12) {
-            // Search Field
             HStack(spacing: 10) {
                 Image(systemName: "magnifyingglass")
                     .foregroundStyle(colorScheme == .dark ? Color.white : .gray)
@@ -117,9 +160,7 @@ struct JournalView: View {
                             .font(.system(size: 18))
                     }
                 } else {
-                    Button {
-                        // Microphone action
-                    } label: {
+                    Button { } label: {
                         Image(systemName: "mic.fill")
                             .foregroundStyle(colorScheme == .dark ? Color.white : .gray)
                             .font(.system(size: 18))
@@ -128,12 +169,8 @@ struct JournalView: View {
             }
             .padding(.horizontal, 16)
             .padding(.vertical, 12)
-            .background(
-                RoundedRectangle(cornerRadius: 28)
-                    .fill(.ultraThinMaterial)
-            )
+            .background(RoundedRectangle(cornerRadius: 28).fill(.ultraThinMaterial))
             
-            // Create Button (Glass Effect)
             Button {
                 showingCreateTrip = true
             } label: {
@@ -141,10 +178,7 @@ struct JournalView: View {
                     .font(.system(size: 22, weight: .semibold))
                     .foregroundStyle(colorScheme == .dark ? Color.white : Color(hex: "#3A2F27"))
                     .frame(width: 50, height: 50)
-                    .background(
-                        Circle()
-                            .fill(.ultraThinMaterial)
-                    )
+                    .background(Circle().fill(.ultraThinMaterial))
             }
             .accessibilityLabel("Create new trip")
         }
@@ -153,17 +187,14 @@ struct JournalView: View {
     // MARK: - Share
     private func shareTrip(_ trip: Trip) {
         let shareText = "Trip: \(trip.name)\nDates: \(trip.dateRangeString)\nDuration: \(trip.duration) days\nActivities: \(trip.activityCount)"
-
         #if os(iOS)
         let activityVC = UIActivityViewController(activityItems: [shareText], applicationActivities: nil)
         if let scene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
            let window = scene.keyWindow,
            let root = window.rootViewController {
             var presenter = root
-            while let presented = presenter.presentedViewController {
-                presenter = presented
-            }
-            presenter.present(activityVC, animated: true, completion: nil)
+            while let presented = presenter.presentedViewController { presenter = presented }
+            presenter.present(activityVC, animated: true)
         }
         #else
         print(shareText)
@@ -190,29 +221,52 @@ struct JournalView: View {
         }
     }
     
-    // MARK: - Trips List (Single Column)
+    // MARK: - Trips List
     private func tripsList(trips: [Trip]) -> some View {
         ScrollView {
             VStack(spacing: spacing) {
                 ForEach(trips) { trip in
-                    NavigationLink {
-                        TripDetailView(trip: trip)
-                    } label: {
-                        TripCard(trip: trip)
-                    }
-                    .buttonStyle(PlainButtonStyle())
-                    .contextMenu {
-                        Button {
-                            shareTrip(trip)
-                        } label: {
-                            Label("Share", systemImage: "square.and.arrow.up")
+                    let isSelected = selectedTrips.contains(trip.persistentModelID)
+                    
+                    HStack(spacing: 12) {
+                        if isSelecting {
+                            Image(systemName: isSelected ? "checkmark.circle.fill" : "circle")
+                                .font(.system(size: 24, weight: .semibold))
+                                .foregroundStyle(isSelected ? Color("Green") : Color.gray.opacity(0.5))
+                                .animation(.easeInOut(duration: 0.2), value: isSelected)
                         }
                         
-                        Button(role: .destructive) {
-                            viewModel?.deleteTrip(trip)
-                        } label: {
-                            Label("Delete", systemImage: "trash")
+                        Group {
+                            if isSelecting {
+                                TripCard(trip: trip)
+                                    .onTapGesture {
+                                        if isSelected {
+                                            selectedTrips.remove(trip.persistentModelID)
+                                        } else {
+                                            selectedTrips.insert(trip.persistentModelID)
+                                        }
+                                    }
+                            } else {
+                                NavigationLink {
+                                    TripDetailView(trip: trip)
+                                } label: {
+                                    TripCard(trip: trip)
+                                }
+                                .buttonStyle(PlainButtonStyle())
+                                .contextMenu {
+                                    Button { shareTrip(trip) } label: {
+                                        Label("Share", systemImage: "square.and.arrow.up")
+                                    }
+                                    Button(role: .destructive) {
+                                        viewModel?.deleteTrip(trip)
+                                    } label: {
+                                        Label("Delete", systemImage: "trash")
+                                    }
+                                }
+                            }
                         }
+                        .opacity(isSelecting && !isSelected ? 0.6 : 1.0)
+                        .animation(.easeInOut(duration: 0.2), value: isSelected)
                     }
                 }
             }
@@ -229,7 +283,6 @@ struct TripCard: View {
     
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
-            // Trip Name
             Text(trip.name)
                 .font(.system(size: 22, weight: .bold, design: .rounded))
                 .dynamicTypeSize(.large ... .accessibility2)
@@ -241,14 +294,12 @@ struct TripCard: View {
             
             Spacer()
             
-            // Dates
             Text(trip.dateRangeString)
                 .font(.system(size: 15, design: .rounded))
                 .dynamicTypeSize(.small ... .accessibility1)
                 .foregroundStyle(Color(hex: "#5A4A3D"))
                 .minimumScaleFactor(0.9)
             
-            // Duration + Activities
             Text("\(trip.duration) days • \(trip.activityCount) activities")
                 .font(.system(size: 14, design: .rounded))
                 .dynamicTypeSize(.small ... .large)
@@ -274,23 +325,16 @@ extension Color {
         Scanner(string: hex).scanHexInt64(&int)
         let a, r, g, b: UInt64
         switch hex.count {
-        case 3:
-            (a, r, g, b) = (255, (int >> 8) * 17, (int >> 4 & 0xF) * 17, (int & 0xF) * 17)
-        case 6:
-            (a, r, g, b) = (255, int >> 16, int >> 8 & 0xFF, int & 0xFF)
-        case 8:
-            (a, r, g, b) = (int >> 24, int >> 16 & 0xFF, int >> 8 & 0xFF, int & 0xFF)
-        default:
-            (a, r, g, b) = (255, 0, 0, 0)
+        case 3:  (a, r, g, b) = (255, (int >> 8) * 17, (int >> 4 & 0xF) * 17, (int & 0xF) * 17)
+        case 6:  (a, r, g, b) = (255, int >> 16, int >> 8 & 0xFF, int & 0xFF)
+        case 8:  (a, r, g, b) = (int >> 24, int >> 16 & 0xFF, int >> 8 & 0xFF, int & 0xFF)
+        default: (a, r, g, b) = (255, 0, 0, 0)
         }
-        
-        self.init(
-            .sRGB,
-            red: Double(r) / 255,
-            green: Double(g) / 255,
-            blue: Double(b) / 255,
-            opacity: Double(a) / 255
-        )
+        self.init(.sRGB,
+                  red: Double(r) / 255,
+                  green: Double(g) / 255,
+                  blue: Double(b) / 255,
+                  opacity: Double(a) / 255)
     }
 }
 
