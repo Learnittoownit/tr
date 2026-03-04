@@ -7,26 +7,28 @@ struct AI_PrePage: View {
     @State private var showQuestionnaire = false
     @Environment(\.dismiss) var dismiss
     @Environment(\.colorScheme) var colorScheme
-    
-    
+
     var onBack: (() -> Void)?
-    var goToMain: (() -> Void)? = nil   // ← ADD
+    var goToMain: (() -> Void)? = nil
+
     // MARK: - Info Row Component
     struct InfoRow: View {
         let icon: String
         let text: String
         @Environment(\.colorScheme) var colorScheme
-        
+
         var body: some View {
-            HStack(spacing: 15) {
+            HStack(spacing: 12) {
                 Image(systemName: icon)
                     .font(.system(size: 16, weight: .semibold))
                     .foregroundColor(Color("Green"))
-                    .frame(width: 24)
-                
+                    .frame(width: 24, height: 24)
+
                 Text(text)
                     .font(.system(size: 15, weight: .medium, design: .rounded))
                     .foregroundColor(Color("Light small text"))
+
+                Spacer()
             }
         }
     }
@@ -35,19 +37,19 @@ struct AI_PrePage: View {
         ZStack {
             Color("Background")
                 .ignoresSafeArea()
-                
+
             if showQuestionnaire {
                 AI_Questionnaire_View(
                     viewModel: viewModel,
                     showPrePage: $showQuestionnaire,
                     goToMain: goToMain
-                )            } else {
-                VStack(spacing: 35) {
-                    Spacer()
+                )
+            } else {
+                VStack(spacing: 0) {
                     Spacer()
 
-                    VStack(spacing: 25) {
-                        // Icon
+                    // ── HERO SECTION ─────────────────────────────────────
+                    VStack(spacing: 16) {
                         ZStack {
                             Circle()
                                 .fill(
@@ -60,72 +62,74 @@ struct AI_PrePage: View {
                                         endPoint: .bottomTrailing
                                     )
                                 )
-                                .frame(width: 180, height: 180)
-                            
+                                .frame(width: 160, height: 160)
+
                             Image(systemName: "sparkles")
-                                .font(.system(size: 60, weight: .medium))
+                                .font(.system(size: 56, weight: .medium))
                                 .foregroundColor(Color("Green"))
                         }
-                        
-                        // Title & Description
-                        VStack(spacing: 15) {
-                            Text("AI Trip Generator")
-                                .font(.system(size: 32, weight: .bold, design: .rounded))
-                                .foregroundColor(Color("Title"))
-                                .multilineTextAlignment(.center)
-                            
-                            Text("Let our AI create the perfect itinerary just for you").bold()
-                                .font(.system(size: 16, weight: .regular, design: .rounded))
-                                .foregroundColor(Color("Light small text"))
-                                .multilineTextAlignment(.center)
-                                .lineSpacing(4)
-                        }
-                        
-                        // Generations Counter Card
-                        VStack(spacing: 15) {
-                            HStack(spacing: 18) {
-                                Text("\(viewModel.remainingGenerations)")
-                                    .font(.system(size: 48, weight: .bold, design: .rounded))
-                                    .foregroundColor(Color("Green"))
-                                
-                                Text("/")
-                                    .font(.system(size: 32, weight: .medium, design: .rounded))
-                                    .foregroundColor(Color("Light small text").opacity(0.5))
-                                
-                                Text("5")
-                                    .font(.system(size: 32, weight: .semibold, design: .rounded))
-                                    .foregroundColor(Color("Light small text").opacity(0.7))
-                            }
-                            
-                            Text("Generations remaining this month")
-                                .font(.system(size: 15, weight: .medium, design: .rounded))
-                                .foregroundColor(Color("Light small text"))
-                        }
-                        .padding(.vertical, 24)
-                        .padding(.horizontal, 32)
-                        .frame(maxWidth: 320)
-                        .background(Color("Card"))
-                        .cornerRadius(24)
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 24)
-                                .stroke(Color("Card").opacity(0.15), lineWidth: 2)
-                        )
-                        
-                        // Info Points
-                        VStack(alignment: .leading, spacing: 18) {
-                            InfoRow(icon: "clock.fill",         text: "Takes only 2 minutes")
-                            InfoRow(icon: "brain.head.profile", text: "Personalized recommendations")
-                            InfoRow(icon: "arrow.clockwise",    text: "Resets monthly")
-                        }
-                        .padding(.horizontal, 40)
-                        .padding(.top, 22)
+
+                        Text("Trip Generator")
+                            .font(.system(size: 32, weight: .bold, design: .rounded))
+                            .foregroundColor(Color("Title"))
+                            .multilineTextAlignment(.center)
+
+                        Text("Let our AI create the perfect itinerary just for you!")
+                            .font(.system(size: 16, weight: .regular, design: .rounded))
+                            .foregroundColor(Color("Light small text"))
+                            .multilineTextAlignment(.center)
+                            .lineSpacing(4)
+                            .fixedSize(horizontal: false, vertical: true)
+                            .padding(.horizontal, 40)
                     }
-                    
-              
-                    
-                    // Bottom Buttons
-                    VStack(spacing: 10) {
-                        // Start Button
+
+                    Spacer().frame(height: 32)
+
+                    // ── COUNTER CARD ──────────────────────────────────────
+                    VStack(spacing: 8) {
+                        HStack(alignment: .firstTextBaseline, spacing: 12) {
+                            Text("\(viewModel.remainingGenerations)")
+                                .font(.system(size: 48, weight: .bold, design: .rounded))
+                                .foregroundColor(Color("Green"))
+
+                            Text("/")
+                                .font(.system(size: 28, weight: .medium, design: .rounded))
+                                .foregroundColor(Color("Light small text").opacity(0.4))
+
+                            Text("5")
+                                .font(.system(size: 28, weight: .semibold, design: .rounded))
+                                .foregroundColor(Color("Light small text").opacity(0.6))
+                        }
+
+                        Text("Generations remaining this month")
+                            .font(.system(size: 14, weight: .medium, design: .rounded))
+                            .foregroundColor(Color("Light small text"))
+                    }
+                    .padding(.vertical, 24)
+                    .frame(maxWidth: .infinity)
+                    .background(Color("Card"))
+                    .cornerRadius(24)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 24)
+                            .stroke(Color("Card").opacity(0.15), lineWidth: 2)
+                    )
+                    .padding(.horizontal, 24)
+
+                    Spacer().frame(height: 16)
+
+                    // ── INFO ROWS ─────────────────────────────────────────
+                    VStack(spacing: 16) {
+                        InfoRow(icon: "clock.fill",         text: "Takes only 2 minutes")
+                        InfoRow(icon: "brain.head.profile", text: "Personalized recommendations")
+                        InfoRow(icon: "arrow.clockwise",    text: "Resets monthly")
+                    }
+                    .padding(.horizontal, 36)
+                    .padding(.vertical, 20)
+
+                    Spacer()
+
+                    // ── BOTTOM BUTTONS ────────────────────────────────────
+                    VStack(spacing: 12) {
                         Button(action: {
                             if viewModel.remainingGenerations > 0 {
                                 viewModel.resetAllAnswers()
@@ -134,7 +138,7 @@ struct AI_PrePage: View {
                                 }
                             }
                         }) {
-                            Text("Start AI Generator")
+                            Text("Start")
                                 .font(.system(size: 18, weight: .semibold, design: .rounded))
                                 .foregroundColor(Color("Background"))
                                 .frame(maxWidth: .infinity)
@@ -149,7 +153,6 @@ struct AI_PrePage: View {
                         .opacity(viewModel.remainingGenerations > 0 ? 1.0 : 0.4)
                         .disabled(viewModel.remainingGenerations == 0)
 
-                        // Back Button
                         Button(action: {
                             if let onBack {
                                 onBack()
@@ -163,12 +166,12 @@ struct AI_PrePage: View {
                                 .font(.system(size: 16, weight: .semibold, design: .rounded))
                                 .foregroundColor(Color("Title"))
                                 .frame(maxWidth: .infinity)
-                                .frame(height: 50)
+                                .frame(height: 52)
                                 .background(Color("Card"))
-                                .cornerRadius(25)
+                                .cornerRadius(26)
                         }
                     }
-                    .padding(.horizontal, 30)
+                    .padding(.horizontal, 24)
                     .padding(.bottom, 40)
                 }
             }

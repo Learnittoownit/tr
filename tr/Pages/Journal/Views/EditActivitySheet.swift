@@ -5,6 +5,7 @@ struct EditActivitySheet: View {
     
     // MARK: - Environment
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.colorScheme) private var colorScheme
     
     // MARK: - Properties
     let activity: Activity
@@ -26,65 +27,58 @@ struct EditActivitySheet: View {
     private let availableColors = ["#E0C48A", "#9FAE8F", "#E6B3A2", "#9EC7C0", "#B9B2D8"]
     private let borderColors = ["#CFB682", "#8E9D7E", "#CD9E8E", "#8FB9B2", "#AFA7D2"]
     
+    private let brown = Color(hex: "#3A2F27")
+    private let softRed = Color(red: 0.72, green: 0.25, blue: 0.20) // muted red
+    
     // MARK: - Initialization
     init(activity: Activity, viewModel: TripDetailViewModel?) {
         self.activity = activity
         self.viewModel = viewModel
-        
-        // Pre-fill with existing data
         _activityName = State(initialValue: activity.name)
         _selectedTime = State(initialValue: activity.time)
-        _placeName = State(initialValue: activity.placeName ?? "")
-        _notes = State(initialValue: activity.notes ?? "")
-        _mapLink = State(initialValue: activity.mapLink ?? "")
+        _placeName    = State(initialValue: activity.placeName ?? "")
+        _notes        = State(initialValue: activity.notes ?? "")
+        _mapLink      = State(initialValue: activity.mapLink ?? "")
         _selectedColor = State(initialValue: activity.color)
     }
     
-    // MARK: - Computed Properties
-    private var isValidActivity: Bool {
-        !activityName.isEmpty
-    }
+    private var isValidActivity: Bool { !activityName.isEmpty }
     
     // MARK: - Body
     var body: some View {
-        ZStack {
-            Color("Background")
-                .ignoresSafeArea()
-            
-            VStack(spacing: 0) {
-                // Content - centered vertically
-                ScrollView {
-                    VStack(spacing: sectionSpacing) {
-                        // Activity Name
-                        inputField(
-                            placeholder: "Name of Place...",
-                            text: $activityName
-                        )
-                        
-                        // Time Picker
-                        timePicker
-                        
-                        // Links Section
-                        linksSection
-                        
-                        // Notes
-                        notesField
-                        
-                        // Color Picker
-                        colorPicker
-                    }
-                    .padding(.horizontal, 20)
-                    .padding(.top, 80)
-                    .padding(.bottom, 260)
-                }
+        NavigationStack {
+            ZStack {
+                Color("Background").ignoresSafeArea()
                 
-                // Bottom Buttons - Fixed at bottom
-                bottomButtons
+                VStack(spacing: 0) {
+                    ScrollView(showsIndicators: false) {
+                        VStack(spacing: sectionSpacing) {
+                            inputField(placeholder: "Name of Place...", text: $activityName)
+                            timePicker
+                            linksSection
+                            notesField
+                            colorPicker
+                        }
+                        .padding(.horizontal, 20)
+                        .padding(.top, 24)
+                        .padding(.bottom, 260)
+                    }
+                    bottomButtons
+                }
+            }
+            .navigationTitle("Edit Activity")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .navigationBarLeading) {
+                    Button("Cancel") { dismiss() }
+                        .font(.system(size: 17, design: .rounded))
+                        .foregroundStyle(colorScheme == .dark ? .white : brown)
+                }
             }
         }
     }
     
-    // MARK: - Input Field (ZStack placeholder)
+    // MARK: - Input Field
     private func inputField(placeholder: String, text: Binding<String>) -> some View {
         ZStack(alignment: .leading) {
             if text.wrappedValue.isEmpty {
@@ -93,11 +87,10 @@ struct EditActivitySheet: View {
                     .foregroundStyle(Color("Color 1").opacity(0.6))
                     .padding(.horizontal, 20)
             }
-            
             TextField("", text: text)
                 .font(.system(size: 16, design: .rounded))
                 .dynamicTypeSize(.medium ... .accessibility2)
-                .foregroundStyle(Color("Color 1")) // نص الحقل بلون Color 1
+                .foregroundStyle(Color("Color 1"))
                 .padding(.horizontal, 20)
         }
         .padding(.vertical, 16)
@@ -111,17 +104,11 @@ struct EditActivitySheet: View {
             Text("Time")
                 .font(.system(size: 16, design: .rounded))
                 .dynamicTypeSize(.medium ... .accessibility1)
-                .foregroundStyle(Color("Color 1")) // نص "Time" بلون Color 1
-            
+                .foregroundStyle(Color("Color 1"))
             Spacer()
-            
-            DatePicker(
-                "",
-                selection: $selectedTime,
-                displayedComponents: .hourAndMinute
-            )
-            .labelsHidden()
-            .tint(Color("Color 1")) // لون الوقت/المؤشرات بنفس Color 1
+            DatePicker("", selection: $selectedTime, displayedComponents: .hourAndMinute)
+                .labelsHidden()
+                .tint(Color("Color 1"))
         }
         .padding(.horizontal, 20)
         .padding(.vertical, 16)
@@ -129,40 +116,36 @@ struct EditActivitySheet: View {
         .clipShape(RoundedRectangle(cornerRadius: 35))
     }
     
-    // MARK: - Links Section (ZStack placeholder)
+    // MARK: - Links Section
     private var linksSection: some View {
-        VStack(spacing: 12) {
-            ZStack(alignment: .leading) {
-                if mapLink.isEmpty {
-                    HStack(spacing: 8) {
-                        Image(systemName: "link")
-                            .font(.system(size: 14, design: .rounded))
-                            .foregroundStyle(.gray)
-                            .accessibilityHidden(true)
-                        Text("Map, Menu, Booking...")
-                            .font(.system(size: 15, design: .rounded))
-                            .foregroundStyle(Color("Color 1").opacity(0.6))
-                    }
-                    .padding(.horizontal, 20)
-                }
-                
-                HStack {
+        ZStack(alignment: .leading) {
+            if mapLink.isEmpty {
+                HStack(spacing: 8) {
                     Image(systemName: "link")
-                        .font(.system(size: 14, design: .rounded))
-                        .foregroundStyle(.gray) // الأيقونة تبقى رمادية
+                        .font(.system(size: 14))
+                        .foregroundStyle(Color("Color 1").opacity(0.6))
                         .accessibilityHidden(true)
-                    
-                    TextField("", text: $mapLink)
+                    Text("Map, Menu, Booking...")
                         .font(.system(size: 15, design: .rounded))
-                        .dynamicTypeSize(.small ... .accessibility2)
-                        .foregroundStyle(Color("Color 1")) // نص الروابط بلون Color 1
+                        .foregroundStyle(Color("Color 1").opacity(0.6))
                 }
                 .padding(.horizontal, 20)
             }
-            .padding(.vertical, 16)
-            .background(Color("InputField"))
-            .clipShape(RoundedRectangle(cornerRadius: 35))
+            HStack {
+                Image(systemName: "link")
+                    .font(.system(size: 14))
+                    .foregroundStyle(.gray)
+                    .accessibilityHidden(true)
+                TextField("", text: $mapLink)
+                    .font(.system(size: 15, design: .rounded))
+                    .dynamicTypeSize(.small ... .accessibility2)
+                    .foregroundStyle(Color("Color 1"))
+            }
+            .padding(.horizontal, 20)
         }
+        .padding(.vertical, 16)
+        .background(Color("InputField"))
+        .clipShape(RoundedRectangle(cornerRadius: 35))
     }
     
     // MARK: - Notes Field
@@ -171,18 +154,16 @@ struct EditActivitySheet: View {
             TextEditor(text: $notes)
                 .font(.system(size: 15, design: .rounded))
                 .dynamicTypeSize(.small ... .accessibility2)
-                .foregroundStyle(Color("Color 1")) // نص الملاحظات بلون Color 1
+                .foregroundStyle(Color("Color 1"))
                 .frame(height: 100)
                 .padding(12)
                 .background(Color("InputField"))
                 .clipShape(RoundedRectangle(cornerRadius: 35))
                 .scrollContentBackground(.hidden)
-            
             if notes.isEmpty {
                 Text("Description, reminders, tips...")
                     .font(.system(size: 15, design: .rounded))
-                    .dynamicTypeSize(.small ... .accessibility1)
-                    .foregroundStyle(Color("Color 1").opacity(0.6)) // Placeholder بنفس اللون بدرجة أخف
+                    .foregroundStyle(Color("Color 1").opacity(0.6))
                     .padding(.horizontal, 20)
                     .padding(.vertical, 20)
                     .allowsHitTesting(false)
@@ -193,8 +174,7 @@ struct EditActivitySheet: View {
     // MARK: - Color Picker
     private var colorPicker: some View {
         HStack(spacing: 16) {
-            // First 4 static colors
-            ForEach(Array(availableColors.prefix(4).enumerated()), id: \.offset) { index, color in
+            ForEach(Array(availableColors.prefix(4).enumerated()), id: \.offset) { _, color in
                 Button {
                     selectedColor = color
                 } label: {
@@ -202,24 +182,22 @@ struct EditActivitySheet: View {
                         .fill(Color(hex: color))
                         .frame(width: 50, height: 50)
                         .overlay(
-                            Circle()
-                                .strokeBorder(
-                                    Color(hex: selectedColor == color ? "#403029" : "clear"),
-                                    lineWidth: selectedColor == color ? 3 : 0
-                                )
+                            Circle().strokeBorder(
+                                Color(hex: selectedColor == color ? "#403029" : "clear"),
+                                lineWidth: selectedColor == color ? 3 : 0
+                            )
                         )
                 }
                 .accessibilityLabel("Select color")
                 .accessibilityAddTraits(selectedColor == color ? .isSelected : [])
             }
             
-            // Native iOS Color Picker (same size as circles)
             ColorPicker("", selection: Binding(
                 get: { Color(hex: selectedColor) },
                 set: { newColor in selectedColor = newColor.toHex() }
             ), supportsOpacity: false)
             .labelsHidden()
-            .frame(width: 50, height: 50)  // Same size as static colors
+            .frame(width: 50, height: 50)
         }
         .frame(maxWidth: .infinity)
         .padding(.top, 8)
@@ -228,7 +206,7 @@ struct EditActivitySheet: View {
     // MARK: - Bottom Buttons
     private var bottomButtons: some View {
         VStack(spacing: 12) {
-            // Update Button
+            // Save Button
             Button {
                 updateActivity()
             } label: {
@@ -243,7 +221,7 @@ struct EditActivitySheet: View {
             }
             .disabled(!isValidActivity)
             
-            // Delete Button
+            // Delete Button — muted red, not bright
             Button(role: .destructive) {
                 deleteActivity()
             } label: {
@@ -253,7 +231,7 @@ struct EditActivitySheet: View {
                     .foregroundStyle(.white)
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 16)
-                    .background(Color.red)
+                    .background(softRed)
                     .clipShape(RoundedRectangle(cornerRadius: 100))
             }
             
@@ -277,12 +255,7 @@ struct EditActivitySheet: View {
     
     // MARK: - Methods
     private func updateActivity() {
-        guard let viewModel = viewModel else {
-            print("❌ ViewModel is nil!")
-            dismiss()
-            return
-        }
-        
+        guard let viewModel = viewModel else { dismiss(); return }
         viewModel.updateActivity(
             activity,
             name: activityName,
@@ -296,12 +269,7 @@ struct EditActivitySheet: View {
     }
     
     private func deleteActivity() {
-        guard let viewModel = viewModel else {
-            print("❌ ViewModel is nil!")
-            dismiss()
-            return
-        }
-        
+        guard let viewModel = viewModel else { dismiss(); return }
         viewModel.deleteActivity(activity)
         dismiss()
     }
@@ -315,9 +283,5 @@ struct EditActivitySheet: View {
         color: "#7E5E5E",
         notes: "Don't forget wallet"
     )
-    
-    return EditActivitySheet(
-        activity: activity,
-        viewModel: nil
-    )
+    return EditActivitySheet(activity: activity, viewModel: nil)
 }

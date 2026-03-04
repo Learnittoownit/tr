@@ -5,6 +5,7 @@ struct AddActivitySheet: View {
     
     // MARK: - Environment
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.colorScheme) private var colorScheme
     
     // MARK: - Properties
     let day: Day
@@ -16,79 +17,64 @@ struct AddActivitySheet: View {
     @State private var placeName = ""
     @State private var notes = ""
     @State private var mapLink = ""
-    @State private var menuLink = ""
-    @State private var bookingLink = ""
-    @State private var selectedColor = "#E0C48A" // Default golden
-//    @State private var showingColorPicker = false
+    @State private var selectedColor = "#E0C48A"
     
     // MARK: - Scaled Metrics
-    @ScaledMetric private var inputPadding: CGFloat = 16
     @ScaledMetric private var sectionSpacing: CGFloat = 16
     
     // MARK: - Available Colors
     private let availableColors = ["#E0C48A", "#9FAE8F", "#E6B3A2", "#9EC7C0", "#B9B2D8"]
     
-    // MARK: - Computed Properties
-    private var isValidActivity: Bool {
-        !activityName.isEmpty
-    }
+    private var isValidActivity: Bool { !activityName.isEmpty }
+    private let brown = Color(hex: "#3A2F27")
     
     // MARK: - Body
     var body: some View {
-        ZStack {
-            Color("Background")
-                .ignoresSafeArea()
-            
-            VStack(spacing: 0) {
-                // Content - centered vertically
-                ScrollView {
-                    VStack(spacing: sectionSpacing) {
-                        // Activity Name
-                        inputField(
-                            placeholder: "Name of Place...",
-                            text: $activityName
-                        )
-                        
-                        // Time Picker
-                        timePicker
-                        
-                        // Links Section
-                        linksSection
-                        
-                        // Notes
-                        notesField
-                        
-                        // Color Picker
-                        colorPicker
-                    }
-                    .padding(.horizontal, 20)
-                    .padding(.top, 80)
-                    .padding(.bottom, 200)
-                }
+        NavigationStack {
+            ZStack {
+                Color("Background").ignoresSafeArea()
                 
-                // Bottom Buttons - Fixed at bottom
-                bottomButtons
+                VStack(spacing: 0) {
+                    ScrollView(showsIndicators: false) {
+                        VStack(spacing: sectionSpacing) {
+                            inputField(placeholder: "Name of Place...", text: $activityName)
+                            timePicker
+                            linksSection
+                            notesField
+                            colorPicker
+                        }
+                        .padding(.horizontal, 20)
+                        .padding(.top, 24)
+                        .padding(.bottom, 200)
+                    }
+                    bottomButtons
+                }
+            }
+            .navigationTitle("Add Activity")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .navigationBarLeading) {
+                    Button("Cancel") { dismiss() }
+                        .font(.system(size: 17, design: .rounded))
+                        .foregroundStyle(colorScheme == .dark ? .white : brown)
+                }
             }
         }
-//        .sheet(isPresented: $showingColorPicker) {
-//            CustomColorPickerSheet(selectedColor: $selectedColor)
-//        }
     }
     
-    // MARK: - Input Field (custom placeholder)
+    // MARK: - Input Field
     private func inputField(placeholder: String, text: Binding<String>) -> some View {
         ZStack(alignment: .leading) {
             if text.wrappedValue.isEmpty {
                 Text(placeholder)
                     .font(.system(size: 16, design: .rounded))
-                    .foregroundStyle(Color("Color 1").opacity(0.6)) // custom placeholder color
+                    .foregroundStyle(Color("Color 1").opacity(0.6))
                     .padding(.horizontal, 20)
             }
-            
             TextField("", text: text)
                 .font(.system(size: 16, design: .rounded))
                 .dynamicTypeSize(.medium ... .accessibility2)
-                .foregroundStyle(Color("Color 1")) // Match description text color
+                .foregroundStyle(Color("Color 1"))
                 .padding(.horizontal, 20)
         }
         .padding(.vertical, 16)
@@ -102,17 +88,11 @@ struct AddActivitySheet: View {
             Text("Time")
                 .font(.system(size: 16, design: .rounded))
                 .dynamicTypeSize(.medium ... .accessibility1)
-                .foregroundStyle(Color("Color 1")) // Match description text color
-            
+                .foregroundStyle(Color("Color 1"))
             Spacer()
-            
-            DatePicker(
-                "",
-                selection: $selectedTime,
-                displayedComponents: .hourAndMinute
-            )
-            .labelsHidden()
-            .tint(Color("Color 1")) // Controls picker tint
+            DatePicker("", selection: $selectedTime, displayedComponents: .hourAndMinute)
+                .labelsHidden()
+                .tint(Color("Color 1"))
         }
         .padding(.horizontal, 20)
         .padding(.vertical, 16)
@@ -120,40 +100,36 @@ struct AddActivitySheet: View {
         .clipShape(RoundedRectangle(cornerRadius: 35))
     }
     
-    // MARK: - Links Section (custom placeholder)
+    // MARK: - Links Section
     private var linksSection: some View {
-        VStack(spacing: 12) {
-            ZStack(alignment: .leading) {
-                if mapLink.isEmpty {
-                    HStack(spacing: 8) {
-                        Image(systemName: "link")
-                            .font(.system(size: 14, design: .rounded))
-                            .foregroundStyle(Color("Color 1").opacity(0.6))
-                            .accessibilityHidden(true)
-                        Text("Map, Menu, Booking...")
-                            .font(.system(size: 16, design: .rounded))
-                            .foregroundStyle(Color("Color 1").opacity(0.6))
-                    }
-                    .padding(.horizontal, 20)
-                }
-                
-                HStack {
+        ZStack(alignment: .leading) {
+            if mapLink.isEmpty {
+                HStack(spacing: 8) {
                     Image(systemName: "link")
-                        .font(.system(size: 14, design: .rounded))
-                        .foregroundStyle(Color("Color 1"))
+                        .font(.system(size: 14))
+                        .foregroundStyle(Color("Color 1").opacity(0.6))
                         .accessibilityHidden(true)
-                    
-                    TextField("", text: $mapLink)
+                    Text("Map, Menu, Booking...")
                         .font(.system(size: 16, design: .rounded))
-                        .dynamicTypeSize(.medium ... .accessibility1)
-                        .foregroundStyle(Color("Color 1")) // Match description text color
+                        .foregroundStyle(Color("Color 1").opacity(0.6))
                 }
                 .padding(.horizontal, 20)
             }
-            .padding(.vertical, 16)
-            .background(Color("InputField"))
-            .clipShape(RoundedRectangle(cornerRadius: 35))
+            HStack {
+                Image(systemName: "link")
+                    .font(.system(size: 14))
+                    .foregroundStyle(Color("Color 1"))
+                    .accessibilityHidden(true)
+                TextField("", text: $mapLink)
+                    .font(.system(size: 16, design: .rounded))
+                    .dynamicTypeSize(.medium ... .accessibility1)
+                    .foregroundStyle(Color("Color 1"))
+            }
+            .padding(.horizontal, 20)
         }
+        .padding(.vertical, 16)
+        .background(Color("InputField"))
+        .clipShape(RoundedRectangle(cornerRadius: 35))
     }
     
     // MARK: - Notes Field
@@ -162,19 +138,17 @@ struct AddActivitySheet: View {
             TextEditor(text: $notes)
                 .font(.system(size: 15, design: .rounded))
                 .dynamicTypeSize(.small ... .accessibility2)
-                .foregroundStyle(Color("Color 1")) // Description text color
+                .foregroundStyle(Color("Color 1"))
                 .frame(height: 100)
                 .padding(.horizontal, 20)
                 .padding(.vertical, 16)
                 .background(Color("InputField"))
                 .clipShape(RoundedRectangle(cornerRadius: 35))
                 .scrollContentBackground(.hidden)
-            
             if notes.isEmpty {
                 Text("Description, reminders, tips...")
                     .font(.system(size: 15, design: .rounded))
-                    .dynamicTypeSize(.small ... .accessibility1)
-                    .foregroundStyle(Color("Color 1").opacity(0.6)) // subtle placeholder
+                    .foregroundStyle(Color("Color 1").opacity(0.6))
                     .padding(.horizontal, 20)
                     .padding(.vertical, 20)
                     .allowsHitTesting(false)
@@ -185,8 +159,7 @@ struct AddActivitySheet: View {
     // MARK: - Color Picker
     private var colorPicker: some View {
         HStack(spacing: 16) {
-            // First 4 static colors
-            ForEach(Array(availableColors.prefix(4).enumerated()), id: \.offset) { index, color in
+            ForEach(Array(availableColors.prefix(4).enumerated()), id: \.offset) { _, color in
                 Button {
                     selectedColor = color
                 } label: {
@@ -194,18 +167,16 @@ struct AddActivitySheet: View {
                         .fill(Color(hex: color))
                         .frame(width: 50, height: 50)
                         .overlay(
-                            Circle()
-                                .strokeBorder(
-                                    Color(hex: selectedColor == color ? "#403029" : "clear"),
-                                    lineWidth: selectedColor == color ? 3 : 0
-                                )
+                            Circle().strokeBorder(
+                                Color(hex: selectedColor == color ? "#403029" : "clear"),
+                                lineWidth: selectedColor == color ? 3 : 0
+                            )
                         )
                 }
                 .accessibilityLabel("Select color")
                 .accessibilityAddTraits(selectedColor == color ? .isSelected : [])
             }
             
-            // Native iOS Color Picker (same size as circles)
             ColorPicker("", selection: Binding(
                 get: { Color(hex: selectedColor) },
                 set: { newColor in selectedColor = newColor.toHex() }
@@ -216,10 +187,10 @@ struct AddActivitySheet: View {
         .frame(maxWidth: .infinity)
         .padding(.top, 8)
     }
+    
     // MARK: - Bottom Buttons
     private var bottomButtons: some View {
         VStack(spacing: 12) {
-            // Add Button
             Button {
                 addActivity()
             } label: {
@@ -234,7 +205,6 @@ struct AddActivitySheet: View {
             }
             .disabled(!isValidActivity)
             
-            // Cancel Button
             Button {
                 dismiss()
             } label: {
@@ -252,14 +222,13 @@ struct AddActivitySheet: View {
         .background(Color("Background"))
     }
     
-    // MARK: - Methods
+    // MARK: - Add Activity
     private func addActivity() {
         guard let viewModel = viewModel else {
             print("❌ ViewModel is nil!")
             dismiss()
             return
         }
-        
         viewModel.addActivity(
             to: day,
             name: activityName,
@@ -300,22 +269,18 @@ extension Color {
         guard let components = UIColor(self).cgColor.components, components.count >= 3 else {
             return "#000000"
         }
-        
         let r = Float(components[0])
         let g = Float(components[1])
         let b = Float(components[2])
-        
         return String(format: "#%02lX%02lX%02lX",
-                     lroundf(r * 255),
-                     lroundf(g * 255),
-                     lroundf(b * 255))
+                      lroundf(r * 255),
+                      lroundf(g * 255),
+                      lroundf(b * 255))
     }
 }
 
 // MARK: - Preview
 #Preview {
-    AddActivitySheet(
-        day: Day(date: Date(), dayNumber: 2),
-        viewModel: nil
-    )
+    AddActivitySheet(day: Day(date: Date(), dayNumber: 2), viewModel: nil)
+    
 }

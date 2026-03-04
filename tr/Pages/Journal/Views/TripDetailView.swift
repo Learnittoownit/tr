@@ -1,13 +1,10 @@
 import SwiftUI
 import SwiftData
 
-// File-scoped color mapping helper so it's accessible to nested views in this file
 func getBorderColor(for mainColor: String) -> String {
     let colorMap: [String: String] = [
-        "#E0C48A": "#CFB682",
-        "#9FAE8F": "#8E9D7E",
-        "#E6B3A2": "#CD9E8E",
-        "#9EC7C0": "#8FB9B2",
+        "#E0C48A": "#CFB682", "#9FAE8F": "#8E9D7E",
+        "#E6B3A2": "#CD9E8E", "#9EC7C0": "#8FB9B2",
         "#B9B2D8": "#AFA7D2"
     ]
     return colorMap[mainColor] ?? mainColor
@@ -23,26 +20,28 @@ struct TripDetailView: View {
     // MARK: - State
     let trip: Trip
     @State private var viewModel: TripDetailViewModel?
-    @State private var selectedDay: Day?  // Used with .sheet(item:)
-    @State private var selectedActivity: Activity?  // Used with .sheet(item:)
+    @State private var selectedDay: Day?
+    @State private var selectedActivity: Activity?
     @State private var showingColorPicker = false
-    
-    // Editable properties
-    @State private var tripName: String = ""
-    @State private var selectedColor: String = ""
+
+    // Task 9
+    @State private var showExtendTrip     = false
+    @State private var dayToDelete: Day?  = nil
+    @State private var showDeleteDayAlert = false
+
+    // Editable
+    @State private var tripName      = ""
+    @State private var selectedColor = ""
     @State private var isEditingName = false
-    
-    // Track changes
-    @State private var hasChanges = false
+    @State private var hasChanges    = false
     
     // MARK: - Body
     var body: some View {
         ZStack {
-            Color("Background")
-                .ignoresSafeArea()
+            Color("Background").ignoresSafeArea()
             
             VStack(spacing: 0) {
-                // Extended Colored Header
+                // ── Colored Header ────────────────────────────────────────
                 ZStack(alignment: .bottom) {
                     Color(hex: selectedColor)
                         .ignoresSafeArea(edges: .top)
@@ -57,9 +56,7 @@ struct TripDetailView: View {
                                 .foregroundStyle(Color(hex: "#3A2F27"))
                                 .onSubmit {
                                     isEditingName = false
-                                    if tripName != trip.name {
-                                        hasChanges = true
-                                    }
+                                    if tripName != trip.name { hasChanges = true }
                                 }
                         } else {
                             Text(tripName)
@@ -68,17 +65,23 @@ struct TripDetailView: View {
                                 .foregroundStyle(Color(hex: "#3A2F27"))
                                 .lineLimit(2)
                                 .minimumScaleFactor(0.8)
-                                .onTapGesture {
-                                    isEditingName = true
-                                }
+                                .onTapGesture { isEditingName = true }
                         }
                         
                         HStack {
-                            Text(trip.dateRangeString)
-                                .font(.system(size: 15, design: .rounded))
-                                .dynamicTypeSize(.small ... .accessibility1)
-                                .foregroundStyle(Color(hex: "#5A4A3D"))
-                                .minimumScaleFactor(0.9)
+                            // Task 9: Tappable date range → opens ExtendTripSheet
+                            Button {
+                                showExtendTrip = true
+                            } label: {
+                                HStack(spacing: 5) {
+                                    Text(trip.dateRangeString)
+                                        .font(.system(size: 15, design: .rounded))
+                                        .foregroundStyle(Color(hex: "#5A4A3D"))
+                                    Image(systemName: "calendar.badge.plus")
+                                        .font(.system(size: 13))
+                                        .foregroundStyle(Color(hex: "#4A5D4E"))
+                                }
+                            }
                             
                             Spacer()
                             
@@ -97,7 +100,6 @@ struct TripDetailView: View {
                                 .foregroundStyle(Color(hex: "#3A2F27"))
                                 .padding(.horizontal, 12)
                                 .padding(.vertical, 6)
-                                // White capsule in dark mode; keep semi-transparent white in light mode
                                 .background(colorScheme == .dark ? Color.white : Color.white.opacity(0.6))
                                 .clipShape(Capsule())
                             }
@@ -109,7 +111,7 @@ struct TripDetailView: View {
                     .padding(.bottom, 20)
                 }
                 
-                // Days List (cream background)
+                // ── Days List ─────────────────────────────────────────────
                 ScrollView {
                     VStack(spacing: 16) {
                         if let viewModel = viewModel {
@@ -117,18 +119,17 @@ struct TripDetailView: View {
                                 DayRow(
                                     day: day,
                                     isExpanded: viewModel.isDayExpanded(at: index),
-                                    onToggle: {
-                                        viewModel.toggleDay(at: index)
-                                    },
-                                    onAddActivity: {
-                                        selectedDay = day
-                                    },
-                                    onEditActivity: { activity in
-                                        selectedActivity = activity
-                                    },
+                                    onToggle: { viewModel.toggleDay(at: index) },
+                                    onAddActivity: { selectedDay = day },
+                                    onEditActivity: { activity in selectedActivity = activity },
                                     onDeleteActivity: { activity in
                                         viewModel.deleteActivity(activity)
                                         hasChanges = true
+                                    },
+                                    onDeleteDay: {
+                                        // Task 9: long press or context menu on day card
+                                        dayToDelete = day
+                                        showDeleteDayAlert = true
                                     }
                                 )
                             }
@@ -144,23 +145,17 @@ struct TripDetailView: View {
         .navigationBarBackButtonHidden(true)
         .toolbar {
             ToolbarItem(placement: .navigationBarLeading) {
-                Button {
-                    dismiss()
-                } label: {
+                Button { dismiss() } label: {
                     Text("Back")
                         .font(.system(size: 17, design: .rounded))
-                        .foregroundStyle(colorScheme == .dark ? Color.white : Color(hex: "#3A2F27"))
+                        .foregroundStyle(colorScheme == .dark ? .white : Color(hex: "#3A2F27"))
                 }
             }
-            
             ToolbarItem(placement: .navigationBarTrailing) {
-                Button {
-                    saveChanges()
-                } label: {
+                Button { saveChanges() } label: {
                     Text("Save")
                         .font(.system(size: 17, weight: .semibold, design: .rounded))
-                        // Make Save white in dark mode (even when disabled), keep existing behavior in light mode
-                        .foregroundStyle(colorScheme == .dark ? Color.white : (hasChanges ? Color(hex: "#3A2F27") : .gray))
+                        .foregroundStyle(colorScheme == .dark ? .white : (hasChanges ? Color(hex: "#3A2F27") : .gray))
                 }
                 .disabled(!hasChanges)
             }
@@ -168,45 +163,64 @@ struct TripDetailView: View {
         .sheet(item: $selectedDay) { day in
             if let viewModel = viewModel {
                 AddActivitySheet(day: day, viewModel: viewModel)
-                    .onDisappear {
-                        hasChanges = true
-                    }
+                    .onDisappear { hasChanges = true }
             }
         }
         .sheet(item: $selectedActivity) { activity in
             if let viewModel = viewModel {
                 EditActivitySheet(activity: activity, viewModel: viewModel)
-                    .onDisappear {
-                        hasChanges = true
-                    }
+                    .onDisappear { hasChanges = true }
             }
         }
         .sheet(isPresented: $showingColorPicker, onDismiss: {
-            if selectedColor != trip.colorTheme {
-                hasChanges = true
-            }
+            if selectedColor != trip.colorTheme { hasChanges = true }
         }) {
             TripColorPickerSheet(selectedColor: $selectedColor)
+        }
+        // Task 9: Extend trip sheet
+        .sheet(isPresented: $showExtendTrip) {
+            ExtendTripSheet(
+                currentStartDate: trip.startDate,
+                currentEndDate: trip.endDate
+            ) { newEndDate in
+                viewModel?.extendTrip(to: newEndDate)
+                hasChanges = true
+            }
+        }
+        // Task 9: Delete day confirmation
+        .confirmationDialog(
+            dayToDelete != nil ? "Delete Day \(dayToDelete!.dayNumber)?" : "Delete Day?",
+            isPresented: $showDeleteDayAlert,
+            titleVisibility: .visible
+        ) {
+            Button("Delete Day", role: .destructive) {
+                if let day = dayToDelete {
+                    viewModel?.deleteDay(day)
+                    hasChanges = true
+                }
+                dayToDelete = nil
+            }
+            Button("Cancel", role: .cancel) { dayToDelete = nil }
+        } message: {
+            Text("This will permanently delete the day and all its activities.")
         }
         .onAppear {
             if viewModel == nil {
                 viewModel = TripDetailViewModel(modelContext: modelContext, trip: trip)
             }
-            tripName = trip.name
+            tripName      = trip.name
             selectedColor = trip.colorTheme
         }
     }
     
-    // MARK: - Save Changes
     private func saveChanges() {
-        trip.name = tripName
+        trip.name       = tripName
         trip.colorTheme = selectedColor
-        trip.updatedAt = Date()
-        
+        trip.updatedAt  = Date()
         do {
             try modelContext.save()
             hasChanges = false
-            print("✅ Trip saved successfully")
+            print("✅ Trip saved")
             dismiss()
         } catch {
             print("❌ Error saving trip: \(error)")
@@ -214,7 +228,7 @@ struct TripDetailView: View {
     }
 }
 
-// MARK: - Day Row Component
+// MARK: - Day Row
 struct DayRow: View {
     let day: Day
     let isExpanded: Bool
@@ -222,15 +236,14 @@ struct DayRow: View {
     let onAddActivity: () -> Void
     let onEditActivity: (Activity) -> Void
     let onDeleteActivity: (Activity) -> Void
-    
+    let onDeleteDay: () -> Void               // Task 9
+
     @ScaledMetric private var dayPadding: CGFloat = 24
     
     var body: some View {
         VStack(spacing: 0) {
-            // Day Header (always visible)
-            Button {
-                onToggle()
-            } label: {
+            // Day Header
+            Button { onToggle() } label: {
                 HStack {
                     VStack(alignment: .leading, spacing: 4) {
                         Text("Day \(day.dayNumber)")
@@ -238,18 +251,15 @@ struct DayRow: View {
                             .dynamicTypeSize(.medium ... .accessibility1)
                             .foregroundStyle(Color(hex: "#3A2F27"))
                             .minimumScaleFactor(0.9)
-                        
                         Text(day.dateString)
                             .font(.system(size: 13, design: .rounded))
                             .dynamicTypeSize(.small ... .large)
                             .foregroundStyle(Color(hex: "#7A6A5A"))
                             .minimumScaleFactor(0.9)
                     }
-                    
                     Spacer()
-                    
                     Image(systemName: isExpanded ? "chevron.up" : "chevron.down")
-                        .font(.system(size: 14, weight: .semibold, design: .rounded))
+                        .font(.system(size: 14, weight: .semibold))
                         .foregroundStyle(Color(hex: "#3A2F27"))
                         .accessibilityHidden(true)
                 }
@@ -260,13 +270,20 @@ struct DayRow: View {
                 .shadow(color: .black.opacity(0.05), radius: 4, x: 0, y: 2)
             }
             .buttonStyle(PlainButtonStyle())
+            // Task 9: long press or context menu to delete day
+            .contextMenu {
+                Button(role: .destructive) {
+                    onDeleteDay()
+                } label: {
+                    Label("Delete Day", systemImage: "trash")
+                }
+            }
             .accessibilityLabel("Day \(day.dayNumber), \(day.dateString)")
-            .accessibilityHint(isExpanded ? "Tap to collapse" : "Tap to expand")
+            .accessibilityHint(isExpanded ? "Tap to collapse" : "Tap to expand and hold to delete")
             
             // Expanded Content
             if isExpanded {
                 VStack(spacing: 12) {
-                    // Activities
                     ForEach(day.sortedActivities) { activity in
                         ActivityCard(
                             activity: activity,
@@ -282,13 +299,10 @@ struct DayRow: View {
                         }
                     }
                     
-                    // Add Activity Button
-                    Button {
-                        onAddActivity()
-                    } label: {
+                    Button { onAddActivity() } label: {
                         HStack {
                             Image(systemName: "plus.circle.fill")
-                                .font(.system(size: 16, design: .rounded))
+                                .font(.system(size: 16))
                             Text("Add Activity")
                                 .font(.system(size: 15, weight: .medium, design: .rounded))
                                 .dynamicTypeSize(.medium ... .accessibility1)
@@ -296,7 +310,7 @@ struct DayRow: View {
                         .foregroundStyle(.white)
                         .frame(maxWidth: .infinity)
                         .padding(.vertical, 14)
-                        .background(Color(hex: "#403029"))  // Fixed hex to match light mode in all appearances
+                        .background(Color(hex: "#403029"))
                         .clipShape(RoundedRectangle(cornerRadius: 35))
                     }
                     .accessibilityLabel("Add activity to day \(day.dayNumber)")
@@ -307,7 +321,7 @@ struct DayRow: View {
     }
 }
 
-// MARK: - Activity Card Component
+// MARK: - Activity Card
 struct ActivityCard: View {
     let activity: Activity
     let onEdit: () -> Void
@@ -322,14 +336,12 @@ struct ActivityCard: View {
                         .dynamicTypeSize(.small ... .accessibility1)
                         .foregroundStyle(Color(hex: "#3A2F27"))
                         .minimumScaleFactor(0.9)
-                    
                     Text(activity.name)
                         .font(.system(size: 16, weight: .medium, design: .rounded))
                         .dynamicTypeSize(.medium ... .accessibility3)
                         .foregroundStyle(Color(hex: "#3A2F27"))
                         .lineLimit(3)
                         .minimumScaleFactor(0.85)
-                    
                     if let notes = activity.notes, !notes.isEmpty {
                         Text(notes)
                             .font(.system(size: 13, design: .rounded))
@@ -338,33 +350,21 @@ struct ActivityCard: View {
                             .lineLimit(2)
                             .minimumScaleFactor(0.9)
                     }
-                    
-                    // Clickable Link
                     if let mapLink = activity.mapLink, !mapLink.isEmpty {
-                        Button {
-                            openURL(mapLink)
-                        } label: {
+                        Button { openURL(mapLink) } label: {
                             HStack(spacing: 4) {
-                                Image(systemName: "link")
-                                    .font(.system(size: 12, design: .rounded))
-                                Text(mapLink)
-                                    .font(.system(size: 12, design: .rounded))
-                                    .lineLimit(1)
+                                Image(systemName: "link").font(.system(size: 12))
+                                Text(mapLink).font(.system(size: 12)).lineLimit(1)
                             }
                             .foregroundStyle(.blue)
                         }
                         .padding(.top, 4)
                     }
                 }
-                
                 Spacer()
-                
-                // Edit Button - No background
-                Button {
-                    onEdit()
-                } label: {
+                Button { onEdit() } label: {
                     Image(systemName: "square.and.pencil")
-                        .font(.system(size: 18, design: .rounded))
+                        .font(.system(size: 18))
                         .foregroundStyle(Color(hex: "#5A4A3D"))
                 }
                 .accessibilityLabel("Edit activity")
@@ -376,14 +376,12 @@ struct ActivityCard: View {
         .accessibilityElement(children: .combine)
     }
     
-    // MARK: - Open URL
     private func openURL(_ urlString: String) {
-        var formattedURL = urlString
+        var formatted = urlString
         if !urlString.hasPrefix("http://") && !urlString.hasPrefix("https://") {
-            formattedURL = "https://\(urlString)"
+            formatted = "https://\(urlString)"
         }
-        
-        if let url = URL(string: formattedURL) {
+        if let url = URL(string: formatted) {
             UIApplication.shared.open(url)
         }
     }
@@ -393,10 +391,9 @@ struct ActivityCard: View {
 struct LinkBadge: View {
     let icon: String
     let color: String
-    
     var body: some View {
         Image(systemName: icon)
-            .font(.system(size: 10, design: .rounded))
+            .font(.system(size: 10))
             .foregroundStyle(.white)
             .frame(width: 20, height: 20)
             .background(Color(hex: color))
@@ -404,42 +401,29 @@ struct LinkBadge: View {
     }
 }
 
-// MARK: - Color Picker Sheet
+// MARK: - Trip Color Picker Sheet
 struct TripColorPickerSheet: View {
     @Environment(\.dismiss) private var dismiss
     @Binding var selectedColor: String
-    
-    let columns = [
-        GridItem(.flexible()),
-        GridItem(.flexible()),
-        GridItem(.flexible()),
-        GridItem(.flexible())
-    ]
+    let columns = [GridItem(.flexible()), GridItem(.flexible()), GridItem(.flexible()), GridItem(.flexible())]
     
     var body: some View {
         NavigationStack {
             VStack(spacing: 20) {
                 LazyVGrid(columns: columns, spacing: 20) {
                     ForEach(Trip.availableThemes, id: \.self) { color in
-                        Button {
-                            selectedColor = color
-                            dismiss()
-                        } label: {
+                        Button { selectedColor = color; dismiss() } label: {
                             Circle()
                                 .fill(Color(hex: color))
                                 .frame(width: 60, height: 60)
-                                .overlay(
-                                    Circle()
-                                        .strokeBorder(
-                                            selectedColor == color ? Color(hex: "#3A2F27") : Color.clear,
-                                            lineWidth: 3
-                                        )
-                                )
+                                .overlay(Circle().strokeBorder(
+                                    selectedColor == color ? Color(hex: "#3A2F27") : Color.clear,
+                                    lineWidth: 3
+                                ))
                         }
                     }
                 }
                 .padding(.top, 20)
-                
                 Spacer()
             }
             .padding(20)
@@ -447,10 +431,8 @@ struct TripColorPickerSheet: View {
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
-                    Button("Done") {
-                        dismiss()
-                    }
-                    .font(.system(size: 17, weight: .semibold, design: .rounded))
+                    Button("Done") { dismiss() }
+                        .font(.system(size: 17, weight: .semibold, design: .rounded))
                 }
             }
         }
