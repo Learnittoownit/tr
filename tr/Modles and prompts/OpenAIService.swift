@@ -417,7 +417,7 @@ class OpenAIService {
 
         case .firstVisit:
             return """
-            You are an expert Saudi Arabia travel curator. Build an itinerary for someone visiting \(city) FOR THE FIRST TIME.
+            You are an expert Saudi Arabia travel curator. Build an itinerary for someone visiting \(city) FOR THE VERY FIRST TIME.
 
             \(sharedRules)\(companionBlock)\(curatedBlock)\(aiBlock)
 
