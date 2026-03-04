@@ -94,7 +94,7 @@ class AI_Questionnaire_Model: ObservableObject {
     @Published var generationErrorMessage: String = ""
 
     // MARK: - PROTECTED Counter with iCloud Keychain
-    private let keychainGenerationsKey = "ai_remaining_v4"
+    private let keychainGenerationsKey = "ai_remaining_v6"
     private let keychainMonthYearKey = "ai_month_year_v3"
     private let keychainInitializedKey = "ai_initialized_v3"
     private let maxGenerationsPerMonth = 5
@@ -342,9 +342,11 @@ class AI_Questionnaire_Model: ObservableObject {
                 let budget      = selectedBudget?.title ?? "Mid-Range"
                 let companions  = selectedCompanion?.title ?? ""
                 let service     = OpenAIService()
+                let totalDays   = Int(numberOfDays)
 
                 // ── Pass 1: Generate the plan ─────────────────────────────
-                await animateTo(progress: 0.40, step: "Crafting your itinerary...", duration: 0.8)
+                // Day 1 starts — API call is the real work happening here
+                await animateTo(progress: 0.20, step: "Building Day 1 of \(totalDays)...", duration: 0.5)
 
                 let rawPlan = try await service.generatePlan(
                     prompt: prompt,
@@ -356,6 +358,22 @@ class AI_Questionnaire_Model: ObservableObject {
                 )
 
                 print("Pass 1 complete")
+
+                // ── API returned — mark Day 1 done, advance remaining days ─
+                // Each day gets a real 1.5s pause so it feels like genuine work
+                await animateTo(progress: 0.30, step: "Building Day 1 of \(totalDays)...", duration: 0.4)
+
+                if totalDays > 1 {
+                    let progressPerDay = 0.35 / Double(totalDays - 1)
+                    for day in 2...totalDays {
+                        let target = 0.30 + progressPerDay * Double(day - 1)
+                        await animateTo(progress: target - progressPerDay * 0.5,
+                                        step: "Building Day \(day) of \(totalDays)...", duration: 0.5)
+                        try? await Task.sleep(nanoseconds: 1_500_000_000) // 1.5s real pause per day
+                        await animateTo(progress: target,
+                                        step: "Building Day \(day) of \(totalDays)...", duration: 0.4)
+                    }
+                }
 
                 // ── Pass 2: Geo-filter — cluster each day by zone ─────────
                 await animateTo(progress: 0.70, step: "Optimizing locations for you...", duration: 0.6)

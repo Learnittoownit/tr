@@ -15,7 +15,6 @@ struct AI_PrePage: View {
     struct InfoRow: View {
         let icon: String
         let text: String
-        @Environment(\.colorScheme) var colorScheme
 
         var body: some View {
             HStack(spacing: 12) {
@@ -23,11 +22,9 @@ struct AI_PrePage: View {
                     .font(.system(size: 16, weight: .semibold))
                     .foregroundColor(Color("Green"))
                     .frame(width: 24, height: 24)
-
                 Text(text)
                     .font(.system(size: 15, weight: .medium, design: .rounded))
                     .foregroundColor(Color("Light small text"))
-
                 Spacer()
             }
         }
@@ -46,6 +43,7 @@ struct AI_PrePage: View {
                 )
             } else {
                 VStack(spacing: 0) {
+
                     Spacer()
 
                     // ── HERO SECTION ─────────────────────────────────────
@@ -74,7 +72,7 @@ struct AI_PrePage: View {
                             .foregroundColor(Color("Title"))
                             .multilineTextAlignment(.center)
 
-                        Text("Let our AI create the perfect itinerary just for you!")
+                        Text("Let our AI create the perfect itinerary just for you!").bold()
                             .font(.system(size: 16, weight: .regular, design: .rounded))
                             .foregroundColor(Color("Light small text"))
                             .multilineTextAlignment(.center)
@@ -83,7 +81,7 @@ struct AI_PrePage: View {
                             .padding(.horizontal, 40)
                     }
 
-                    Spacer().frame(height: 32)
+                    Spacer()
 
                     // ── COUNTER CARD ──────────────────────────────────────
                     VStack(spacing: 8) {
@@ -91,16 +89,13 @@ struct AI_PrePage: View {
                             Text("\(viewModel.remainingGenerations)")
                                 .font(.system(size: 48, weight: .bold, design: .rounded))
                                 .foregroundColor(Color("Green"))
-
                             Text("/")
                                 .font(.system(size: 28, weight: .medium, design: .rounded))
                                 .foregroundColor(Color("Light small text").opacity(0.4))
-
                             Text("5")
                                 .font(.system(size: 28, weight: .semibold, design: .rounded))
                                 .foregroundColor(Color("Light small text").opacity(0.6))
                         }
-
                         Text("Generations remaining this month")
                             .font(.system(size: 14, weight: .medium, design: .rounded))
                             .foregroundColor(Color("Light small text"))
@@ -113,9 +108,9 @@ struct AI_PrePage: View {
                         RoundedRectangle(cornerRadius: 24)
                             .stroke(Color("Card").opacity(0.15), lineWidth: 2)
                     )
-                    .padding(.horizontal, 24)
+                    .padding(.horizontal, 30)
 
-                    Spacer().frame(height: 16)
+                    Spacer()
 
                     // ── INFO ROWS ─────────────────────────────────────────
                     VStack(spacing: 16) {
@@ -124,11 +119,13 @@ struct AI_PrePage: View {
                         InfoRow(icon: "arrow.clockwise",    text: "Resets monthly")
                     }
                     .padding(.horizontal, 36)
-                    .padding(.vertical, 20)
+                    .padding(.top, 30)
 
                     Spacer()
-
-                    // ── BOTTOM BUTTONS ────────────────────────────────────
+                    Spacer()
+                }
+                .safeAreaInset(edge: .bottom) {
+                    // ── BUTTONS ANCHORED TO BOTTOM ────────────────────────
                     VStack(spacing: 12) {
                         Button(action: {
                             if viewModel.remainingGenerations > 0 {
@@ -171,8 +168,9 @@ struct AI_PrePage: View {
                                 .cornerRadius(26)
                         }
                     }
-                    .padding(.horizontal, 24)
-                    .padding(.bottom, 40)
+                    .padding(.horizontal, 30)
+                    .padding(.vertical, 10)
+                    .background(Color("Background"))
                 }
             }
         }

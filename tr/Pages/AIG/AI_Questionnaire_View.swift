@@ -90,12 +90,13 @@ struct AI_Questionnaire_View: View {
                         }
                         .padding(.horizontal, 30)
                         .padding(.top, 40)
-                        .padding(.bottom, 20)
+                        .padding(.bottom, 80)
                     }
-
-                    NavigationButtons(viewModel: viewModel, showPrePage: $showPrePage)
-                        .padding(.horizontal, 30)
-                        .padding(.bottom, 10)
+                    .safeAreaInset(edge: .bottom) {
+                        NavigationButtons(viewModel: viewModel, showPrePage: $showPrePage)
+                            .padding(.horizontal, 30)
+                            .padding(.vertical, 10)
+                    }
                 }
                 .transition(.opacity)
             }
@@ -114,55 +115,140 @@ struct AI_Questionnaire_View: View {
     // MARK: - Loading Screen
     struct LoadingScreen: View {
         @ObservedObject var viewModel: AI_Questionnaire_Model
+        @Environment(\.colorScheme) var colorScheme
+
+        private var totalDays: Int { max(Int(viewModel.numberOfDays), 1) }
+        private var greenColor: Color { Color(red: 0.45, green: 0.6, blue: 0.5) }
+        private var inactiveColor: Color { colorScheme == .dark ? Color(white: 0.35) : Color(white: 0.65) }
+        private var trackColor: Color { colorScheme == .dark ? Color(red: 0.85, green: 0.82, blue: 0.8).opacity(0.25) : Color(red: 0.85, green: 0.82, blue: 0.8) }
+
+        private var currentBuildingDay: Int {
+            if viewModel.generationStep.hasPrefix("Building Day ") {
+                let parts = viewModel.generationStep.components(separatedBy: " ")
+                if parts.count >= 3, let day = Int(parts[2]) { return day }
+            }
+            if viewModel.generationProgress >= 0.70 { return totalDays }
+            return 1
+        }
 
         var body: some View {
             VStack(spacing: 0) {
+
                 Spacer()
 
-                VStack(spacing: 32) {
+                // ── Title ─────────────────────────────────────────────────
+                VStack(spacing: 12) {
+                    Text("Creating your journey")
+                        .font(.system(size: 28, weight: .bold, design: .rounded))
+                        .foregroundColor(Color("title loading page"))
+                    Text("Our AI is crafting the perfect itinerary\nbased on your preferences!").bold()
+                        .font(.system(size: 16, weight: .regular, design: .rounded))
+                        .foregroundColor(Color("small text loading page"))
+                        .multilineTextAlignment(.center)
+                        .lineSpacing(4)
+                }
+                .padding(.horizontal, 40)
+
+                Spacer().frame(height: 48)
+
+                // ── Circle ────────────────────────────────────────────────
+                ZStack {
+                    Circle()
+                        .stroke(trackColor, lineWidth: 12)
+                        .frame(width: 280, height: 280)
+
+                    Circle()
+                        .trim(from: 0, to: viewModel.generationProgress)
+                        .stroke(greenColor, style: StrokeStyle(lineWidth: 12, lineCap: .round))
+                        .frame(width: 280, height: 280)
+                        .rotationEffect(.degrees(-90))
+                        .animation(.easeInOut(duration: 0.5), value: viewModel.generationProgress)
+
                     VStack(spacing: 12) {
-                        Text("Creating your journey")
-                            .font(.system(size: 28, weight: .bold, design: .rounded))
-                            .foregroundColor(Color("title loading page"))
-                        Text("Our AI is crafting the perfect itinerary\nbased on your preferences!")
+                        Text("\(Int(viewModel.generationProgress * 100))%")
+                            .font(.system(size: 64, weight: .bold, design: .rounded))
+                            .foregroundColor(greenColor)
+
+                        Text(viewModel.generationStep)
                             .font(.system(size: 16, weight: .regular, design: .rounded))
                             .foregroundColor(Color("small text loading page"))
                             .multilineTextAlignment(.center)
-                            .lineSpacing(4)
+                            .padding(.horizontal, 50)
                     }
-                    .padding(.horizontal, 40)
-
-                    ZStack {
-                        Circle()
-                            .stroke(Color(red: 0.85, green: 0.82, blue: 0.8), lineWidth: 12)
-                            .frame(width: 280, height: 280)
-
-                        Circle()
-                            .trim(from: 0, to: viewModel.generationProgress)
-                            .stroke(
-                                Color(red: 0.45, green: 0.6, blue: 0.5),
-                                style: StrokeStyle(lineWidth: 12, lineCap: .round)
-                            )
-                            .frame(width: 280, height: 280)
-                            .rotationEffect(.degrees(-90))
-                            .animation(.easeInOut(duration: 0.5), value: viewModel.generationProgress)
-
-                        VStack(spacing: 16) {
-                            Text("\(Int(viewModel.generationProgress * 100))%")
-                                .font(.system(size: 64, weight: .bold, design: .rounded))
-                                .foregroundColor(Color(red: 0.45, green: 0.6, blue: 0.5))
-
-                            Text(viewModel.generationStep)
-                                .font(.system(size: 16, weight: .regular, design: .rounded))
-                                .foregroundColor(Color("small text loading page"))
-                                .multilineTextAlignment(.center)
-                                .padding(.horizontal, 40)
-                        }
-                    }
-                    .padding(.top, 40)
                 }
 
                 Spacer()
+
+                // ── Day Tracker — pinned to bottom ────────────────────────
+                if totalDays > 1 {
+                    VStack(spacing: 0) {
+
+                        // Day label + number for each day
+                        HStack(alignment: .bottom, spacing: 0) {
+                            ForEach(1...totalDays, id: \.self) { day in
+                                VStack(spacing: 2) {
+                                    Text("Day")
+                                        .font(.system(size: 14, weight: .regular, design: .rounded))
+                                        .foregroundColor(
+                                            day <= currentBuildingDay
+                                            ? Color("Button click")
+                                            : Color("Button click").opacity(0.3)
+                                        )
+                                    Text("\(day)")
+                                        .font(.system(size: 30, weight: .bold, design: .rounded))
+                                        .foregroundColor(
+                                            day <= currentBuildingDay
+                                            ? Color("Button click")
+                                            : Color("Button click").opacity(0.3)
+                                        )
+                                }
+                                .frame(maxWidth: .infinity)
+                                .animation(.easeInOut(duration: 0.4), value: currentBuildingDay)
+                            }
+                        }
+                        .padding(.horizontal, 30)
+
+                        Spacer().frame(height: 10)
+
+                        // ── Horizontal progress line ──────────────────────
+                        GeometryReader { geo in
+                            let w = geo.size.width
+                            let dotD: CGFloat = 14
+                            let cellW = w / CGFloat(totalDays)
+                            // Dot center aligns exactly with center of current day column
+                            let dotCenterX = cellW * (CGFloat(currentBuildingDay) - 0.5)
+                            let fillW = dotCenterX
+
+                            ZStack(alignment: .leading) {
+                                // Track (full grey line)
+                                Rectangle()
+                                    .fill(inactiveColor.opacity(0.4))
+                                    .frame(height: 3)
+                                    .frame(maxWidth: .infinity)
+                                    .offset(y: dotD / 2 - 1.5)
+
+                                // Green filled portion
+                                Rectangle()
+                                    .fill(greenColor)
+                                    .frame(width: max(fillW, 0), height: 3)
+                                    .offset(y: dotD / 2 - 1.5)
+                                    .animation(.easeInOut(duration: 0.5), value: currentBuildingDay)
+
+                                // Green dot — centered exactly under current day number
+                                Circle()
+                                    .fill(greenColor)
+                                    .frame(width: dotD, height: dotD)
+                                    .offset(x: dotCenterX - dotD / 2)
+                                    .animation(.easeInOut(duration: 0.5), value: currentBuildingDay)
+                            }
+                        }
+                        .frame(height: 14)
+                        .padding(.horizontal, 30)
+                    }
+                    .padding(.bottom, 60)
+                } else {
+                    Spacer().frame(height: 60)
+                }
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .background(Color("Background"))
@@ -310,13 +396,13 @@ struct AI_Questionnaire_View: View {
         var body: some View {
             VStack(spacing: 20) {
                 VStack(spacing: 10) {
-                    Text("How well do you know \(cityName)?")
+                    Text("How well do you know \(cityName) city?")
                         .font(.system(size: 30, weight: .bold, design: .rounded))
                         .foregroundColor(Color("Title"))
                         .multilineTextAlignment(.center)
 
                     Text("Your experience shapes your itinerary").bold()
-                        .font(.system(size: 16, weight: .regular, design: .rounded))
+                        .font(.system(size: 18, weight: .regular, design: .rounded))
                         .foregroundColor(Color("Light small text"))
                         .multilineTextAlignment(.center)
                 }
@@ -411,7 +497,7 @@ struct AI_Questionnaire_View: View {
                 let cardWidth = (gridWidth - gridSpacing) / 2
 
                 VStack(spacing: 18) {
-                    VStack(spacing: 8) {
+                    VStack(spacing: 2) {
                         Text("What type of experiences\ninterest you?")
                             .font(.system(size: 27, weight: .bold, design: .rounded))
                             .foregroundColor(Color("Title"))
@@ -420,7 +506,7 @@ struct AI_Questionnaire_View: View {
                             .fixedSize(horizontal: false, vertical: true)
 
                         Text("Select all that apply").bold()
-                            .font(.system(size: 20))
+                            .font(.system(size: 18))
                             .foregroundColor(Color("Light small text"))
                     }
                     .frame(maxWidth: .infinity)
@@ -501,7 +587,7 @@ struct AI_Questionnaire_View: View {
                         .frame(maxWidth: .infinity)
 
                     Text("This helps us personalize your trip!\n").bold()
-                        .font(.system(size: 20, weight: .regular, design: .rounded))
+                        .font(.system(size: 18, weight: .regular, design: .rounded))
                         .foregroundColor(Color("Light small text"))
                         .multilineTextAlignment(.center)
                         .frame(maxWidth: .infinity)
@@ -648,7 +734,7 @@ struct AI_Questionnaire_View: View {
                         .multilineTextAlignment(.center)
 
                     Text("Maximum 7 days\n\n").bold()
-                        .font(.system(size: 20, weight: .regular, design: .rounded))
+                        .font(.system(size: 18, weight: .regular, design: .rounded))
                         .foregroundColor(Color("Light small text"))
                 }
                 .padding(.top, 10)
@@ -677,7 +763,7 @@ struct AI_Questionnaire_View: View {
                         Text("7 Day")
                     }
                     .font(.system(size: 16, weight: .medium, design: .rounded))
-                    .foregroundColor(Color("Light small text"))
+                    .foregroundColor(Color("Green"))
                 }
                 .padding(.horizontal, 20)
 
@@ -731,9 +817,9 @@ struct AI_Questionnaire_View: View {
 
         var body: some View {
             Button(action: action) {
-                VStack(spacing: 6) {
+                VStack(spacing: 2) {
                     Text("\(number)")
-                        .font(.custom("Impact", size: 60))
+                        .font(.custom("Impact", size: 46))
                         .foregroundColor(isSelected ? Color("Green") : numberColor)
 
                     Text(label)
@@ -790,15 +876,14 @@ struct AI_Questionnaire_View: View {
         let text: String
 
         var body: some View {
-            VStack(alignment: .leading, spacing: 2) {
-                Text("PERFECT FOR").font(.system(size: 18, weight: .bold))
+            VStack(alignment: .leading, spacing: 4) {
+                Text("PERFECT FOR")
+                    .font(.system(size: 18, weight: .bold))
                     .foregroundColor(.white)
                 Text(text)
                     .font(.system(size: 15, weight: .medium))
                     .foregroundColor(.white)
                     .fixedSize(horizontal: false, vertical: true)
-                    .padding(.horizontal, 10)
-                    .padding(.vertical, 5)
             }
             .padding(20)
             .frame(maxWidth: .infinity, alignment: .leading)
@@ -822,27 +907,24 @@ struct AI_Questionnaire_View: View {
                         .multilineTextAlignment(.center)
 
                     Text("Choose your ideal pace").bold()
-                        .font(.system(size: 20, weight: .regular, design: .rounded))
+                        .font(.system(size: 18, weight: .regular, design: .rounded))
                         .foregroundColor(Color("Light small text"))
                 }
                 .padding(.top, 10)
                 .padding(.horizontal, 30)
 
-                ScrollView(showsIndicators: false) {
-                    VStack(spacing: 24) {
-                        ForEach(viewModel.paces) { pace in
-                            PaceButton(
-                                pace: pace,
-                                isSelected: viewModel.selectedPace?.id == pace.id
-                            ) {
-                                viewModel.selectedPace = pace
-                            }
+                VStack(spacing: 24) {
+                    ForEach(viewModel.paces) { pace in
+                        PaceButton(
+                            pace: pace,
+                            isSelected: viewModel.selectedPace?.id == pace.id
+                        ) {
+                            viewModel.selectedPace = pace
                         }
                     }
-                    .padding(.top, 30)
-                    .padding(.horizontal, 20)
-                    .padding(.bottom, 10)
                 }
+                .padding(.top, 30)
+                .padding(.bottom, 10)
             }
             .background(Color("Background").ignoresSafeArea())
         }
@@ -874,11 +956,12 @@ struct AI_Questionnaire_View: View {
                     LazyVGrid(columns: columns, spacing: 12) {
                         ForEach(pace.tags, id: \.self) { tag in
                             Text(tag)
-                                .font(.system(size: 15, weight: .semibold, design: .rounded))
+                                .font(.system(size: 14, weight: .semibold, design: .rounded))
                                 .foregroundColor(tagTextColor)
-                                .padding(.horizontal, 20)
-                                .padding(.vertical, 10)
+                                .lineLimit(1)
+                                .minimumScaleFactor(0.7)
                                 .frame(maxWidth: .infinity)
+                                .frame(height: 44)
                                 .background(tagBackgroundColor)
                                 .clipShape(Capsule())
                         }
