@@ -18,8 +18,7 @@ enum FamiliarityTier {
 // MARK: - OpenAI Service
 class OpenAIService {
 
-    private let apiKey = APIKeyManager.getOpenAIKey()
-    private let endpoint = "https://api.openai.com/v1/chat/completions"
+    private let endpoint = "https://nameless-surf-4101openai-proxy.9kv8sfs9ss.workers.dev"
 
     // ─────────────────────────────────────────────────────────────────────────
     // MARK: - Curated Place Dataset
@@ -576,7 +575,6 @@ class OpenAIService {
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        request.setValue("Bearer \(apiKey)", forHTTPHeaderField: "Authorization")
         request.httpBody = try JSONSerialization.data(withJSONObject: body)
 
         let (data, response) = try await URLSession.shared.data(for: request)
